@@ -1631,3 +1631,7 @@ window.closeModal = closeModal;
 window.continueSession = continueSession;
 window.logoutUser = logoutUser;
 window.clearHistoryWithCode = clearHistoryWithCode;
+
+</script>
+  <!-- Footer placeholder - will be filled by includes.js -->
+  <div id="site-footer"></div>

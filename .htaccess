@@ -3,6 +3,11 @@ Options -MultiViews
 
 RewriteEngine On
 
+# Handle React Router paths for admin section
+RewriteRule ^admin$ admin-react.html [L]
+RewriteRule ^admin/(.*)$ admin-react.html [L]
+RewriteRule ^login$ login-react.html [L]
+
 # If request is for a real file or directory, serve it
 RewriteCond %{REQUEST_FILENAME} -f [OR]
 RewriteCond %{REQUEST_FILENAME} -d
@@ -17,3 +22,21 @@ RewriteRule ^$ index.html [L]
 
 # Custom 404 error page
 ErrorDocument 404 /404.html
+
+# Set security headers
+<IfModule mod_headers.c>
+  Header set X-Content-Type-Options "nosniff"
+  Header set X-XSS-Protection "1; mode=block"
+  Header set X-Frame-Options "SAMEORIGIN"
+  Header set Referrer-Policy "strict-origin-when-cross-origin"
+  Header set Content-Security-Policy "default-src 'self' https://cdn.prod.website-files.com https://fonts.googleapis.com https://fonts.gstatic.com https://ajax.googleapis.com https://d3e54v103j8qbb.cloudfront.net https://cdnjs.cloudflare.com https://unpkg.com 'unsafe-inline' 'unsafe-eval';"
+</IfModule>
+
+# Prevent directory listing
+Options -Indexes
+
+# Protect sensitive files
+<FilesMatch "^(\.env|\.git|\.htpasswd|config\.php)">
+  Order Allow,Deny
+  Deny from all
+</FilesMatch>

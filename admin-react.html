@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <title>PolityxMap | Admin Portal</title>
+  <meta content="Admin Portal | PolityxMap" name="description"/>
+  <meta content="width=device-width, initial-scale=1" name="viewport"/>
+  <!-- Prevent caching of admin pages -->
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <link href="https://cdn.prod.website-files.com/61113c4e9f23df1e7f554117/css/darktemplate.webflow.eb6e6d95d.css" rel="stylesheet" type="text/css"/>
+  <link href="https://fonts.googleapis.com" rel="preconnect"/>
+  <link crossorigin="anonymous" href="https://fonts.gstatic.com" rel="preconnect"/>
+  <script src="https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js" type="text/javascript"></script>
+  <link href="https://fonts.googleapis.com/css?family=DM+Sans:regular,500,700" media="all" rel="stylesheet"/>
+  <script type="text/javascript">WebFont.load({  google: {    families: ["DM Sans:regular,500,700"]  }});</script>
+  <link href="img/PolityxFavicon.svg" rel="shortcut icon" type="image/x-icon"/>
+  <link href="img/PolityxFavicon.svg" rel="apple-touch-icon"/>
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"/>
+  <!-- Custom Admin CSS -->
+  <link rel="stylesheet" href="admin-custom.css"/>
+  <!-- React and ReactDOM -->
+  <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+  <!-- React Router -->
+  <script src="https://unpkg.com/react-router-dom@6/umd/react-router-dom.development.js" crossorigin></script>
+  <!-- Babel for JSX -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body class="bg-neutral-800">
+  <!-- React Root -->
+  <div id="root"></div>
+  
+  <!-- Auth Debug and Fix Scripts -->
+  <script src="js/auth-debug.js"></script>
+  <script src="js/auth-fix.js"></script>
+  
+  <!-- React Components -->
+  <script type="text/babel" src="js/AuthProvider.js"></script>
+  <script type="text/babel" src="js/ProtectedRoute.js"></script>
+  <script type="text/babel" src="js/AdminLogin.js"></script>
+  <script type="text/babel" src="js/AdminPortal.js"></script>
+  <script type="text/babel" src="js/AdminProposals.js"></script>
+  <script type="text/babel" src="js/AdminUsers.js"></script>
+  <script type="text/babel" src="js/AdminSettings.js"></script>
+  <script type="text/babel" src="js/App.js"></script>
+  
+  <!-- Initialize React App -->
+  <script type="text/babel">
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
+</html>

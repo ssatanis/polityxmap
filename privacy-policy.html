@@ -26,6 +26,8 @@
   <link href="img/PolityxFavicon.svg" rel="shortcut icon" type="image/x-icon"/>
   <link href="https://cdn.prod.website-files.com/61113c4e9f23df1e7f554117/6116f90b9f355e69fa1dcd3a_webclip-dark-template.svg" rel="apple-touch-icon"/>
   <link href="img/PolityxFavicon.svg" rel="apple-touch-icon"/>
+  <!-- Includes script for header and footer -->
+  <script src="includes.js"></script>
   <style>
   .w-webflow-badge{
   display:none !important;
@@ -85,49 +87,9 @@
   </style>
 <script type="text/javascript">window.__WEBFLOW_CURRENCY_SETTINGS = {"currencyCode":"USD","symbol":"$","decimal":".","fractionDigits":2,"group":",","template":"{{wf {\"path\":\"symbol\",\"type\":\"PlainText\"} }} {{wf {\"path\":\"amount\",\"type\":\"CommercePrice\"} }} {{wf {\"path\":\"currencyCode\",\"type\":\"PlainText\"} }}","hideDecimalForWholeNumbers":false};</script></head>
 <body class="bg-neutral-800">
-
 <div class="page-wrapper" style="opacity: 1;">
-  <!-- Header - Same as index.html -->
-  <div class="header w-nav" data-animation="over-left" data-collapse="medium" data-duration="400" data-easing="ease" data-easing2="ease" data-w-id="58db7844-5919-d71b-dd74-2323ed8dffe9" role="banner" style="opacity: 1;">
-    <div class="container-default w-container">
-      <div class="header-wrapper">
-        <div class="split-content header-right">
-          <a aria-current="page" class="brand w-nav-brand w--current" href="/">
-            <img alt="PolityxMap - Logo" class="header-logo" src="img/PolityxMap.svg"/>
-          </a>
-        </div>
-        <div class="split-content header-center">
-          <nav class="nav-menu w-nav-menu" role="navigation">
-            <ul class="header-navigation w-list-unstyled" role="list">
-              <li class="nav-item-wrapper"><a class="nav-link" href="/">Home</a></li>
-              <li class="nav-item-wrapper"><a class="nav-link" href="/proposals.html">Proposals</a></li>
-              <li class="nav-item-wrapper"><a class="nav-link" href="/features">Features</a></li>
-              <li class="nav-item-wrapper"><a class="nav-link" href="/about">About</a></li>
-              <li class="nav-item-wrapper"><a class="nav-link" href="/contribute">Contribute</a></li>
-              <li class="nav-item-wrapper"><a class="nav-link" href="/contact">Contact</a></li>
-            </ul>
-          </nav>
-          <div class="w-commerce-commercecartwrapper cart" data-node-type="commerce-cart-wrapper" data-open-product="" data-wf-cart-type="modal" data-wf-page-link-href-prefix=""></div>
-        </div>
-        <div class="split-content header-left">
-          <a class="nav-link sign-in" href="/login">Sign in</a>
-          <div class="button-primary-gradient header-button">
-            <a class="button-primary small-v2 w-button" href="/get-started">Get started</a>
-          </div>
-          <div aria-controls="w-nav-overlay-0" aria-expanded="false" aria-haspopup="menu" aria-label="menu" class="menu-button w-nav-button" role="button" style="-webkit-user-select: text;" tabindex="0">
-            <div class="header-menu-button-icon-wrapper">
-              <div class="icon-wrapper">
-                <div class="header-menu-button-icon-top"></div>
-                <div class="header-menu-button-icon-medium"></div>
-                <div class="header-menu-button-icon-bottom"></div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-    <div class="w-nav-overlay" data-wf-ignore="" id="w-nav-overlay-0"></div>
-  </div>
+  <!-- Header placeholder - will be filled by includes.js -->
+  <div id="site-header"></div>
   
   <!-- Privacy Policy Content -->
   <section class="privacy-section" style="padding-top: 150px; padding-bottom: 80px;">
@@ -193,31 +155,8 @@
     </div>
   </section>
   
-  <!-- Footer - Same as index.html -->
-  <footer class="footer">
-    <div class="container-default w-container">
-      <div class="footer-content" data-w-id="eeb31b51-83df-fb96-9e65-fcd1067756fb" style="opacity: 1;">
-        <div class="footer-menu-main-content">
-          <div class="footer-menu-wrapper">
-            <div class="title footer-menu">Quick Links</div>
-            <div class="footer-menu-content">
-              <ul class="footer-nav w-list-unstyled" role="list">
-                <li class="footer-nav-item"><a class="footer-nav-link" href="/">Home</a></li>
-                <li class="footer-nav-item"><a class="footer-nav-link" href="/#mapContainer">Map</a></li>
-                <li class="footer-nav-item"><a class="footer-nav-link" href="/policy-proposals">Policy Proposals</a></li>
-                <li class="footer-nav-item"><a class="footer-nav-link" href="/features">Features</a></li>
-                <li class="footer-nav-item"><a class="footer-nav-link" href="/contribute">Contribute</a></li>
-                <li class="footer-nav-item"><a class="footer-nav-link" href="/about.html">About</a></li>
-                <li class="footer-nav-item"><a class="footer-nav-link" href="mailto:info@polityxmap.org">Contact</a></li>
-                <li class="footer-nav-item"><a class="footer-nav-link" href="/terms-and-conditions">Terms and Conditions</a></li>
-              </ul>
-            </div>
-          </div>
-        </div>
-        <div class="footer-newsletter-content">
-          <div class="title footer-menu">Subscribe to our newsletter</div>
-          <p class="paragraph footer-newsletter">Stay up to date with the latest healthcare policy insights and platform updates</p>
-          <div class="footer-newsletter-form-block w-form">
+  <!-- Footer placeholder - will be filled by includes.js -->
+  <div id="site-footer"></div>
             <form aria-label="Footer Newsletter Form" class="footer-newsletter-form" data-name="Footer Newsletter Form" data-wf-element-id="cdaabc30-be14-befc-1b55-798804a1fda8" data-wf-page-id="61113c4e9f23df42e2554109" id="wf-form-Footer-Newsletter-Form" method="get" name="wf-form-Footer-Newsletter-Form">
               <input class="input footer-newsletter w-input" data-name="Email" id="email-newsletter" maxlength="256" name="email" placeholder="Your email address" required="" type="email"/>
               <div class="button-primary-gradient footer-newsletter">

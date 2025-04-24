@@ -74,34 +74,6 @@ document.addEventListener('DOMContentLoaded', async function() {
   }
   
   // Load header and footer
-  await includeHTML('site-header', '/header.html');
-  await includeHTML('site-footer', '/footer.html');
-  
-  // Add event listeners for features links in the footer
-  setTimeout(() => {
-    const footerFeaturesLinks = document.querySelectorAll('.footer-nav-link.features-link');
-    const currentUrl = window.location.pathname;
-    
-    footerFeaturesLinks.forEach(link => {
-      link.addEventListener('click', function(e) {
-        // If on home page, scroll to features section
-        if (currentUrl === '/' || currentUrl.includes('index.html')) {
-          e.preventDefault(); // Only prevent default on home page
-          
-          const featuresSection = document.getElementById('features');
-          if (featuresSection) {
-            // Scroll to features section with offset for header
-            const headerHeight = document.querySelector('.header') ? document.querySelector('.header').offsetHeight : 80;
-            const featuresPosition = featuresSection.getBoundingClientRect().top + window.pageYOffset - headerHeight;
-            
-            window.scrollTo({
-              top: featuresPosition,
-              behavior: 'smooth'
-            });
-          }
-        }
-        // If on another page, let the default link behavior work (href="/#features")
-      });
-    });
-  }, 500); // Small delay to ensure the footer is fully loaded
-}); 
+  await includeHTML('site-header', '/components/header.html');
+  await includeHTML('site-footer', '/components/footer.html');
+});

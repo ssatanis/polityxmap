@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <title>PolityxMap | Admin Login</title>
+  <meta content="Admin Login | PolityxMap" name="description"/>
+  <meta content="width=device-width, initial-scale=1" name="viewport"/>
+  <!-- Prevent caching of login page -->
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <link href="https://cdn.prod.website-files.com/61113c4e9f23df1e7f554117/css/darktemplate.webflow.eb6e6d95d.css" rel="stylesheet" type="text/css"/>
+  <link href="https://fonts.googleapis.com" rel="preconnect"/>
+  <link crossorigin="anonymous" href="https://fonts.gstatic.com" rel="preconnect"/>
+  <script src="https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js" type="text/javascript"></script>
+  <link href="https://fonts.googleapis.com/css?family=DM+Sans:regular,500,700" media="all" rel="stylesheet"/>
+  <script type="text/javascript">WebFont.load({  google: {    families: ["DM Sans:regular,500,700"]  }});</script>
+  <link href="img/PolityxFavicon.svg" rel="shortcut icon" type="image/x-icon"/>
+  <link href="img/PolityxFavicon.svg" rel="apple-touch-icon"/>
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"/>
+  <!-- Custom Admin CSS -->
+  <link rel="stylesheet" href="admin-custom.css"/>
+  <!-- Includes script for header and footer -->
+  <script src="includes.js"></script>
+  <!-- React and ReactDOM -->
+  <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+  <!-- React Router -->
+  <script src="https://unpkg.com/react-router-dom@6/umd/react-router-dom.development.js" crossorigin></script>
+  <!-- Babel for JSX -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    body {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      background-color: #13111A;
+    }
+    
+    .login-container {
+      min-height: calc(100vh - 370px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 100px 20px;
+      flex: 1;
+      margin-top: 60px;
+      position: relative;
+      z-index: 1;
+    }
+    
+    .login-card {
+      background-color: #1E1E2B;
+      border-radius: 20px;
+      max-width: 500px;
+      width: 100%;
+      padding: 40px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    }
+    
+    .login-header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    
+    .login-header h2 {
+      font-size: 28px;
+      color: #fff;
+      margin-bottom: 10px;
+    }
+    
+    .login-header p {
+      color: rgba(255, 255, 255, 0.7);
+      font-size: 16px;
+    }
+    
+    .login-form {
+      margin-bottom: 20px;
+    }
+    
+    .form-group {
+      margin-bottom: 20px;
+    }
+    
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      color: #fff;
+      font-weight: 500;
+    }
+    
+    .login-input {
+      width: 100%;
+      padding: 12px 15px;
+      border-radius: 10px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background-color: rgba(255, 255, 255, 0.05);
+      color: #fff;
+      font-size: 16px;
+      transition: all 0.3s ease;
+    }
+    
+    .login-input:focus {
+      outline: none;
+      border-color: #8A67FF;
+      box-shadow: 0 0 0 2px rgba(138, 103, 255, 0.2);
+    }
+    
+    .login-button {
+      width: 100%;
+      padding: 14px;
+      border-radius: 10px;
+      border: none;
+      background: linear-gradient(135deg, #8A67FF 0%, #38B6FF 100%);
+      color: #fff;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .login-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(138, 103, 255, 0.4);
+    }
+    
+    .login-button:disabled {
+      opacity: 0.7;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+    
+    .login-footer {
+      text-align: center;
+      margin-top: 30px;
+    }
+    
+    .login-back-link {
+      color: rgba(255, 255, 255, 0.7);
+      text-decoration: none;
+      font-size: 14px;
+      transition: color 0.3s ease;
+    }
+    
+    .login-back-link:hover {
+      color: #8A67FF;
+    }
+    
+    .login-error {
+      background-color: rgba(255, 87, 87, 0.1);
+      border-left: 3px solid #FF5757;
+      color: #FF5757;
+      padding: 12px 15px;
+      border-radius: 5px;
+      margin-bottom: 20px;
+      font-size: 14px;
+    }
+    
+    .bg-gradient-blur-wrapper {
+      position: absolute;
+      width: 700px;
+      height: 700px;
+      z-index: 0;
+      opacity: 0.3;
+    }
+    
+    .bg-gradient-blur-circle-1 {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(138, 103, 255, 0.7) 0%, rgba(138, 103, 255, 0) 70%);
+      filter: blur(60px);
+    }
+    
+    .bg-gradient-blur-circle-2 {
+      position: absolute;
+      width: 80%;
+      height: 80%;
+      top: 10%;
+      left: 10%;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(56, 182, 255, 0.7) 0%, rgba(56, 182, 255, 0) 70%);
+      filter: blur(60px);
+    }
+    
+    .bg-gradient-blur-circle-3 {
+      position: absolute;
+      width: 60%;
+      height: 60%;
+      top: 20%;
+      left: 20%;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0) 70%);
+      filter: blur(60px);
+    }
+    
+    .login-top-left {
+      top: -350px;
+      left: -350px;
+    }
+    
+    .login-bottom-right {
+      bottom: -350px;
+      right: -350px;
+    }
+  </style>
+</head>
+<body class="bg-neutral-800">
+  <!-- Header placeholder - will be filled by includes.js -->
+  <div id="site-header"></div>
+  
+  <!-- React Root -->
+  <div id="root"></div>
+  
+  <!-- Background Gradients -->
+  <div class="bg-gradient-blur-wrapper login-top-left">
+    <div class="bg-gradient-blur-circle-3"></div>
+    <div class="bg-gradient-blur-circle-2"></div>
+    <div class="bg-gradient-blur-circle-1"></div>
+  </div>
+  
+  <div class="bg-gradient-blur-wrapper login-bottom-right">
+    <div class="bg-gradient-blur-circle-3"></div>
+    <div class="bg-gradient-blur-circle-2 blue"></div>
+    <div class="bg-gradient-blur-circle-1 purple"></div>
+  </div>
+  
+  <!-- Footer placeholder - will be filled by includes.js -->
+  <div id="site-footer"></div>
+  
+  <!-- Auth Debug and Fix Scripts -->
+  <script src="js/auth-debug.js"></script>
+  <script src="js/auth-fix.js"></script>
+  
+  <!-- React Components -->
+  <script type="text/babel" src="js/AuthProvider.js"></script>
+  <script type="text/babel" src="js/ProtectedRoute.js"></script>
+  <script type="text/babel" src="js/AdminLogin.js"></script>
+  <script type="text/babel" src="js/AdminPortal.js"></script>
+  <script type="text/babel" src="js/AdminProposals.js"></script>
+  <script type="text/babel" src="js/AdminUsers.js"></script>
+  <script type="text/babel" src="js/AdminSettings.js"></script>
+  <script type="text/babel" src="js/App.js"></script>
+  
+  <!-- Initialize React App -->
+  <script type="text/babel">
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
+</html>
