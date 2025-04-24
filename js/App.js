@@ -13,31 +13,30 @@ import AdminUsers from './AdminUsers';
 import AdminSettings from './AdminSettings';
 
 const App = () => {
-  // Activity tracking
+  // Activity tracking for session timeout
   useEffect(() => {
-    const update = () => {
-      if (localStorage.getItem("adminAuthenticated") === "true") {
-        localStorage.setItem("lastActivity", Date.now().toString());
-        console.log("Activity updated:", new Date().toLocaleTimeString());
+    const updateActivity = () => {
+      const authToken = localStorage.getItem('authToken');
+      if (authToken) {
+        localStorage.setItem('authTimestamp', Date.now().toString());
       }
     };
     
-    // Events to track
-    const events = ["click", "mousemove", "keydown", "scroll"];
+    // Events to track for activity
+    const events = ['mousedown', 'mousemove', 'keydown', 'scroll', 'touchstart'];
     
     // Add event listeners
     events.forEach(evt => {
-      window.addEventListener(evt, update);
-      console.log(`Added event listener for ${evt}`);
+      window.addEventListener(evt, updateActivity);
     });
     
     // Initial activity update
-    update();
+    updateActivity();
     
     // Cleanup
     return () => {
       events.forEach(evt => {
-        window.removeEventListener(evt, update);
+        window.removeEventListener(evt, updateActivity);
       });
     };
   }, []);
@@ -68,7 +67,7 @@ const App = () => {
     <Router>
       <Routes>
         {/* Public routes */}
-        <Route path="/login" element={<AdminLogin />} />
+        <Route path="/auth/login" element={<AdminLogin />} />
         
         {/* Protected admin routes */}
         <Route 

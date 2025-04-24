@@ -4,27 +4,31 @@
  */
 
 import React, { useEffect } from 'react';
-import { Navigate, useNavigate } from 'react-router-dom';
+import { Navigate, useNavigate, useLocation } from 'react-router-dom';
 
 export default function ProtectedRoute({ children }) {
   const navigate = useNavigate();
+  const location = useLocation();
   
   // Check authentication on mount and update
   useEffect(() => {
     const checkAuth = () => {
-      const auth = localStorage.getItem('adminAuthenticated');
-      const last = parseInt(localStorage.getItem('lastActivity') || '0', 10);
+      const authToken = localStorage.getItem('authToken');
+      const authTimestamp = parseInt(localStorage.getItem('authTimestamp') || '0', 10);
       const now = Date.now();
       
-      // If not logged in or expired, redirect to login
-      if (auth !== 'true' || now - last > 10 * 60 * 1000) {
+      // If not logged in or expired, redirect to login with redirect param
+      if (!authToken || now - authTimestamp > 10 * 60 * 1000) {
         // Clear localStorage if expired
-        if (auth === 'true' && now - last > 10 * 60 * 1000) {
-          localStorage.removeItem('adminAuthenticated');
-          localStorage.removeItem('lastActivity');
+        if (authToken && now - authTimestamp > 10 * 60 * 1000) {
+          localStorage.removeItem('authToken');
+          localStorage.removeItem('authTimestamp');
+          localStorage.removeItem('adminUserData');
         }
         
-        navigate('/login', { replace: true });
+        // Preserve current path for redirect after login
+        const redirectPath = location.pathname + location.search;
+        navigate(`/auth/login?redirect=${encodeURIComponent(redirectPath)}&timestamp=${now}`, { replace: true });
       }
     };
     
@@ -40,19 +44,22 @@ export default function ProtectedRoute({ children }) {
   }, [navigate]);
   
   // Synchronous check for initial render
-  const auth = localStorage.getItem('adminAuthenticated');
-  const last = parseInt(localStorage.getItem('lastActivity') || '0', 10);
+  const authToken = localStorage.getItem('authToken');
+  const authTimestamp = parseInt(localStorage.getItem('authTimestamp') || '0', 10);
   const now = Date.now();
   
-  // If not logged in or expired, redirect to login
-  if (auth !== 'true' || now - last > 10 * 60 * 1000) {
+  // If not logged in or expired, redirect to login with redirect param
+  if (!authToken || now - authTimestamp > 10 * 60 * 1000) {
     // Clear localStorage if expired
-    if (auth === 'true' && now - last > 10 * 60 * 1000) {
-      localStorage.removeItem('adminAuthenticated');
-      localStorage.removeItem('lastActivity');
+    if (authToken && now - authTimestamp > 10 * 60 * 1000) {
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('authTimestamp');
+      localStorage.removeItem('adminUserData');
     }
     
-    return <Navigate to="/login" replace />;
+    // Preserve current path for redirect after login
+    const redirectPath = location.pathname + location.search;
+    return <Navigate to={`/auth/login?redirect=${encodeURIComponent(redirectPath)}&timestamp=${now}`} replace />;
   }
   
   // Otherwise render admin content

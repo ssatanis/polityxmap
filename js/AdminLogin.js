@@ -4,25 +4,27 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 const AdminLogin = () => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
   
   // Check if already authenticated
   useEffect(() => {
-    const auth = localStorage.getItem("adminAuthenticated");
-    const last = parseInt(localStorage.getItem("lastActivity") || "0", 10);
+    const authToken = localStorage.getItem("authToken");
+    const authTimestamp = parseInt(localStorage.getItem("authTimestamp") || "0", 10);
     const now = Date.now();
     
-    // If authenticated and not expired, redirect to admin
-    if (auth === "true" && (now - last < 10 * 60 * 1000)) {
-      navigate("/admin", { replace: true });
+    // If authenticated and not expired, redirect to original path or admin
+    if (authToken && (now - authTimestamp < 10 * 60 * 1000)) {
+      const redirectPath = new URLSearchParams(location.search).get('redirect') || '/admin';
+      navigate(redirectPath, { replace: true });
     }
-  }, [navigate]);
+  }, [navigate, location.search]);
   
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -31,16 +33,24 @@ const AdminLogin = () => {
     
     // Check against hardcoded password
     if (password === 'Polityx37232') {
-      // Set authentication in localStorage
-      localStorage.setItem("adminAuthenticated", "true");
-      localStorage.setItem("lastActivity", Date.now().toString());
+      // Generate random 32-character token
+      const authToken = Array.from(crypto.getRandomValues(new Uint8Array(32)))
+        .map(b => b.toString(16).padStart(2, '0'))
+        .join('');
       
-      console.log("Login successful, redirecting to /admin");
+      // Set authentication data in localStorage
+      localStorage.setItem("authToken", authToken);
+      localStorage.setItem("authTimestamp", Date.now().toString());
+      localStorage.setItem("adminUserData", JSON.stringify({
+        username: "admin",
+        role: "superadmin"
+      }));
       
-      // Use setTimeout to ensure localStorage is set before navigation
-      setTimeout(() => {
-        navigate("/admin", { replace: true });
-      }, 100);
+      console.log("Login successful");
+      
+      // Redirect to original path or admin
+      const redirectPath = new URLSearchParams(location.search).get('redirect') || '/admin';
+      navigate(redirectPath, { replace: true });
     } else {
       setError('Invalid password');
       setLoading(false);
