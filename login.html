@@ -778,33 +778,21 @@
         // Client-side authentication for demo purposes
         // In a real application, this would be handled server-side
         if (password === 'Polityx37232') {
-          // Successful login
-          errorMessage.style.display = 'none';
-          loginButton.textContent = 'Success!';
+          // clear any old state
+          localStorage.removeItem('polityxMapSession');
+          localStorage.removeItem('isLoggedIn');
           
-          // Set login state in localStorage with 24-hour expiration
-          localStorage.setItem('polityxMapSession', JSON.stringify({
-            isLoggedIn: true,
-            loginTime: Date.now(),
-            expiresAt: Date.now() + (24 * 60 * 60 * 1000), // 24 hours
-            isNewLogin: true
-          }));
+          // set the new keys your admin.html guard is looking for
+          localStorage.setItem('adminAuthenticated', 'true');
+          localStorage.setItem('lastActivity', Date.now().toString());
           
-          localStorage.setItem('isLoggedIn', 'true');
-          
-          // Add login to history
-          const historyLog = JSON.parse(localStorage.getItem('polityxMapHistory') || '[]');
-          historyLog.unshift({
-            action: 'Login',
-            timestamp: Date.now(),
-            details: 'Admin logged in successfully'
-          });
+          // add to your history log as before…
+          const historyLog = JSON.parse(localStorage.getItem('polityxMapHistory')||'[]');
+          historyLog.unshift({ action: 'Login', timestamp: Date.now(), details: 'Admin logged in' });
           localStorage.setItem('polityxMapHistory', JSON.stringify(historyLog));
           
-          // Redirect to admin page after a short delay
-          setTimeout(() => {
-            window.location.href = 'admin.html';
-          }, 500);
+          // redirect with replace so back-button won’t bounce you right back
+          return window.location.replace('admin.html');
         } else {
           // Failed login
           loginButton.disabled = false;

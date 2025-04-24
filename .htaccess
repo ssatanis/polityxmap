@@ -7,6 +7,7 @@ RewriteEngine On
 RewriteRule ^admin$ admin-react.html [L]
 RewriteRule ^admin/(.*)$ admin-react.html [L]
 RewriteRule ^login$ login-react.html [L]
+RewriteRule ^auth/login$ login-react.html [L]
 
 # If request is for a real file or directory, serve it
 RewriteCond %{REQUEST_FILENAME} -f [OR]

@@ -3,65 +3,44 @@
  * Protects admin routes with authentication and session timeout checks
  */
 
-import React, { useEffect } from 'react';
-import { Navigate, useNavigate, useLocation } from 'react-router-dom';
+import React from 'react';
+import { Navigate, useLocation } from 'react-router-dom';
+import { useAuth } from './AuthProvider';
+import AuthService from './auth-service';
 
 export default function ProtectedRoute({ children }) {
-  const navigate = useNavigate();
+  const { isAuthenticated, loading } = useAuth();
   const location = useLocation();
   
-  // Check authentication on mount and update
-  useEffect(() => {
-    const checkAuth = () => {
-      const authToken = localStorage.getItem('authToken');
-      const authTimestamp = parseInt(localStorage.getItem('authTimestamp') || '0', 10);
-      const now = Date.now();
-      
-      // If not logged in or expired, redirect to login with redirect param
-      if (!authToken || now - authTimestamp > 10 * 60 * 1000) {
-        // Clear localStorage if expired
-        if (authToken && now - authTimestamp > 10 * 60 * 1000) {
-          localStorage.removeItem('authToken');
-          localStorage.removeItem('authTimestamp');
-          localStorage.removeItem('adminUserData');
-        }
-        
-        // Preserve current path for redirect after login
-        const redirectPath = location.pathname + location.search;
-        navigate(`/auth/login?redirect=${encodeURIComponent(redirectPath)}&timestamp=${now}`, { replace: true });
-      }
-    };
-    
-    // Check immediately
-    checkAuth();
-    
-    // Set up interval to check periodically
-    const intervalId = setInterval(checkAuth, 30000); // Check every 30 seconds
-    
-    return () => {
-      clearInterval(intervalId);
-    };
-  }, [navigate]);
+  // If still loading auth state, show nothing (or could show a loading spinner)
+  if (loading) {
+    return <div className="admin-loading">Loading...</div>;
+  }
   
-  // Synchronous check for initial render
-  const authToken = localStorage.getItem('authToken');
-  const authTimestamp = parseInt(localStorage.getItem('authTimestamp') || '0', 10);
-  const now = Date.now();
-  
-  // If not logged in or expired, redirect to login with redirect param
-  if (!authToken || now - authTimestamp > 10 * 60 * 1000) {
-    // Clear localStorage if expired
-    if (authToken && now - authTimestamp > 10 * 60 * 1000) {
-      localStorage.removeItem('authToken');
-      localStorage.removeItem('authTimestamp');
-      localStorage.removeItem('adminUserData');
+  // If not authenticated, redirect to login with the current path for redirect after login
+  if (!isAuthenticated) {
+    // Log the redirect for debugging
+    console.log('Not authenticated, redirecting to login');
+    
+    // Clear any expired auth data
+    if (!AuthService.isAuthenticated()) {
+      AuthService.logout();
     }
     
     // Preserve current path for redirect after login
     const redirectPath = location.pathname + location.search;
-    return <Navigate to={`/auth/login?redirect=${encodeURIComponent(redirectPath)}&timestamp=${now}`} replace />;
+    const timestamp = Date.now();
+    
+    // Redirect to login with state to prevent redirect loops
+    return (
+      <Navigate 
+        to={`/auth/login?redirect=${encodeURIComponent(redirectPath)}&timestamp=${timestamp}`} 
+        replace 
+        state={{ from: location, timestamp }}
+      />
+    );
   }
   
-  // Otherwise render admin content
+  // If authenticated, render the protected content
   return children;
 }

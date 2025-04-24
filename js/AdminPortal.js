@@ -5,6 +5,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from './AuthProvider';
 
 const AdminPortal = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -93,20 +94,24 @@ const AdminPortal = () => {
     addToHistoryLog('View Section', `Viewed ${tab}`);
   };
   
+  const { logout } = useAuth();
+  
   const handleLogout = () => {
     // Add logout to history log
     addToHistoryLog('Logout', 'Admin logged out');
     
-    // Clear localStorage
-    localStorage.removeItem("adminAuthenticated");
-    localStorage.removeItem("lastActivity");
+    // Call the logout function from AuthContext
+    logout();
     
     console.log("Logging out, auth data cleared");
     
-    // Use setTimeout to ensure localStorage is cleared before navigation
+    // Use setTimeout to ensure state is updated before navigation
     setTimeout(() => {
       // Navigate to login page
-      navigate('/login', { replace: true });
+      navigate('/auth/login', { 
+        replace: true,
+        state: { loggedOut: true }
+      });
     }, 100);
   };
   

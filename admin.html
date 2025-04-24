@@ -32,30 +32,26 @@
   
   <!-- Authentication Check -->
   <script>
-    // Check if user is authenticated
-    const adminAuthenticated = localStorage.getItem('adminAuthenticated');
-    const lastActivity = localStorage.getItem('lastActivity');
-    
-    // If not authenticated or session expired, redirect to login
-    if (adminAuthenticated !== 'true') {
-      window.location.href = '/login';
-    } else if (lastActivity) {
-      // Check if session has timed out
-      const now = Date.now();
-      const lastActivityTime = parseInt(lastActivity);
-      const timeDiff = now - lastActivityTime;
-      
-      // If more than 10 minutes have passed, redirect to login
-      if (timeDiff > 10 * 60 * 1000) {
+    ;(function(){
+      const auth = localStorage.getItem('adminAuthenticated') === 'true';
+      const last = parseInt(localStorage.getItem('lastActivity')||'0', 10);
+      const now  = Date.now();
+
+      // not logged in → quick redirect
+      if (!auth) {
+        return window.location.replace('login.html');
+      }
+
+      // expired → clear and redirect
+      if (now - last > 10*60*1000) {
         localStorage.removeItem('adminAuthenticated');
         localStorage.removeItem('lastActivity');
-        window.location.href = '/login';
+        return window.location.replace('login.html?expired=true');
       }
-    } else {
-      // No last activity, redirect to login
-      localStorage.removeItem('adminAuthenticated');
-      window.location.href = '/login';
-    }
+
+      // still valid → bump lastActivity
+      localStorage.setItem('lastActivity', now.toString());
+    })();
   </script>
 </head>
 <body class="bg-neutral-800">
@@ -103,7 +99,13 @@
           </a>
         </li>
         <li class="admin-nav-item">
-          <a href="javascript:void(0);" class="admin-nav-link" id="logout-button" onclick="window.location.href='login.html?logout=true'; localStorage.removeItem('polityxMapSession'); localStorage.removeItem('isLoggedIn'); sessionStorage.clear(); return false;">
+          <a href="javascript:void(0);" class="admin-nav-link" id="logout-button" onclick=" 
+              // clear exactly what the guard checks 
+              localStorage.removeItem('adminAuthenticated'); 
+              localStorage.removeItem('lastActivity'); 
+              sessionStorage.clear(); 
+              return window.location.replace('login.html?logout=true'); 
+           ">
             <i class="fas fa-sign-out-alt"></i>
             <span>Logout</span>
           </a>

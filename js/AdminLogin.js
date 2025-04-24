@@ -4,55 +4,73 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
+import { useAuth } from './AuthProvider';
 
 const AdminLogin = () => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const location = useLocation();
+  const { isAuthenticated, login } = useAuth();
+  
+  // Get redirect path from URL params or state
+  const redirectPath = searchParams.get('redirect') || '/admin';
   
   // Check if already authenticated
   useEffect(() => {
-    const authToken = localStorage.getItem("authToken");
-    const authTimestamp = parseInt(localStorage.getItem("authTimestamp") || "0", 10);
-    const now = Date.now();
-    
-    // If authenticated and not expired, redirect to original path or admin
-    if (authToken && (now - authTimestamp < 10 * 60 * 1000)) {
-      const redirectPath = new URLSearchParams(location.search).get('redirect') || '/admin';
-      navigate(redirectPath, { replace: true });
+    if (isAuthenticated) {
+      console.log('Already authenticated, redirecting to:', redirectPath);
+      
+      // Use a timeout to ensure state is fully updated before navigation
+      const redirectTimer = setTimeout(() => {
+        navigate(redirectPath, { 
+          replace: true,
+          state: { 
+            authenticated: true,
+            timestamp: Date.now()
+          }
+        });
+      }, 100);
+      
+      return () => clearTimeout(redirectTimer);
     }
-  }, [navigate, location.search]);
+  }, [isAuthenticated, navigate, redirectPath]);
   
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError('');
     
-    // Check against hardcoded password
-    if (password === 'Polityx37232') {
-      // Generate random 32-character token
-      const authToken = Array.from(crypto.getRandomValues(new Uint8Array(32)))
-        .map(b => b.toString(16).padStart(2, '0'))
-        .join('');
+    try {
+      // Get CSRF token from form (in a real app)
+      // const csrfToken = document.querySelector('input[name="csrf_token"]').value;
       
-      // Set authentication data in localStorage
-      localStorage.setItem("authToken", authToken);
-      localStorage.setItem("authTimestamp", Date.now().toString());
-      localStorage.setItem("adminUserData", JSON.stringify({
-        username: "admin",
-        role: "superadmin"
-      }));
+      // Attempt login
+      const result = await login(password);
       
-      console.log("Login successful");
-      
-      // Redirect to original path or admin
-      const redirectPath = new URLSearchParams(location.search).get('redirect') || '/admin';
-      navigate(redirectPath, { replace: true });
-    } else {
-      setError('Invalid password');
+      if (result.success) {
+        console.log("Login successful, redirecting to:", redirectPath);
+        
+        // Use a timeout to ensure state is fully updated before navigation
+        setTimeout(() => {
+          navigate(redirectPath, { 
+            replace: true,
+            state: { 
+              authenticated: true,
+              timestamp: Date.now()
+            }
+          });
+        }, 100);
+      } else {
+        setError(result.message || 'Invalid password');
+        setLoading(false);
+      }
+    } catch (err) {
+      console.error('Login error:', err);
+      setError('An error occurred during login. Please try again.');
       setLoading(false);
     }
   };
@@ -68,6 +86,9 @@ const AdminLogin = () => {
         {error && <div className="login-error">{error}</div>}
         
         <form onSubmit={handleSubmit} className="login-form">
+          {/* Hidden CSRF token field - would be used in a real app */}
+          {/* <input type="hidden" name="csrf_token" value={generateCsrfToken()} /> */}
+          
           <div className="form-group">
             <label htmlFor="password">Password</label>
             <input
@@ -78,6 +99,7 @@ const AdminLogin = () => {
               required
               className="login-input"
               placeholder="Enter admin password"
+              autoComplete="current-password"
             />
           </div>
           
