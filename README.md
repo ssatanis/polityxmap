@@ -68,3 +68,4 @@ Source URL: https://cdn.prod.website-files.com/61113c4e9f23df1e7f554117/6116f907
 - `components/`: Extracted UI components
 - `metadata.json`: Website metadata (title, description, etc.)
 - `server.js`: Express server with authentication
+# polityxmap
