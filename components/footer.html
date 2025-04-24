@@ -13,7 +13,7 @@
               <li class="footer-nav-item"><a class="footer-nav-link" href="/contribute.html">Contribute</a></li>
               <li class="footer-nav-item"><a class="footer-nav-link" href="/about.html">About</a></li>
               <li class="footer-nav-item"><a class="footer-nav-link" href="mailto:support@polityxmap.org">Contact</a></li>
-              <li class="footer-nav-item"><a class="footer-nav-link" href="#" id="admin-portal-link">Admin Portal</a></li>
+              <li class="footer-nav-item"><a class="footer-nav-link" href="/admin.html">Admin Portal</a></li>
               <li class="footer-nav-item"><a class="footer-nav-link" href="/privacy-policy.html">Privacy Policy</a></li>
               <li class="footer-nav-item"><a class="footer-nav-link" href="/terms-and-conditions.html">Terms and Conditions</a></li>
             </ul>
@@ -55,16 +55,3 @@
     </div>
   </div>
 </footer>
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-  var adminLink = document.getElementById('admin-portal-link');
-  if (adminLink) {
-    adminLink.addEventListener('click', function(e) {
-      e.preventDefault();
-      var token = 'admin_' + Math.random().toString(36).substr(2, 16) + '_' + Date.now();
-      sessionStorage.setItem('adminLoginToken', token);
-      window.location.href = '/login.html?token=' + encodeURIComponent(token);
-    });
-  }
-});
-</script>
