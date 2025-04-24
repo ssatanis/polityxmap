@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PolityxMap Auth Test</title>
+  <style>
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background-color: #13111A;
+      color: white;
+      padding: 20px;
+      line-height: 1.6;
+    }
+    
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background-color: #1C1A24;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    }
+    
+    h1 {
+      color: #8A67FF;
+      margin-bottom: 20px;
+    }
+    
+    .section {
+      margin-bottom: 30px;
+      padding: 20px;
+      background-color: #252330;
+      border-radius: 8px;
+    }
+    
+    .section h2 {
+      margin-top: 0;
+      color: #9B59B6;
+    }
+    
+    button {
+      background: linear-gradient(90deg, #9B59B6, #8A67FF);
+      border: none;
+      color: white;
+      padding: 10px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: bold;
+      margin-right: 10px;
+      margin-bottom: 10px;
+    }
+    
+    button:hover {
+      opacity: 0.9;
+    }
+    
+    pre {
+      background-color: #13111A;
+      padding: 15px;
+      border-radius: 5px;
+      overflow-x: auto;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+    
+    .status {
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+    
+    .status.logged-in {
+      color: #2ECC71;
+    }
+    
+    .status.logged-out {
+      color: #E74C3C;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>PolityxMap Authentication Test</h1>
+    
+    <div class="section">
+      <h2>Current Authentication Status</h2>
+      <div id="auth-status" class="status">Checking...</div>
+      <div id="session-details"></div>
+    </div>
+    
+    <div class="section">
+      <h2>Authentication Actions</h2>
+      <button id="check-auth">Check Auth Status</button>
+      <button id="simulate-login">Simulate Login</button>
+      <button id="simulate-logout">Simulate Logout</button>
+      <button id="clear-auth">Clear Auth Data</button>
+    </div>
+    
+    <div class="section">
+      <h2>Navigation</h2>
+      <button id="go-to-admin">Go to Admin Page</button>
+      <button id="go-to-login">Go to Login Page</button>
+      <button id="go-to-home">Go to Home Page</button>
+    </div>
+    
+    <div class="section">
+      <h2>Session Timeout Test</h2>
+      <p>Current timeout setting: 10 minutes of inactivity</p>
+      <button id="simulate-timeout">Simulate Timeout</button>
+      <div id="timeout-status"></div>
+    </div>
+  </div>
+  
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Initial check
+      checkAuthStatus();
+      
+      // Setup event listeners
+      document.getElementById('check-auth').addEventListener('click', checkAuthStatus);
+      document.getElementById('simulate-login').addEventListener('click', simulateLogin);
+      document.getElementById('simulate-logout').addEventListener('click', simulateLogout);
+      document.getElementById('clear-auth').addEventListener('click', clearAuthData);
+      document.getElementById('go-to-admin').addEventListener('click', () => window.location.href = 'admin.html');
+      document.getElementById('go-to-login').addEventListener('click', () => window.location.href = 'login.html');
+      document.getElementById('go-to-home').addEventListener('click', () => window.location.href = 'index.html');
+      document.getElementById('simulate-timeout').addEventListener('click', simulateTimeout);
+    });
+    
+    function checkAuthStatus() {
+      const authStatus = document.getElementById('auth-status');
+      const sessionDetails = document.getElementById('session-details');
+      
+      const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+      const session = JSON.parse(localStorage.getItem('polityxMapSession') || '{}');
+      
+      if (isLoggedIn && session.isLoggedIn && session.expiresAt > Date.now()) {
+        authStatus.textContent = 'LOGGED IN';
+        authStatus.className = 'status logged-in';
+        
+        // Calculate remaining time
+        const now = Date.now();
+        const expiresIn = Math.floor((session.expiresAt - now) / 1000);
+        const hours = Math.floor(expiresIn / 3600);
+        const minutes = Math.floor((expiresIn % 3600) / 60);
+        const seconds = expiresIn % 60;
+        
+        sessionDetails.innerHTML = `
+          <p><strong>Login Time:</strong> ${new Date(session.loginTime).toLocaleString()}</p>
+          <p><strong>Expires At:</strong> ${new Date(session.expiresAt).toLocaleString()}</p>
+          <p><strong>Session Expires In:</strong> ${hours}h ${minutes}m ${seconds}s</p>
+          <pre>${JSON.stringify(session, null, 2)}</pre>
+        `;
+      } else {
+        authStatus.textContent = 'LOGGED OUT';
+        authStatus.className = 'status logged-out';
+        sessionDetails.innerHTML = `
+          <p>No active session found.</p>
+          <pre>${JSON.stringify(session, null, 2)}</pre>
+        `;
+      }
+    }
+    
+    function simulateLogin() {
+      // Set login state in localStorage with 24-hour expiration
+      localStorage.setItem('polityxMapSession', JSON.stringify({
+        isLoggedIn: true,
+        loginTime: Date.now(),
+        expiresAt: Date.now() + (24 * 60 * 60 * 1000), // 24 hours
+        isNewLogin: true
+      }));
+      
+      localStorage.setItem('isLoggedIn', 'true');
+      
+      // Add login to history
+      const historyLog = JSON.parse(localStorage.getItem('polityxMapHistory') || '[]');
+      historyLog.unshift({
+        action: 'Login',
+        timestamp: Date.now(),
+        details: 'Admin logged in (simulated)'
+      });
+      localStorage.setItem('polityxMapHistory', JSON.stringify(historyLog));
+      
+      checkAuthStatus();
+    }
+    
+    function simulateLogout() {
+      clearAuthData();
+      
+      // Add logout to history
+      const historyLog = JSON.parse(localStorage.getItem('polityxMapHistory') || '[]');
+      historyLog.unshift({
+        action: 'Logout',
+        timestamp: Date.now(),
+        details: 'Admin logged out (simulated)'
+      });
+      localStorage.setItem('polityxMapHistory', JSON.stringify(historyLog));
+      
+      checkAuthStatus();
+    }
+    
+    function clearAuthData() {
+      localStorage.removeItem('polityxMapSession');
+      localStorage.removeItem('isLoggedIn');
+      sessionStorage.clear();
+      
+      // Clear any potential auth cookies
+      document.cookie.split(";").forEach(function(c) {
+        document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+      });
+      
+      checkAuthStatus();
+    }
+    
+    function simulateTimeout() {
+      const timeoutStatus = document.getElementById('timeout-status');
+      timeoutStatus.innerHTML = '<p>Simulating session timeout...</p>';
+      
+      // Get current session
+      const session = JSON.parse(localStorage.getItem('polityxMapSession') || '{}');
+      
+      // Set expiration to 5 seconds from now
+      if (session.isLoggedIn) {
+        session.expiresAt = Date.now() + 5000; // 5 seconds
+        localStorage.setItem('polityxMapSession', JSON.stringify(session));
+        
+        timeoutStatus.innerHTML = '<p>Session will expire in 5 seconds...</p>';
+        
+        // Check auth status every second
+        let countdown = 5;
+        const interval = setInterval(() => {
+          countdown--;
+          timeoutStatus.innerHTML = `<p>Session will expire in ${countdown} seconds...</p>`;
+          
+          if (countdown <= 0) {
+            clearInterval(interval);
+            checkAuthStatus();
+            timeoutStatus.innerHTML = '<p>Session has expired. You should now be logged out.</p>';
+          }
+        }, 1000);
+      } else {
+        timeoutStatus.innerHTML = '<p>No active session to expire.</p>';
+      }
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <title>PolityxMap | Page Not Found</title>
+  <meta content="Page not found - PolityxMap Healthcare Policy Mapping Platform" name="description"/>
+  <meta content="width=device-width, initial-scale=1" name="viewport"/>
+  <link href="https://cdn.prod.website-files.com/61113c4e9f23df1e7f554117/css/darktemplate.webflow.eb6e6d95d.css" rel="stylesheet" type="text/css"/>
+  <link href="https://fonts.googleapis.com" rel="preconnect"/>
+  <link crossorigin="anonymous" href="https://fonts.gstatic.com" rel="preconnect"/>
+  <script src="https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js" type="text/javascript"></script>
+  <link href="https://fonts.googleapis.com/css?family=DM+Sans:regular,500,700" media="all" rel="stylesheet"/>
+  <script type="text/javascript">WebFont.load({  google: {    families: ["DM Sans:regular,500,700"]  }});</script>
+  <link href="img/PolityxFavicon.svg" rel="shortcut icon" type="image/x-icon"/>
+  <link href="img/PolityxFavicon.svg" rel="apple-touch-icon"/>
+  <!-- Includes script for header and footer -->
+  <script src="includes.js"></script>
+  <style>
+    .error-container {
+      min-height: calc(100vh - 80px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 20px;
+    }
+    
+    .error-content {
+      text-align: center;
+      max-width: 600px;
+      width: 100%;
+      padding: 50px 20px;
+      position: relative;
+      z-index: 1;
+    }
+    
+    .error-code {
+      font-size: 180px;
+      font-weight: 700;
+      line-height: 1;
+      margin: 0;
+      background: linear-gradient(135deg, #8A67FF 0%, #38B6FF 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      text-fill-color: transparent;
+      display: inline-block;
+      position: relative;
+    }
+    
+    .error-title {
+      font-size: 32px;
+      font-weight: 700;
+      color: white;
+      margin: 20px 0;
+    }
+    
+    .error-message {
+      font-size: 18px;
+      color: rgba(255, 255, 255, 0.7);
+      margin-bottom: 30px;
+      line-height: 1.6;
+    }
+    
+    .error-buttons {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      margin-top: 30px;
+    }
+    
+    .error-home-button {
+      background: linear-gradient(135deg, #8A67FF 0%, #38B6FF 100%);
+      color: white;
+      font-weight: 500;
+      font-size: 16px;
+      padding: 12px 25px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-decoration: none;
+      display: inline-block;
+    }
+    
+    .error-home-button:hover {
+      box-shadow: 0 5px 15px rgba(138, 103, 255, 0.4);
+      transform: translateY(-2px);
+    }
+    
+    .error-back-button {
+      background-color: transparent;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: white;
+      font-weight: 500;
+      font-size: 16px;
+      padding: 12px 25px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-decoration: none;
+      display: inline-block;
+    }
+    
+    .error-back-button:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+    
+    .error-illustration {
+      margin-bottom: 30px;
+      position: relative;
+      height: 200px;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .error-map-pin {
+      position: absolute;
+      width: 100px;
+      height: 100px;
+      animation: float 3s ease-in-out infinite;
+    }
+    
+    .error-map-pin-shadow {
+      position: absolute;
+      bottom: 0;
+      width: 60px;
+      height: 10px;
+      background-color: rgba(0, 0, 0, 0.2);
+      border-radius: 50%;
+      filter: blur(5px);
+      animation: shadow 3s ease-in-out infinite;
+    }
+    
+    @keyframes float {
+      0%, 100% {
+        transform: translateY(0);
+      }
+      50% {
+        transform: translateY(-15px);
+      }
+    }
+    
+    @keyframes shadow {
+      0%, 100% {
+        transform: scale(1);
+        opacity: 0.4;
+      }
+      50% {
+        transform: scale(0.8);
+        opacity: 0.2;
+      }
+    }
+    
+    .bg-gradient-blur-wrapper {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 0;
+      pointer-events: none;
+    }
+    
+    .bg-gradient-blur-circle-1 {
+      position: absolute;
+      width: 700px;
+      height: 700px;
+      border-radius: 100%;
+      bottom: -300px;
+      left: -100px;
+      background: radial-gradient(circle at center, rgba(138, 103, 255, 0.3) 0%, rgba(138, 103, 255, 0) 70%);
+      filter: blur(60px);
+    }
+    
+    .bg-gradient-blur-circle-2 {
+      position: absolute;
+      width: 600px;
+      height: 600px;
+      border-radius: 100%;
+      bottom: -200px;
+      right: -100px;
+      background: radial-gradient(circle at center, rgba(56, 182, 255, 0.3) 0%, rgba(56, 182, 255, 0) 70%);
+      filter: blur(60px);
+    }
+    
+    @media (max-width: 767px) {
+      .error-code {
+        font-size: 120px;
+      }
+      
+      .error-title {
+        font-size: 24px;
+      }
+      
+      .error-message {
+        font-size: 16px;
+      }
+      
+      .error-buttons {
+        flex-direction: column;
+        gap: 10px;
+      }
+      
+      .error-home-button, .error-back-button {
+        width: 100%;
+        text-align: center;
+      }
+    }
+    
+    .w-webflow-badge {
+      display: none !important;
+    }
+  </style>
+</head>
+<body class="bg-neutral-800">
+  <!-- Header placeholder -->
+  <div id="site-header"></div>
+  
+  <div class="error-container">
+    <div class="error-content">
+      <div class="error-illustration">
+        <div class="error-map-pin-shadow"></div>
+        <svg class="error-map-pin" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" 
+                fill="#8A67FF" stroke="white" stroke-width="1"/>
+          <circle cx="12" cy="9" r="3" fill="white"/>
+        </svg>
+      </div>
+      
+      <h1 class="error-code">404</h1>
+      <h2 class="error-title">Page Not Found</h2>
+      <p class="error-message">
+        Sorry, we couldn't find the page you're looking for. It might have been removed, had its name changed, or is temporarily unavailable. Let's get you back on track.
+      </p>
+      
+      <div class="error-buttons">
+        <a href="/" class="error-home-button">Go to Homepage</a>
+        <a href="javascript:history.back()" class="error-back-button">Go Back</a>
+      </div>
+    </div>
+    
+    <div class="bg-gradient-blur-wrapper">
+      <div class="bg-gradient-blur-circle-1"></div>
+      <div class="bg-gradient-blur-circle-2"></div>
+    </div>
+  </div>
+  
+  <!-- Footer placeholder -->
+  <div id="site-footer"></div>
+  
+  <script src="https://d3e54v103j8qbb.cloudfront.net/js/jquery-3.5.1.min.dc5e7f18c8.js?site=61113c4e9f23df1e7f554117" type="text/javascript" crossorigin="anonymous" integrity="sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0="></script>
+  <script src="https://cdn.prod.website-files.com/61113c4e9f23df1e7f554117/js/webflow.72248eaed.js" type="text/javascript"></script>
+</body>
+</html> 

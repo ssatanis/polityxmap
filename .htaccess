@@ -1,0 +1,19 @@
+# Disable MultiViews to avoid ambiguous matches
+Options -MultiViews
+
+RewriteEngine On
+
+# If request is for a real file or directory, serve it
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# Otherwise, if adding .html makes it a valid file, rewrite internally
+RewriteCond %{DOCUMENT_ROOT}/$1.html -f
+RewriteRule ^([^/]+)/?$ /$1.html [L]
+
+# Specific rule for homepage
+RewriteRule ^$ index.html [L]
+
+# Custom 404 error page
+ErrorDocument 404 /404.html

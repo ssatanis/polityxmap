@@ -1,0 +1,862 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <title>PolityxMap | Login</title>
+  <meta content="Login | PolityxMap" name="description"/>
+  <meta content="width=device-width, initial-scale=1" name="viewport"/>
+  <!-- Prevent caching of login page -->
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <link href="https://cdn.prod.website-files.com/61113c4e9f23df1e7f554117/css/darktemplate.webflow.eb6e6d95d.css" rel="stylesheet" type="text/css"/>
+  <link href="https://fonts.googleapis.com" rel="preconnect"/>
+  <link crossorigin="anonymous" href="https://fonts.gstatic.com" rel="preconnect"/>
+  <script src="https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js" type="text/javascript"></script>
+  <link href="https://fonts.googleapis.com/css?family=DM+Sans:regular,500,700" media="all" rel="stylesheet"/>
+  <script type="text/javascript">WebFont.load({  google: {    families: ["DM Sans:regular,500,700"]  }});</script>
+  <link href="img/PolityxFavicon.svg" rel="shortcut icon" type="image/x-icon"/>
+  <link href="img/PolityxFavicon.svg" rel="apple-touch-icon"/>
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"/>
+  <!-- Includes script for header and footer -->
+  <script src="includes.js"></script>
+  <!-- CryptoJS Library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+  <style>
+    body {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      background-color: #13111A;
+    }
+    
+    .login-container {
+      min-height: calc(100vh - 370px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 100px 20px;
+      flex: 1;
+      margin-top: 60px;
+      position: relative;
+      z-index: 1;
+    }
+    
+    .login-card {
+      background-color: #121212;
+      border-radius: 20px;
+      max-width: 500px;
+      width: 100%;
+      overflow: hidden;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      animation: fadeIn 0.8s ease-out forwards;
+      transform: translateY(20px);
+      opacity: 0;
+    }
+    
+    @keyframes fadeIn {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    .login-card::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 8px;
+      background: linear-gradient(90deg, #9B59B6, #8A67FF);
+      z-index: 1;
+    }
+    
+    .login-header {
+      background-color: #1A1A1A;
+      padding: 30px;
+      border-radius: 20px 20px 0 0;
+      position: relative;
+      margin-top: 8px;
+      text-align: center;
+    }
+    
+    .login-logo {
+      width: 80px;
+      height: 80px;
+      margin: 0 auto 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(155, 89, 182, 0.1);
+      border-radius: 50%;
+      padding: 15px;
+    }
+    
+    .login-logo i {
+      font-size: 40px;
+      color: #9B59B6;
+    }
+    
+    .login-announcement {
+      margin: 20px 0;
+      background: rgba(155, 89, 182, 0.1);
+      border-left: 4px solid #9B59B6;
+      padding: 15px;
+      border-radius: 0 8px 8px 0;
+      text-align: left;
+    }
+    
+    .announcement-badge {
+      display: inline-block;
+      background-color: rgba(155, 89, 182, 0.2);
+      color: #9B59B6;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      padding: 3px 6px;
+      border-radius: 4px;
+      margin-bottom: 8px;
+    }
+    
+    .announcement-text {
+      color: rgba(255, 255, 255, 0.9);
+      font-size: 15px;
+      font-weight: 500;
+    }
+    
+    .login-title {
+      font-weight: 700;
+      font-size: 28px;
+      color: white;
+      margin-bottom: 5px;
+      text-align: center;
+    }
+    
+    .login-content {
+      padding: 30px;
+    }
+    
+    .login-form-field {
+      margin-bottom: 25px;
+      position: relative;
+    }
+    
+    .login-form-label {
+      display: block;
+      color: rgba(255, 255, 255, 0.7);
+      font-size: 14px;
+      font-weight: 500;
+      margin-bottom: 10px;
+    }
+    
+    .login-form-input {
+      width: 100%;
+      background-color: #1A1A1A;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      color: white;
+      font-size: 16px;
+      padding: 15px 20px;
+      padding-right: 45px;
+      transition: all 0.3s ease;
+    }
+    
+    .login-form-input:focus {
+      border-color: #9B59B6;
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(155, 89, 182, 0.2);
+      animation: pulseFocus 1.5s infinite;
+    }
+    
+    @keyframes pulseFocus {
+      0% {
+        box-shadow: 0 0 0 0 rgba(155, 89, 182, 0.4);
+      }
+      70% {
+        box-shadow: 0 0 0 8px rgba(155, 89, 182, 0);
+      }
+      100% {
+        box-shadow: 0 0 0 0 rgba(155, 89, 182, 0);
+      }
+    }
+    
+    .password-toggle {
+      position: absolute;
+      right: 15px;
+      top: 42px;
+      color: rgba(255, 255, 255, 0.5);
+      cursor: pointer;
+      transition: color 0.3s ease;
+    }
+    
+    .password-toggle:hover {
+      color: #9B59B6;
+    }
+    
+    .login-button {
+      width: 100%;
+      padding: 15px;
+      background: linear-gradient(90deg, #9B59B6, #8A67FF);
+      border: none;
+      border-radius: 12px;
+      color: white;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .login-button::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      transition: all 0.6s ease;
+    }
+    
+    .login-button:hover::before {
+      left: 100%;
+    }
+    
+    .login-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 15px rgba(155, 89, 182, 0.3);
+    }
+    
+    .login-button:active {
+      transform: translateY(0);
+    }
+    
+    .login-support {
+      text-align: center;
+      margin-top: 25px;
+      color: rgba(255, 255, 255, 0.5);
+      font-size: 14px;
+    }
+    
+    .login-support a {
+      color: #9B59B6;
+      text-decoration: none;
+      font-weight: 500;
+      transition: all 0.3s ease;
+    }
+    
+    .login-support a:hover {
+      color: #8A67FF;
+      text-decoration: underline;
+    }
+    
+    @media (max-width: 767px) {
+      .login-card {
+        max-width: 100%;
+      }
+    }
+    
+    .w-webflow-badge {
+      display: none !important;
+    }
+    
+    .error-message {
+      color: #FFFFFF; /* Pure white text */
+      background-color: rgba(255, 103, 103, 0.8); /* Slightly more opaque background */
+      border-radius: 6px;
+      padding: 10px;
+      margin-top: 15px;
+      text-align: center;
+      font-size: 14px;
+      font-weight: 600; /* Bolder text for better visibility */
+      transition: all 0.3s ease;
+      display: none;
+      border-left: 4px solid #FF3333;
+      text-shadow: none; /* Removed text shadow for cleaner white text */
+    }
+    
+    .login-support-link {
+      color: #9B59B6;
+      text-decoration: none;
+      font-weight: 500;
+      font-size: 14px;
+      transition: all 0.3s ease;
+    }
+    
+    .login-support-link:hover {
+      color: #8A67FF;
+      text-decoration: underline;
+    }
+    
+    /* Background gradient effects */
+    .bg-gradient-blur-wrapper {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      top: 0;
+      left: 0;
+      overflow: hidden;
+      z-index: 0;
+      opacity: 0.5;
+      pointer-events: none;
+    }
+    
+    .bg-gradient-blur-circle-1 {
+      position: absolute;
+      width: 500px;
+      height: 500px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(155, 89, 182, 0.3) 0%, rgba(155, 89, 182, 0) 70%);
+      top: -250px;
+      right: -100px;
+      filter: blur(50px);
+    }
+    
+    .bg-gradient-blur-circle-2 {
+      position: absolute;
+      width: 600px;
+      height: 600px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(138, 103, 255, 0.2) 0%, rgba(138, 103, 255, 0) 70%);
+      bottom: -300px;
+      left: -200px;
+      filter: blur(60px);
+    }
+    
+    /* Lockout timer */
+    .lockout-timer {
+      text-align: center;
+      margin-top: 15px;
+      color: #FF6767;
+      font-size: 14px;
+      display: none;
+    }
+    
+    /* Attempt counter */
+    .attempt-counter {
+      display: flex;
+      justify-content: center;
+      margin-top: 15px;
+    }
+    
+    .attempt-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background-color: rgba(255, 255, 255, 0.2);
+      margin: 0 3px;
+    }
+    
+    .attempt-dot.used {
+      background-color: #FF6767;
+    }
+    
+    /* Logout Success Card Styles */
+    .logout-success-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(19, 17, 26, 0.85);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+      opacity: 0;
+      transition: opacity 0.5s ease;
+      backdrop-filter: blur(8px);
+    }
+    
+    .logout-success-card {
+      background: linear-gradient(135deg, #1E1A2B 0%, #13111A 100%);
+      border-radius: 16px;
+      padding: 40px;
+      width: 90%;
+      max-width: 450px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3), 
+                  0 0 80px rgba(128, 83, 255, 0.1),
+                  0 0 20px rgba(128, 83, 255, 0.1) inset;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+      transform: translateY(30px);
+      opacity: 0;
+      transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), 
+                  opacity 0.6s ease;
+      border: 1px solid rgba(128, 83, 255, 0.1);
+    }
+    
+    .logout-success-card.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+    
+    .logout-success-overlay.show {
+      opacity: 1;
+    }
+    
+    .logout-success-icon {
+      width: 80px;
+      height: 80px;
+      background: linear-gradient(135deg, #8053FF 0%, #6D45D9 100%);
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin: 0 auto 24px;
+      box-shadow: 0 10px 20px rgba(128, 83, 255, 0.3);
+      position: relative;
+      animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+      0% {
+        box-shadow: 0 0 0 0 rgba(128, 83, 255, 0.5);
+      }
+      70% {
+        box-shadow: 0 0 0 15px rgba(128, 83, 255, 0);
+      }
+      100% {
+        box-shadow: 0 0 0 0 rgba(128, 83, 255, 0);
+      }
+    }
+    
+    .logout-success-icon i {
+      color: white;
+      font-size: 36px;
+    }
+    
+    .logout-success-title {
+      font-size: 28px;
+      font-weight: 700;
+      color: white;
+      margin-bottom: 16px;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 0.5s ease 0.2s, transform 0.5s ease 0.2s;
+    }
+    
+    .logout-success-message {
+      font-size: 16px;
+      color: rgba(255, 255, 255, 0.7);
+      margin-bottom: 32px;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 0.5s ease 0.3s, transform 0.5s ease 0.3s;
+    }
+    
+    .logout-success-card.show .logout-success-title,
+    .logout-success-card.show .logout-success-message {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    
+    .logout-success-button {
+      background: linear-gradient(135deg, #8053FF 0%, #6D45D9 100%);
+      color: white;
+      border: none;
+      padding: 14px 32px;
+      border-radius: 30px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      box-shadow: 0 8px 16px rgba(128, 83, 255, 0.3);
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 0.5s ease 0.4s, transform 0.5s ease 0.4s, 
+                  box-shadow 0.3s ease, background 0.3s ease;
+    }
+    
+    .logout-success-card.show .logout-success-button {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    
+    .logout-success-button:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 12px 20px rgba(128, 83, 255, 0.4);
+      background: linear-gradient(135deg, #8E63FF 0%, #7D55E9 100%);
+    }
+    
+    .logout-success-button:active {
+      transform: translateY(0);
+      box-shadow: 0 5px 10px rgba(128, 83, 255, 0.3);
+    }
+    
+    .bg-gradient-circle {
+      position: absolute;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(128, 83, 255, 0.2) 0%, rgba(128, 83, 255, 0) 70%);
+      animation: float 8s infinite ease-in-out;
+    }
+    
+    .bg-gradient-circle-1 {
+      width: 300px;
+      height: 300px;
+      top: -150px;
+      right: -150px;
+      animation-delay: 0s;
+    }
+    
+    .bg-gradient-circle-2 {
+      width: 200px;
+      height: 200px;
+      bottom: -100px;
+      left: -100px;
+      animation-delay: 2s;
+    }
+    
+    @keyframes float {
+      0%, 100% {
+        transform: translateY(0) scale(1);
+      }
+      50% {
+        transform: translateY(-20px) scale(1.05);
+      }
+    }
+    
+    @media (max-width: 767px) {
+      .logout-success-card {
+        padding: 30px;
+        max-width: 350px;
+      }
+      
+      .logout-success-icon {
+        width: 70px;
+        height: 70px;
+      }
+      
+      .logout-success-title {
+        font-size: 24px;
+      }
+    }
+  </style>
+</head>
+<body class="bg-neutral-800">
+  <!-- Header placeholder -->
+  <div id="site-header"></div>
+  
+  <div class="login-container">
+    <!-- Background effects -->
+    <div class="bg-gradient-blur-wrapper">
+      <div class="bg-gradient-blur-circle-1"></div>
+      <div class="bg-gradient-blur-circle-2"></div>
+    </div>
+    
+    <div class="login-card">
+      <div class="login-header">
+        <div class="login-logo">
+          <i class="fas fa-shield-alt"></i>
+        </div>
+        <h1 class="login-title">Sign In</h1>
+      </div>
+      
+      <div class="login-content">
+        <form id="login-form">
+          <div class="login-form-field">
+            <label for="password" class="login-form-label">Password</label>
+            <input type="password" id="password" class="login-form-input" placeholder="Enter admin password" required>
+            <span class="password-toggle" id="password-toggle">
+              <i class="far fa-eye"></i>
+            </span>
+          </div>
+          
+          <div id="error-message" class="error-message"></div>
+          <div id="lockout-timer" class="lockout-timer"></div>
+          
+          <div class="attempt-counter" id="attempt-counter">
+            <div class="attempt-dot"></div>
+            <div class="attempt-dot"></div>
+            <div class="attempt-dot"></div>
+            <div class="attempt-dot"></div>
+            <div class="attempt-dot"></div>
+          </div>
+          
+          <button type="submit" class="login-button" id="login-button" style="margin-top: 20px;">Sign In</button>
+          
+          <div class="login-support">
+            <span>Need help? <a href="mailto:support@polityxmap.org">Contact support!</a></span>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Footer placeholder -->
+  <div id="site-footer"></div>
+  
+  <!-- Logout Success Card -->
+  <div class="logout-success-overlay" id="logout-success-overlay" style="display: none;">
+    <div class="logout-success-card" id="logout-success-card">
+      <div class="bg-gradient-circle bg-gradient-circle-1"></div>
+      <div class="bg-gradient-circle bg-gradient-circle-2"></div>
+      
+      <div class="logout-success-icon">
+        <i class="fas fa-check"></i>
+      </div>
+      
+      <h2 class="logout-success-title">Successfully Logged Out</h2>
+      <p class="logout-success-message">Thank you for using PolityxMap Admin Portal. You have been securely logged out of your account.</p>
+      
+      <a href="index.html" class="logout-success-button">
+        Return to Home
+      </a>
+    </div>
+  </div>
+  
+  <script src="https://d3e54v103j8qbb.cloudfront.net/js/jquery-3.5.1.min.dc5e7f18c8.js?site=61113c4e9f23df1e7f554117" type="text/javascript" crossorigin="anonymous" integrity="sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0="></script>
+  <script src="https://cdn.prod.website-files.com/61113c4e9f23df1e7f554117/js/webflow.72248eaed.js" type="text/javascript"></script>
+  
+  <script>
+    // Function to show the beautiful logout success card
+    function showLogoutSuccessCard() {
+      const overlay = document.getElementById('logout-success-overlay');
+      const card = document.getElementById('logout-success-card');
+      
+      // Show the overlay first
+      overlay.style.display = 'flex';
+      
+      // Trigger reflow to ensure transitions work
+      void overlay.offsetWidth;
+      
+      // Add show classes to trigger animations
+      overlay.classList.add('show');
+      setTimeout(() => {
+        card.classList.add('show');
+      }, 100);
+      
+      // Add click event to close when clicking outside the card
+      overlay.addEventListener('click', function(e) {
+        if (e.target === overlay) {
+          hideLogoutSuccessCard();
+        }
+      });
+      
+      // Add escape key to close
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+          hideLogoutSuccessCard();
+        }
+      });
+    }
+    
+    // Function to hide the logout success card
+    function hideLogoutSuccessCard() {
+      const overlay = document.getElementById('logout-success-overlay');
+      const card = document.getElementById('logout-success-card');
+      
+      card.classList.remove('show');
+      overlay.classList.remove('show');
+      
+      // Wait for animations to complete before hiding
+      setTimeout(() => {
+        overlay.style.display = 'none';
+      }, 500);
+    }
+    
+    document.addEventListener('DOMContentLoaded', function() {
+      // Clear any potential auth cookies from client side
+      function clearAllCookies() {
+        document.cookie.split(";").forEach(function(c) {
+          document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/");
+        });
+      }
+      
+      // Check for logout parameter and clear session data
+      if (window.location.href.includes('logout=') || 
+          window.location.href.includes('expired=') || 
+          window.location.href.includes('error=')) {
+        // Clear all client-side auth data
+        localStorage.removeItem('polityxMapSession');
+        localStorage.removeItem('isLoggedIn');
+        sessionStorage.clear();
+        clearAllCookies();
+        
+        // Add logout to history
+        try {
+          const historyLog = JSON.parse(localStorage.getItem('polityxMapHistory') || '[]');
+          historyLog.unshift({
+            action: 'Logout',
+            timestamp: Date.now(),
+            details: 'Admin logged out'
+          });
+          localStorage.setItem('polityxMapHistory', JSON.stringify(historyLog));
+        } catch (e) {
+          console.error("Error updating history log:", e);
+        }
+        
+        // Show beautiful logout success card
+        showLogoutSuccessCard();
+      }
+      
+      // Password toggle functionality
+      const passwordToggle = document.getElementById('password-toggle');
+      const passwordInput = document.getElementById('password');
+      
+      passwordToggle.addEventListener('click', function() {
+        const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+        passwordInput.setAttribute('type', type);
+        
+        // Toggle icon
+        const icon = passwordToggle.querySelector('i');
+        icon.classList.toggle('fa-eye');
+        icon.classList.toggle('fa-eye-slash');
+      });
+      
+      // Login form submission
+      const loginForm = document.getElementById('login-form');
+      const errorMessage = document.getElementById('error-message');
+      const loginButton = document.getElementById('login-button');
+      const lockoutTimer = document.getElementById('lockout-timer');
+      const attemptCounter = document.getElementById('attempt-counter');
+      
+      // Login attempt tracking
+      let attempts = 0;
+      const maxAttempts = 5;
+      let isLocked = false;
+      let lockoutEnd = 0;
+      
+      // Check if there's an existing lockout
+      const storedLockout = localStorage.getItem('polityxMapLockout');
+      if (storedLockout) {
+        const lockoutData = JSON.parse(storedLockout);
+        if (lockoutData.until > Date.now()) {
+          // Still locked out
+          isLocked = true;
+          lockoutEnd = lockoutData.until;
+          startLockoutTimer();
+        } else {
+          // Lockout expired
+          localStorage.removeItem('polityxMapLockout');
+        }
+      }
+      
+      // Update attempt dots
+      function updateAttemptDots() {
+        const dots = attemptCounter.querySelectorAll('.attempt-dot');
+        dots.forEach((dot, index) => {
+          if (index < attempts) {
+            dot.classList.add('used');
+          } else {
+            dot.classList.remove('used');
+          }
+        });
+      }
+      
+      // Start lockout timer
+      function startLockoutTimer() {
+        loginButton.disabled = true;
+        passwordInput.disabled = true;
+        lockoutTimer.style.display = 'block';
+        
+        const interval = setInterval(() => {
+          const now = Date.now();
+          if (now >= lockoutEnd) {
+            // Lockout finished
+            clearInterval(interval);
+            isLocked = false;
+            attempts = 0;
+            updateAttemptDots();
+            loginButton.disabled = false;
+            passwordInput.disabled = false;
+            lockoutTimer.style.display = 'none';
+            localStorage.removeItem('polityxMapLockout');
+          } else {
+            // Update countdown
+            const secondsLeft = Math.ceil((lockoutEnd - now) / 1000);
+            const minutes = Math.floor(secondsLeft / 60);
+            const seconds = secondsLeft % 60;
+            lockoutTimer.textContent = `Too many failed attempts. Please try again in ${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+          }
+        }, 1000);
+        
+        // Initial update
+        const secondsLeft = Math.ceil((lockoutEnd - Date.now()) / 1000);
+        const minutes = Math.floor(secondsLeft / 60);
+        const seconds = secondsLeft % 60;
+        lockoutTimer.textContent = `Too many failed attempts. Please try again in ${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+      }
+      
+      // Handle form submission
+      loginForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        if (isLocked) {
+          return;
+        }
+        
+        const password = passwordInput.value.trim();
+        loginButton.disabled = true;
+        loginButton.textContent = 'Signing in...';
+        
+        // Client-side authentication for demo purposes
+        // In a real application, this would be handled server-side
+        if (password === 'Polityx37232') {
+          // Successful login
+          errorMessage.style.display = 'none';
+          loginButton.textContent = 'Success!';
+          
+          // Set login state in localStorage with 24-hour expiration
+          localStorage.setItem('polityxMapSession', JSON.stringify({
+            isLoggedIn: true,
+            loginTime: Date.now(),
+            expiresAt: Date.now() + (24 * 60 * 60 * 1000), // 24 hours
+            isNewLogin: true
+          }));
+          
+          localStorage.setItem('isLoggedIn', 'true');
+          
+          // Add login to history
+          const historyLog = JSON.parse(localStorage.getItem('polityxMapHistory') || '[]');
+          historyLog.unshift({
+            action: 'Login',
+            timestamp: Date.now(),
+            details: 'Admin logged in successfully'
+          });
+          localStorage.setItem('polityxMapHistory', JSON.stringify(historyLog));
+          
+          // Redirect to admin page after a short delay
+          setTimeout(() => {
+            window.location.href = 'admin.html';
+          }, 500);
+        } else {
+          // Failed login
+          loginButton.disabled = false;
+          loginButton.textContent = 'Sign In';
+          
+          attempts++;
+          updateAttemptDots();
+          
+          // Check if max attempts reached
+          if (attempts >= maxAttempts) {
+            isLocked = true;
+            lockoutEnd = Date.now() + (5 * 60 * 1000); // 5 minutes lockout
+            
+            // Store lockout in localStorage
+            localStorage.setItem('polityxMapLockout', JSON.stringify({
+              until: lockoutEnd
+            }));
+            
+            startLockoutTimer();
+          }
+          
+          // Show error message
+          errorMessage.textContent = 'Invalid password. Please try again.';
+          errorMessage.style.display = 'block';
+        }
+      });
+      
+      // Initialize attempt dots
+      updateAttemptDots();
+    });
+  </script>
+</body>
+</html>

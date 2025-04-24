@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <title>PolityxMap | Admin Portal</title>
+  <meta content="Admin Portal | PolityxMap" name="description"/>
+  <meta content="width=device-width, initial-scale=1" name="viewport"/>
+  <!-- Prevent caching of admin pages -->
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <link href="https://cdn.prod.website-files.com/61113c4e9f23df1e7f554117/css/darktemplate.webflow.eb6e6d95d.css" rel="stylesheet" type="text/css"/>
+  <link href="https://fonts.googleapis.com" rel="preconnect"/>
+  <link crossorigin="anonymous" href="https://fonts.gstatic.com" rel="preconnect"/>
+  <script src="https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js" type="text/javascript"></script>
+  <link href="https://fonts.googleapis.com/css?family=DM+Sans:regular,500,700" media="all" rel="stylesheet"/>
+  <script type="text/javascript">WebFont.load({  google: {    families: ["DM Sans:regular,500,700"]  }});</script>
+  <link href="img/PolityxFavicon.svg" rel="shortcut icon" type="image/x-icon"/>
+  <link href="img/PolityxFavicon.svg" rel="apple-touch-icon"/>
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"/>
+  <!-- Custom Admin CSS -->
+  <link rel="stylesheet" href="admin-custom.css"/>
+  <!-- Map Component -->
+  <script src="map-component.js"></script>
+  <!-- Includes script for header and footer -->
+  <script src="includes.js"></script>
+  <!-- CryptoJS Library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+  <!-- Admin JS -->
+  <script src="admin.js"></script>
+</head>
+<body class="bg-neutral-800">
+  <!-- Header placeholder -->
+  <div id="site-header"></div>
+  
+  <!-- Main Admin Container -->
+  <div class="admin-container" style="margin-top: 150px;">
+    
+    <!-- Sidebar -->
+    <div class="admin-sidebar">
+      <div class="admin-sidebar-header">
+        <h2 class="admin-sidebar-title">
+          <i class="fas fa-shield-alt"></i>
+          <span>Admin Portal</span>
+        </h2>
+      </div>
+      
+      <ul class="admin-nav">
+        <li class="admin-nav-item">
+          <a href="#" class="admin-nav-link active" data-target="dashboard-section">
+            <i class="fas fa-tachometer-alt"></i>
+            <span>Dashboard</span>
+          </a>
+        </li>
+        <li class="admin-nav-item">
+          <a href="#" class="admin-nav-link" data-target="manage-proposals-section">
+            <i class="fas fa-list"></i>
+            <span>Manage Proposals</span>
+          </a>
+        </li>
+        <li class="admin-nav-item">
+          <a href="#" class="admin-nav-link" data-target="add-proposal-section">
+            <i class="fas fa-plus-circle"></i>
+            <span>Add Proposal</span>
+          </a>
+        </li>
+        
+        <div class="admin-nav-divider"></div>
+        
+        <li class="admin-nav-item">
+          <a href="#" class="admin-nav-link" data-target="history-section">
+            <i class="fas fa-history"></i>
+            <span>History</span>
+          </a>
+        </li>
+        <li class="admin-nav-item">
+          <a href="javascript:void(0);" class="admin-nav-link" id="logout-button" onclick="window.location.href='login.html?logout=true'; localStorage.removeItem('polityxMapSession'); localStorage.removeItem('isLoggedIn'); sessionStorage.clear(); return false;">
+            <i class="fas fa-sign-out-alt"></i>
+            <span>Logout</span>
+          </a>
+        </li>
+      </ul>
+    </div>
+    
+    <!-- Main Content -->
+    <div class="admin-content">
+      <!-- Dashboard Section -->
+      <div id="dashboard-section" class="admin-content-section" style="display: block;">
+        <div class="admin-header">
+          <h1 class="admin-header-title">Dashboard</h1>
+          <div class="admin-header-actions">
+            <!-- Add New Proposal button removed as requested -->
+          </div>
+        </div>
+        
+        <div class="admin-welcome" style="margin-bottom: 30px;">
+          <div class="admin-date" style="color: var(--text-secondary); margin-bottom: 10px; font-size: 14px;">
+            <i class="far fa-calendar-alt"></i> <span id="current-date"></span>
+          </div>
+          <h2 style="font-size: 22px; margin: 0; color: var(--text-primary);">Welcome to the PolityxMap Admin Portal</h2>
+        </div>
+        
+        <!-- Metrics Cards -->
+        <div class="admin-dashboard-grid">
+          <div class="admin-card">
+            <h3 class="admin-card-title">
+              <i class="fas fa-file-medical"></i> Total Proposals
+            </h3>
+            <div class="metric-counter" data-metric="totalProposals">12</div>
+          </div>
+          
+          <div class="admin-card">
+            <h3 class="admin-card-title">
+              <i class="fas fa-map-marker-alt"></i> States Represented
+            </h3>
+            <div class="metric-counter" data-metric="statesRepresented">0</div>
+          </div>
+          
+          <div class="admin-card">
+            <h3 class="admin-card-title">
+              <i class="fas fa-globe-americas"></i> Countries Represented
+            </h3>
+            <div class="metric-counter" data-metric="countriesRepresented">0</div>
+          </div>
+        </div>
+        
+        <!-- Quick Actions Section -->
+        <div class="admin-dashboard-grid" style="margin-top: 30px;">
+          <div class="admin-card">
+            <h3 class="admin-card-title">
+              <i class="fas fa-plus-circle"></i> Quick Actions
+            </h3>
+            <div style="margin-top: 15px;">
+              <button class="admin-header-btn" style="width: 100%; justify-content: center; margin-bottom: 15px;" onclick="document.querySelector('.admin-nav-link[data-target=\'add-proposal-section\']').click()">
+                <i class="fas fa-plus"></i> Add New Proposal
+              </button>
+              <button class="admin-header-btn secondary" style="width: 100%; justify-content: center;" onclick="document.querySelector('.admin-nav-link[data-target=\'manage-proposals-section\']').click()">
+                <i class="fas fa-list"></i> Manage Proposals
+              </button>
+            </div>
+          </div>
+          
+          <div class="admin-card">
+            <h3 class="admin-card-title">
+              <i class="fas fa-info-circle"></i> System Information
+            </h3>
+            <div style="margin-top: 15px; color: var(--text-secondary);">
+              <p style="margin: 5px 0;"><strong>Last Login:</strong> Today, 9:45 AM</p>
+              <p style="margin: 5px 0;"><strong>Server Status:</strong> <span style="color: var(--success-color);">Online</span></p>
+              <p style="margin: 5px 0;"><strong>Database:</strong> <span style="color: var(--success-color);">Connected</span></p>
+              <p style="margin: 5px 0;"><strong>Session Expires:</strong> <span id="session-timer">9:50</span></p>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Manage Proposals Section -->
+      <div id="manage-proposals-section" class="admin-content-section" style="display: none;">
+        <div class="admin-header">
+          <h1 class="admin-header-title">Manage Proposals</h1>
+          <div class="admin-header-actions">
+            <button class="admin-header-btn" onclick="document.querySelector('.admin-nav-link[data-target=\'add-proposal-section\']').click()">
+              <i class="fas fa-plus"></i> Add New Proposal
+            </button>
+          </div>
+        </div>
+        
+        <div class="admin-table-container">
+          <div class="admin-table-header">
+            <h3 class="admin-table-title">
+              <i class="fas fa-heartbeat"></i> Healthcare Policy Proposals
+            </h3>
+          </div>
+          <div class="admin-table-responsive">
+            <table class="admin-table">
+              <thead>
+                <tr>
+                  <th>Title</th>
+                  <th>Location</th>
+                  <th>Tags</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="proposal-table-body">
+                <!-- Proposals will be loaded here -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Add Proposal Section -->
+      <div id="add-proposal-section" class="admin-content-section" style="display: none;">
+        <div class="admin-header">
+          <h1 class="admin-header-title">Add New Proposal</h1>
+        </div>
+        
+        <div class="admin-form-container">
+          <h2 class="admin-form-title">
+            <i class="fas fa-plus-circle"></i> Add New Proposal
+          </h2>
+          
+          <form id="proposal-form">
+            <div class="admin-form-grid">
+              <div class="admin-form-field">
+                <label class="admin-form-label">Full Name *</label>
+                <input type="text" class="admin-form-input" id="proposal-name" required>
+              </div>
+              
+              <div class="admin-form-field">
+                <label class="admin-form-label">Email Address *</label>
+                <input type="email" class="admin-form-input" id="proposal-email" required>
+              </div>
+              
+              <div class="admin-form-field">
+                <label class="admin-form-label">University/Institution *</label>
+                <input type="text" class="admin-form-input" id="proposal-institution" required>
+              </div>
+              
+              <div class="admin-form-field">
+                <label class="admin-form-label">Name of Healthcare Issue *</label>
+                <input type="text" class="admin-form-input" id="proposal-title" required>
+              </div>
+            </div>
+            
+            <div class="admin-form-grid">
+              <div class="admin-form-field">
+                <label class="admin-form-label">City *</label>
+                <input type="text" class="admin-form-input" id="proposal-city" required>
+              </div>
+              
+              <div class="admin-form-field">
+                <label class="admin-form-label">State/Province *</label>
+                <input type="text" class="admin-form-input" id="proposal-state" required>
+              </div>
+              
+              <div class="admin-form-field">
+                <label class="admin-form-label">Country *</label>
+                <input type="text" class="admin-form-input" id="proposal-country" required>
+              </div>
+            </div>
+            
+            <div class="admin-form-grid">
+              <div class="admin-form-field">
+                <label class="admin-form-label">Latitude *</label>
+                <input type="number" step="0.000001" class="admin-form-input" id="proposal-lat" placeholder="(+ is north, - is south)" required>
+              </div>
+              
+              <div class="admin-form-field">
+                <label class="admin-form-label">Longitude *</label>
+                <input type="number" step="0.000001" class="admin-form-input" id="proposal-lng" placeholder="(+ is east, - is west)" required>
+              </div>
+            </div>
+            
+            <div class="admin-form-field">
+              <label class="admin-form-label">Description (150 characters max) *</label>
+              <textarea class="admin-form-textarea" id="proposal-description" maxlength="150" required></textarea>
+            </div>
+            
+            <div class="admin-form-field">
+              <label class="admin-form-label">Background & Reason *</label>
+              <textarea class="admin-form-textarea" id="proposal-background" required></textarea>
+            </div>
+            
+            <div class="admin-form-field">
+              <label class="admin-form-label">Overview of Proposed Policy *</label>
+              <textarea class="admin-form-textarea" id="proposal-overview" required></textarea>
+            </div>
+            
+            <div class="admin-form-field">
+              <label class="admin-form-label">Stakeholders *</label>
+              <textarea class="admin-form-textarea" id="proposal-stakeholders" required></textarea>
+            </div>
+            
+            <div class="admin-form-field">
+              <label class="admin-form-label">Costs & Resource Requirements *</label>
+              <textarea class="admin-form-textarea" id="proposal-costs" required></textarea>
+            </div>
+            
+            <div class="admin-form-field">
+              <label class="admin-form-label">Success Metrics *</label>
+              <textarea class="admin-form-textarea" id="proposal-metrics" required></textarea>
+            </div>
+            
+            <div class="admin-form-field">
+              <label class="admin-form-label">Implementation Timeline *</label>
+              <textarea class="admin-form-textarea" id="proposal-timeline" required></textarea>
+            </div>
+            
+            <div class="admin-form-field">
+              <label class="admin-form-label">Tags *</label>
+              <div class="tag-container" id="proposal-tags">
+                <div class="tag">Healthcare Access <i class="fas fa-times"></i></div>
+                <div class="tag">Maternal Health <i class="fas fa-times"></i></div>
+                <div class="tag">Mental Health <i class="fas fa-times"></i></div>
+                <div class="tag">Rural Health <i class="fas fa-times"></i></div>
+                <div class="tag">Health Equity <i class="fas fa-times"></i></div>
+                <div class="tag">Telehealth <i class="fas fa-times"></i></div>
+                <div class="tag">Urban Health <i class="fas fa-times"></i></div>
+                <div class="tag">Preventative Care <i class="fas fa-times"></i></div>
+              </div>
+              <div style="margin-top: 10px;">
+                <input type="text" class="admin-form-input" id="new-tag" placeholder="Add Tag" style="width: auto; display: inline-block;">
+                <button type="button" class="admin-form-button secondary" id="add-tag-btn" style="margin-left: 10px;">Add Tag</button>
+              </div>
+            </div>
+            
+            <div class="admin-form-actions">
+              <button type="button" class="admin-form-button secondary" id="cancel-proposal-btn">Cancel</button>
+              <button type="submit" class="admin-form-button primary">Submit Proposal</button>
+            </div>
+          </form>
+        </div>
+      </div>
+      
+      <!-- History Section -->
+      <div id="history-section" class="admin-content-section" style="display: none;">
+        <div class="admin-header">
+          <h1 class="admin-header-title">Activity History</h1>
+          <div class="admin-header-actions">
+            <button class="admin-header-btn" id="clear-history-btn">
+              <i class="fas fa-trash"></i> Clear History
+            </button>
+          </div>
+        </div>
+        
+        <div class="admin-card">
+          <h3 class="admin-card-title">
+            <i class="fas fa-history"></i> Admin Activity Log
+          </h3>
+          
+          <div class="history-log" id="history-log">
+            <!-- History items will be loaded here -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Footer placeholder -->
+  <div id="site-footer"></div>
+  
+  <!-- Clear History Modal -->
+  <div id="clear-history-modal" class="modal-overlay">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title"><i class="fas fa-shield-alt"></i> Security Verification</h3>
+      </div>
+      <div class="modal-body">
+        <p>Please enter the security code to clear history:</p>
+        <input type="password" id="clear-history-code" class="admin-form-input" placeholder="Enter security code">
+      </div>
+      <div class="modal-footer">
+        <button id="cancel-clear-history-btn" class="admin-form-button secondary">Cancel</button>
+        <button id="confirm-clear-history-btn" class="admin-form-button">Confirm</button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Authentication Modal -->
+  <div id="auth-modal" class="modal-overlay">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title"><i class="fas fa-lock"></i> Authentication Required</h3>
+      </div>
+      <div class="modal-body">
+        <p>Please enter your admin passcode to edit this proposal.</p>
+        <input type="password" id="auth-password" class="admin-form-input" placeholder="Enter admin password">
+      </div>
+      <div class="modal-footer">
+        <button id="auth-cancel-btn" class="admin-form-button secondary">Cancel</button>
+        <button id="auth-confirm-btn" class="admin-form-button primary">Confirm</button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Delete Confirmation Modal -->
+  <div id="delete-modal" class="modal-overlay">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title"><i class="fas fa-exclamation-triangle"></i> Confirm Deletion</h3>
+      </div>
+      <div class="modal-body">
+        <p>This action cannot be undone. Please enter your admin passcode to confirm.</p>
+        <input type="password" id="delete-password" class="admin-form-input" placeholder="Enter admin password">
+      </div>
+      <div class="modal-footer">
+        <button id="delete-cancel-btn" class="admin-form-button secondary">Cancel</button>
+        <button id="delete-confirm-btn" class="admin-form-button primary">Delete</button>
+      </div>
+    </div>
+  </div>
+  
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Initialize admin functionality
+      let lastActivity = Date.now();
+      const SESSION_TIMEOUT = 10 * 60 * 1000; // 10 minutes in milliseconds
+      
+      // Update activity timestamp on user interaction
+      document.addEventListener('mousemove', () => lastActivity = Date.now());
+      document.addEventListener('keypress', () => lastActivity = Date.now());
+      document.addEventListener('click', () => lastActivity = Date.now());
+      
+      // Set current date
+      const dateElement = document.getElementById('current-date');
+      if (dateElement) {
+        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+        dateElement.textContent = new Date().toLocaleDateString('en-US', options);
+      }
+      
+      // Update session timer
+      const sessionTimerElement = document.getElementById('session-timer');
+      if (sessionTimerElement) {
+        function updateSessionTimer() {
+          const timeLeft = SESSION_TIMEOUT - (Date.now() - lastActivity);
+          if (timeLeft <= 0) {
+            // Session expired, redirect to login
+            window.location.href = '/api/auth/logout';
+            return;
+          }
+          
+          const minutes = Math.floor(timeLeft / 60000);
+          const seconds = Math.floor((timeLeft % 60000) / 1000);
+          sessionTimerElement.textContent = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+          
+          // Warning when less than 1 minute left
+          if (timeLeft < 60000) {
+            sessionTimerElement.style.color = 'var(--danger-color)';
+          } else {
+            sessionTimerElement.style.color = 'var(--text-secondary)';
+          }
+        }
+        
+        // Update timer every second
+        updateSessionTimer();
+        setInterval(updateSessionTimer, 1000);
+      }
+      
+      // Navigation
+      const navLinks = document.querySelectorAll('.admin-nav-link[data-target]');
+      const contentSections = document.querySelectorAll('.admin-content-section');
+      
+      navLinks.forEach(link => {
+        link.addEventListener('click', function(e) {
+          e.preventDefault();
+          
+          // Remove active class from all links
+          navLinks.forEach(l => l.classList.remove('active'));
+          
+          // Add active class to clicked link
+          this.classList.add('active');
+          
+          // Hide all content sections
+          contentSections.forEach(section => {
+            section.style.display = 'none';
+          });
+          
+          // Show the target section
+          const targetId = this.getAttribute('data-target');
+          document.getElementById(targetId).style.display = 'block';
+        });
+      });
+      
+      // Initialize table data
+      const proposalsTableBody = document.getElementById('proposals-table-body');
+      if (proposalsTableBody) {
+        // Sample data - in a real app, this would come from the server
+        const sampleProposals = [
+          {
+            title: 'Rural Healthcare Access Initiative',
+            location: 'Raleigh, United States',
+            tags: ['Healthcare Access', 'Rural Health', 'Telehealth']
+          },
+          {
+            title: 'Expanding Maternal Health Services',
+            location: 'Chicago, United States',
+            tags: ['Maternal Health', 'Health Equity', 'Urban Health']
+          },
+          {
+            title: 'Universal Vaccine Distribution Program',
+            location: 'New Delhi, India',
+            tags: ['Health Equity', 'Preventative Care', 'Rural Health']
+          }
+        ];
+        
+        // Populate table
+        sampleProposals.forEach(proposal => {
+          const row = document.createElement('tr');
+          
+          // Title cell
+          const titleCell = document.createElement('td');
+          titleCell.textContent = proposal.title;
+          row.appendChild(titleCell);
+          
+          // Location cell
+          const locationCell = document.createElement('td');
+          locationCell.textContent = proposal.location;
+          row.appendChild(locationCell);
+          
+          // Tags cell
+          const tagsCell = document.createElement('td');
+          const tagsContainer = document.createElement('div');
+          tagsContainer.className = 'tag-container';
+          proposal.tags.forEach(tag => {
+            const tagElement = document.createElement('div');
+            tagElement.className = 'tag';
+            tagElement.textContent = tag;
+            tagsContainer.appendChild(tagElement);
+          });
+          tagsCell.appendChild(tagsContainer);
+          row.appendChild(tagsCell);
+          
+          // Actions cell
+          const actionsCell = document.createElement('td');
+          actionsCell.innerHTML = `
+            <button class="admin-form-button secondary" style="padding: 5px 10px; margin-right: 5px;">
+              <i class="fas fa-edit"></i>
+            </button>
+            <button class="admin-form-button secondary" style="padding: 5px 10px;">
+              <i class="fas fa-trash"></i>
+            </button>
+          `;
+          row.appendChild(actionsCell);
+          
+          proposalsTableBody.appendChild(row);
+        });
+      }
+    });
+  </script>
+  
+  <!-- Add direct logout script -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Add event listener to logout form
+      const logoutForm = document.getElementById('logoutForm');
+      if (logoutForm) {
+        logoutForm.addEventListener('submit', function(e) {
+          // Clear all session data before redirecting
+          localStorage.removeItem('polityxMapSession');
+          localStorage.removeItem('isLoggedIn');
+          sessionStorage.clear();
+          
+          // Add logout to history
+          try {
+            const historyLog = JSON.parse(localStorage.getItem('polityxMapHistory') || '[]');
+            historyLog.unshift({
+              action: 'Logout',
+              timestamp: Date.now(),
+              details: 'Admin logged out'
+            });
+            localStorage.setItem('polityxMapHistory', JSON.stringify(historyLog));
+          } catch (e) {
+            console.error("Error updating history log:", e);
+          }
+          
+          // Let the form submission continue
+          console.log("Logging out and redirecting to login page...");
+          // Form will continue submission to login.html?logout=true
+        });
+      }
+    });
+  </script>
+</body>
+</html>
