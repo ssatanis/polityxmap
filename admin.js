@@ -622,7 +622,7 @@ function loadHistoryLog() {
       clearHistoryForm.className = 'admin-form-group';
       clearHistoryForm.style.display = 'flex';
       clearHistoryForm.style.alignItems = 'center';
-      clearHistoryForm.style.gap = '10px';
+      clearHistoryForm.style.a = '10px';
       
       const securityCodeInput = document.createElement('input');
       securityCodeInput.type = 'password';
@@ -676,60 +676,80 @@ function getHistoryLog() {
 function loadProposalsForManagement() {
   // Get proposals from localStorage
   const proposals = getProposals();
-  
-  // Get the table body element
   const proposalTableBody = document.getElementById('proposal-table-body');
-  
-  // Clear existing rows
   if (proposalTableBody) {
     proposalTableBody.innerHTML = '';
-    
     // Add rows for each proposal
     proposals.forEach(proposal => {
       const row = document.createElement('tr');
-      
+      // Title
       const titleCell = document.createElement('td');
       titleCell.textContent = proposal.healthcareIssue;
-      
+      row.appendChild(titleCell);
+      // Location
       const locationCell = document.createElement('td');
       locationCell.textContent = `${proposal.city}, ${proposal.state}, ${proposal.country}`;
-      
+      row.appendChild(locationCell);
+      // Tags
       const tagsCell = document.createElement('td');
       if (proposal.tags && Array.isArray(proposal.tags)) {
-        tagsCell.innerHTML = proposal.tags.map(tag => 
-          `<span class="admin-tag">${tag}</span>`
-        ).join('');
+        tagsCell.innerHTML = proposal.tags.map(tag => `<span class='proposal-tag'>${tag}</span>`).join(' ');
       } else {
-        tagsCell.textContent = 'No tags';
+        tagsCell.textContent = '';
       }
-      
+      row.appendChild(tagsCell);
+      // Actions
       const actionsCell = document.createElement('td');
-      actionsCell.classList.add('admin-actions-cell');
-      
       // Edit button
       const editButton = document.createElement('button');
       editButton.classList.add('admin-action-btn', 'edit-btn');
       editButton.innerHTML = '<i class="fas fa-edit"></i>';
       editButton.setAttribute('title', 'Edit Proposal');
-      editButton.addEventListener('click', () => showEditPasswordPrompt(proposal.id));
-      
+      editButton.style.marginRight = '15px';
+      editButton.addEventListener('click', function() {
+        editMode = true;
+        currentProposal = proposal;
+        // Populate form with proposal data
+        const form = document.getElementById('proposal-form');
+        if (form) {
+          form.elements['healthcareIssue'].value = proposal.healthcareIssue;
+          form.elements['city'].value = proposal.city;
+          form.elements['state'].value = proposal.state;
+          form.elements['country'].value = proposal.country;
+          form.elements['latitude'].value = proposal.latitude;
+          form.elements['longitude'].value = proposal.longitude;
+          form.elements['description'].value = proposal.description;
+          form.elements['background'].value = proposal.background;
+          form.elements['policy'].value = proposal.policy;
+          form.elements['stakeholders'].value = proposal.stakeholders;
+          form.elements['costs'].value = proposal.costs;
+        }
+        document.getElementById('add-proposal-section').style.display = 'block';
+        document.getElementById('manage-proposals-section').style.display = 'none';
+        document.getElementById('proposal-form-submit-btn').textContent = 'Update Proposal';
+        document.getElementById('cancel-proposal-btn').style.display = 'inline-block';
+      });
       // Delete button
       const deleteButton = document.createElement('button');
       deleteButton.classList.add('admin-action-btn', 'delete-btn');
       deleteButton.innerHTML = '<i class="fas fa-trash-alt"></i>';
       deleteButton.setAttribute('title', 'Delete Proposal');
-      deleteButton.addEventListener('click', () => showDeleteConfirmation(proposal.id));
-      
+      deleteButton.addEventListener('click', function() {
+        if (confirm('Are you sure you want to delete this proposal?')) {
+          let proposals = getProposals();
+          proposals = proposals.filter(p => p !== proposal);
+          saveProposals(proposals);
+          addToHistory(`${proposal.fullName} deleted ${proposal.healthcareIssue}`, 'delete', proposal);
+          loadProposalsForManagement();
+          showSuccessMessage('Proposal deleted successfully');
+        }
+      });
       actionsCell.appendChild(editButton);
       actionsCell.appendChild(deleteButton);
-      
-      row.appendChild(titleCell);
-      row.appendChild(locationCell);
-      row.appendChild(tagsCell);
       row.appendChild(actionsCell);
-      
       proposalTableBody.appendChild(row);
-  });
+    });
+  }
 }
 
 /**
@@ -793,7 +813,7 @@ function initializeSampleData() {
       longitude: 151.2093,
       description: "Creating a technology-driven mental health hub to provide early intervention and ongoing support for vulnerable populations.",
       background: "Mental health services are under-resourced and difficult to access, particularly for young adults and marginalized communities.",
-      policy: "Establishing a digital-first mental health hub with 24/7 crisis support and integrated care pathways.",
+      policy: "Establishing a digital-first mental health hub with 24/7 Crisis support and integrated care pathways.",
       stakeholders: "Mental health specialists, technology partners, community organizations, educational institutions",
       costs: "$5.1M initial setup, $2.3M annual operations",
       metrics: "60% increase in early interventions, 35% reduction in hospitalization rates for mental health crises",
@@ -1492,38 +1512,79 @@ function loadHistoryLog() {
   // Clear existing entries
   historyContainer.innerHTML = '';
   
-  // Add entries
+  // Add items for each history entry
   historyLog.forEach((entry, index) => {
-    const entryElement = document.createElement('div');
-    entryElement.classList.add('history-entry');
+    const historyItem = document.createElement('div');
+    historyItem.className = 'history-item';
     
-    const entryText = document.createElement('div');
-    entryText.classList.add('history-text');
-    entryText.textContent = entry.action;
+    // Create icon based on action type
+    const historyIcon = document.createElement('div');
+    historyIcon.className = 'history-icon';
     
-    const entryTime = document.createElement('div');
-    entryTime.classList.add('history-time');
-    entryTime.textContent = formatDate(entry.timestamp);
-    
-    entryElement.appendChild(entryText);
-    entryElement.appendChild(entryTime);
-    
-    // Add undo button if the entry has backup data
-    if (entry.backup && entry.actionType) {
-      const undoButton = document.createElement('button');
-      undoButton.classList.add('admin-action-btn', 'undo-btn');
-      undoButton.innerHTML = '<i class="fas fa-undo"></i>';
-      undoButton.title = 'Undo this action';
-      undoButton.addEventListener('click', () => undoAction(index));
-      
-      const actionsDiv = document.createElement('div');
-      actionsDiv.classList.add('history-actions');
-      actionsDiv.appendChild(undoButton);
-      
-      entryElement.appendChild(actionsDiv);
+    let iconClass = '';
+    switch(entry.action) {
+      case 'Login':
+        iconClass = 'fa-sign-in-alt';
+        break;
+      case 'Logout':
+        iconClass = 'fa-sign-out-alt';
+        break;
+      case 'View Section':
+        iconClass = 'fa-eye';
+        break;
+      case 'Add Proposal':
+        iconClass = 'fa-plus-circle';
+        break;
+      case 'Edit Proposal':
+        iconClass = 'fa-edit';
+        break;
+      case 'Delete Proposal':
+        iconClass = 'fa-trash-alt';
+        break;
+      case 'Undo Delete':
+        iconClass = 'fa-undo';
+        break;
+      default:
+        iconClass = 'fa-info-circle';
     }
     
-    historyContainer.appendChild(entryElement);
+    historyIcon.innerHTML = `<i class="fas ${iconClass}"></i>`;
+    
+    // Create content
+    const historyContent = document.createElement('div');
+    historyContent.className = 'history-content';
+    
+    const historyAction = document.createElement('div');
+    historyAction.className = 'history-action';
+    historyAction.textContent = entry.action;
+    
+    const historyDetails = document.createElement('div');
+    historyDetails.className = 'history-details';
+    historyDetails.textContent = entry.details;
+    
+    const historyTime = document.createElement('div');
+    historyTime.className = 'history-time';
+    const date = new Date(entry.timestamp);
+    historyTime.textContent = date.toLocaleString();
+    
+    historyContent.appendChild(historyAction);
+    historyContent.appendChild(historyDetails);
+    historyContent.appendChild(historyTime);
+    
+    // Create undo button for delete actions
+    if (entry.action === 'Delete Proposal' && entry.proposalData) {
+      const undoButton = document.createElement('button');
+      undoButton.className = 'admin-action-btn undo-btn';
+      undoButton.innerHTML = '<i class="fas fa-undo"></i> Undo';
+      undoButton.style.marginTop = '10px';
+      undoButton.addEventListener('click', () => undoDeleteProposal(entry.proposalData, index));
+      historyContent.appendChild(undoButton);
+    }
+    
+    historyItem.appendChild(historyIcon);
+    historyItem.appendChild(historyContent);
+    
+    historyLogContainer.appendChild(historyItem);
   });
 }
 

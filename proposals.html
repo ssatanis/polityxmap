@@ -26,6 +26,11 @@
   <link href="img/PolityxFavicon.svg" rel="apple-touch-icon"/>
   <!-- Includes script for header and footer -->
   <script src="includes.js"></script>
+  <!-- Unified Proposals System -->
+  <script src="proposals.js"></script>
+  <script src="data-migration.js"></script>
+  <!-- Proposals Router Script -->
+  <script src="proposals-router.js"></script>
   <style>
   .w-webflow-badge{
     display:none !important;
@@ -340,6 +345,8 @@
       
       <!-- Proposals Grid -->
       <div class="proposals-grid" id="proposals-container">
+        <!-- Proposals will be loaded here by JavaScript -->
+        
         <!-- Proposal Card 1 -->
         <div class="proposal-card" data-tags="healthcare,rural" data-location="North Carolina" data-title="Rural Healthcare Access Initiative">
           <div class="proposal-tag" style="background-color: rgba(138, 103, 255, 0.2); color: #8A67FF;">Healthcare Access</div>
@@ -411,6 +418,83 @@
           <p>No matching proposals found. Try adjusting your search or filters.</p>
         </div>
       </div>
+      
+      <script src="/proposals.js"></script>
+      <script>
+        // Function to load and display proposals
+        document.addEventListener('DOMContentLoaded', function() {
+          loadAndDisplayProposals();
+        });
+        
+        function loadAndDisplayProposals() {
+          // Get proposals from unified proposals system or localStorage as fallback
+          let proposals = [];
+          if (window.ProposalsSystem) {
+            proposals = window.ProposalsSystem.getProposals();
+          } else {
+            const storedProposals = localStorage.getItem('polityxMapProposals');
+            if (storedProposals) {
+              proposals = JSON.parse(storedProposals);
+            }
+          }
+          
+          // Get the container
+          const container = document.getElementById('proposals-container');
+          if (!container) return;
+          
+          // If no stored proposals, use the existing ones on the page
+          if (proposals.length === 0) return;
+          
+          // Clear the container
+          container.innerHTML = '';
+          
+          // Display each proposal
+          if (proposals.length > 0) {
+            proposals.forEach(proposal => {
+              // Create URL-friendly city slug
+              const citySlug = proposal.slug || proposal.city.toLowerCase().replace(/\s+/g, '-');
+              
+              // Create proposal card
+              const card = document.createElement('a');
+              card.className = 'proposal-card';
+              card.href = `/proposals/${citySlug}.html`;
+              
+              // Determine tag class based on proposal tags
+              let tagClass = 'healthcare';
+              if (proposal.tags && proposal.tags.length > 0) {
+                const tag = proposal.tags[0].toLowerCase();
+                if (tag.includes('maternal')) tagClass = 'maternal';
+                else if (tag.includes('mental')) tagClass = 'mental';
+                else if (tag.includes('pediatric')) tagClass = 'pediatrics';
+                else if (tag.includes('rural')) tagClass = 'rural';
+                else if (tag.includes('urban')) tagClass = 'urban';
+              }
+              
+              // Create card content
+              card.innerHTML = `
+                <div class="proposal-tag ${tagClass}">${proposal.tags ? proposal.tags[0] : 'Healthcare'}</div>
+                <h3 class="proposal-title">${proposal.healthcareIssue || proposal.issue}</h3>
+                <p class="proposal-description">${proposal.description.substring(0, 120)}${proposal.description.length > 120 ? '...' : ''}</p>
+                <div class="proposal-footer">
+                  <div class="proposal-location">${proposal.city}, ${proposal.country || proposal.state}</div>
+                  <div class="proposal-read-more">Read More <span>&rarr;</span></div>
+                </div>
+              `;
+              
+              // Add the card to the container
+              container.appendChild(card);
+            });
+          } else {
+            // Show no results message
+            container.innerHTML = '<div class="no-results"><p>No matching proposals found. Try adjusting your search or filters.</p></div>';
+          }
+        }
+        
+        // Listen for proposal updates
+        window.addEventListener('proposalsUpdated', function() {
+          loadAndDisplayProposals();
+        });
+      </script>
     </div>
   </section>
 

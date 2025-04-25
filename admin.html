@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="utf-8"/>
-  <title>PolityxMap | Admin Portal</title>
+  <title>Admin Portal | PolityxMap</title>
   <meta content="Admin Portal | PolityxMap" name="description"/>
   <meta content="width=device-width, initial-scale=1" name="viewport"/>
   <!-- Prevent caching of admin pages -->
@@ -28,6 +28,9 @@
   <!-- CryptoJS Library -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
   <!-- Admin JS -->
+  <script src="proposals.js"></script>
+  <script src="data-migration.js"></script>
+  <script src="admin-proposals-integration.js"></script>
   <script src="admin.js"></script>
   
   <!-- Authentication Check -->
@@ -214,6 +217,33 @@
               </thead>
               <tbody id="proposal-table-body">
                 <!-- Proposals will be loaded here -->
+                <script>
+                  fetch('proposals-data.json')
+                    .then(response => response.json())
+                    .then(data => {
+                      const tableBody = document.getElementById('proposal-table-body');
+                      data.forEach(proposal => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                          <td>${proposal.issue} in ${proposal.city}, ${proposal.country}</td>
+                          <td>${proposal.city}, ${proposal.state}</td>
+                          <td>${proposal.tags.map(tag => 
+                            `<span class="tag" style="background-color: rgba(138, 103, 255, 0.2); color: #8A67FF; padding: 4px 8px; border-radius: 4px; margin-right: 4px;">${tag}</span>`
+                          ).join('')}</td>
+                          <td>
+                            <button class="admin-header-btn" data-id="${proposal.id}" style="margin-right: 15px;">
+                              <i class="fas fa-edit"></i> Edit
+                            </button>
+                            <button class="admin-header-btn" data-id="${proposal.id}">
+                              <i class="fas fa-trash"></i> Delete
+                            </button>
+                          </td>
+                        `;
+                        tableBody.appendChild(row);
+                      });
+                    })
+                    .catch(error => console.error('Error loading proposals:', error));
+                </script>
               </tbody>
             </table>
           </div>
@@ -250,62 +280,62 @@
               
               <div class="admin-form-field">
                 <label class="admin-form-label">Name of Healthcare Issue *</label>
-                <input type="text" class="admin-form-input" id="proposal-title" required>
+                <input type="text" class="admin-form-input" id="proposal-title" name="healthcareIssue" required>
               </div>
             </div>
             
             <div class="admin-form-grid">
               <div class="admin-form-field">
                 <label class="admin-form-label">City *</label>
-                <input type="text" class="admin-form-input" id="proposal-city" required>
+                <input type="text" class="admin-form-input" id="proposal-city" name="city" required>
               </div>
               
               <div class="admin-form-field">
                 <label class="admin-form-label">State/Province *</label>
-                <input type="text" class="admin-form-input" id="proposal-state" required>
+                <input type="text" class="admin-form-input" id="proposal-state" name="state" required>
               </div>
               
               <div class="admin-form-field">
                 <label class="admin-form-label">Country *</label>
-                <input type="text" class="admin-form-input" id="proposal-country" required>
+                <input type="text" class="admin-form-input" id="proposal-country" name="country" required>
               </div>
             </div>
             
             <div class="admin-form-grid">
               <div class="admin-form-field">
                 <label class="admin-form-label">Latitude *</label>
-                <input type="number" step="0.000001" class="admin-form-input" id="proposal-lat" placeholder="(+ is north, - is south)" required>
+                <input type="number" step="0.000001" class="admin-form-input" id="proposal-lat" name="latitude" placeholder="(+ is north, - is south)" required>
               </div>
               
               <div class="admin-form-field">
                 <label class="admin-form-label">Longitude *</label>
-                <input type="number" step="0.000001" class="admin-form-input" id="proposal-lng" placeholder="(+ is east, - is west)" required>
+                <input type="number" step="0.000001" class="admin-form-input" id="proposal-lng" name="longitude" placeholder="(+ is east, - is west)" required>
               </div>
             </div>
             
             <div class="admin-form-field">
               <label class="admin-form-label">Description (150 characters max) *</label>
-              <textarea class="admin-form-textarea" id="proposal-description" maxlength="150" required></textarea>
+              <textarea class="admin-form-textarea" id="proposal-description" name="description" maxlength="150" required></textarea>
             </div>
             
             <div class="admin-form-field">
               <label class="admin-form-label">Background & Reason *</label>
-              <textarea class="admin-form-textarea" id="proposal-background" required></textarea>
+              <textarea class="admin-form-textarea" id="proposal-background" name="background" required></textarea>
             </div>
             
             <div class="admin-form-field">
               <label class="admin-form-label">Overview of Proposed Policy *</label>
-              <textarea class="admin-form-textarea" id="proposal-overview" required></textarea>
+              <textarea class="admin-form-textarea" id="proposal-overview" name="policy" required></textarea>
             </div>
             
             <div class="admin-form-field">
               <label class="admin-form-label">Stakeholders *</label>
-              <textarea class="admin-form-textarea" id="proposal-stakeholders" required></textarea>
+              <textarea class="admin-form-textarea" id="proposal-stakeholders" name="stakeholders" required></textarea>
             </div>
             
             <div class="admin-form-field">
               <label class="admin-form-label">Costs & Resource Requirements *</label>
-              <textarea class="admin-form-textarea" id="proposal-costs" required></textarea>
+              <textarea class="admin-form-textarea" id="proposal-costs" name="costs" required></textarea>
             </div>
             
             <div class="admin-form-field">
@@ -338,7 +368,7 @@
             
             <div class="admin-form-actions">
               <button type="button" class="admin-form-button secondary" id="cancel-proposal-btn">Cancel</button>
-              <button type="submit" class="admin-form-button primary">Submit Proposal</button>
+              <button type="submit" class="admin-form-button primary" id="proposal-form-submit-btn">Submit Proposal</button>
             </div>
           </form>
         </div>

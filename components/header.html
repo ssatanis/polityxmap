@@ -1,5 +1,44 @@
 <!-- Features Navigation Script -->
 <script src="features-navigation.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  var menuButton = document.querySelector('.menu-button.w-nav-button');
+  var navMenu = document.querySelector('.nav-menu.w-nav-menu');
+  var navOverlay = document.querySelector('.w-nav-overlay');
+  var body = document.querySelector('body');
+  
+  if(menuButton && navMenu) {
+    // Toggle mobile menu
+    menuButton.addEventListener('click', function(e) {
+      e.stopPropagation();
+      body.classList.toggle('mobile-menu-open');
+      navMenu.classList.toggle('w--open');
+      menuButton.classList.toggle('w--open');
+      if(navOverlay) navOverlay.classList.toggle('w--open');
+    });
+    
+    // Close menu when clicking outside
+    document.addEventListener('click', function(e) {
+      if(!navMenu.contains(e.target) && !menuButton.contains(e.target)) {
+        body.classList.remove('mobile-menu-open');
+        navMenu.classList.remove('w--open');
+        menuButton.classList.remove('w--open');
+        if(navOverlay) navOverlay.classList.remove('w--open');
+      }
+    });
+    
+    // Close menu when clicking nav items
+    document.querySelectorAll('.nav-link').forEach(link => {
+      link.addEventListener('click', function() {
+        body.classList.remove('mobile-menu-open');
+        navMenu.classList.remove('w--open');
+        menuButton.classList.remove('w--open');
+        if(navOverlay) navOverlay.classList.remove('w--open');
+      });
+    });
+  }
+});
+</script>
 
 <div class="header w-nav" data-animation="over-left" data-collapse="medium" data-duration="400" data-easing="ease" data-easing2="ease" role="banner" data-w-id="58db7844-5919-d71b-dd74-2323ed8dffe9" style="opacity: 1;">
   <div class="container-default w-container">

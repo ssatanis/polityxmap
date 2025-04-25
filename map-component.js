@@ -98,27 +98,16 @@ document.addEventListener('DOMContentLoaded', setupProposalSync);
   window.policyMapInstance = map;
 }
 
+// Function to load proposals from the unified system and add markers to the map
 function loadProposals(map) {
   // Clear existing markers
-  map.eachLayer(layer => {
-    if (layer instanceof L.Marker) {
-      map.removeLayer(layer);
-    }
-  });
-
-  // Load proposals from localStorage (in a real app, this would come from a database)
-  let proposals = [];
-  const storedProposals = localStorage.getItem('polityxMapProposals');
-  
-  if (storedProposals) {
-    proposals = JSON.parse(storedProposals);
-  } else {
-    // Sample data if no proposals exist yet
-    proposals = getSampleProposals();
-    
-    // Save sample proposals
-    localStorage.setItem('polityxMapProposals', JSON.stringify(proposals));
+  if (window.mapMarkers) {
+    window.mapMarkers.forEach(marker => marker.remove());
   }
+  window.mapMarkers = [];
+
+  // Get proposals from the unified proposals system
+  const proposals = window.ProposalsSystem ? window.ProposalsSystem.getProposals() : [];
 
   // Add markers for each proposal
   proposals.forEach(proposal => {
