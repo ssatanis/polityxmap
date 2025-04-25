@@ -37,6 +37,12 @@ function updateProposalLinks() {
       if (link.textContent === 'Loading...' || !link.textContent) {
         link.textContent = proposal.healthcareIssue;
       }
+    } else {
+      // Redirect to error page if proposal not found
+      link.addEventListener('click', function(e) {
+        e.preventDefault();
+        window.location.href = '/error.html';
+      });
     }
   });
 }
