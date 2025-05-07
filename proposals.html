@@ -429,8 +429,8 @@
         function loadAndDisplayProposals() {
           // Get proposals from unified proposals system or localStorage as fallback
           let proposals = [];
-          if (window.ProposalsSystem) {
-            proposals = window.ProposalsSystem.getProposals();
+          if (window.ProposalsCMS) {
+            proposals = window.ProposalsCMS.getProposals();
           } else {
             const storedProposals = localStorage.getItem('polityxMapProposals');
             if (storedProposals) {
@@ -491,7 +491,7 @@
         }
         
         // Listen for proposal updates
-        window.addEventListener('proposalsUpdated', function() {
+        window.addEventListener('proposals-updated', function() {
           loadAndDisplayProposals();
         });
       </script>

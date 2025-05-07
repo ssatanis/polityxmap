@@ -22,6 +22,16 @@ function getProposals() {
 }
 
 /**
+ * Get a single proposal by ID
+ * @param {number} id - The proposal ID
+ * @returns {Object|null}
+ */
+function getProposalById(id) {
+  const proposals = getProposals();
+  return proposals.find(p => p.id === id) || null;
+}
+
+/**
  * Save proposals to storage and notify all components
  * @param {Array} proposals - Array of proposal objects to save
  */
@@ -29,7 +39,7 @@ function saveProposals(proposals) {
   try {
     localStorage.setItem(PROPOSALS_STORAGE_KEY, JSON.stringify(proposals));
     // Dispatch event to notify all components that proposals have been updated
-    window.dispatchEvent(new Event('proposalsUpdated'));
+    window.dispatchEvent(new Event('proposals-updated'));
     return true;
   } catch (error) {
     console.error('Error saving proposals:', error);
@@ -245,11 +255,13 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // Export functions for use in other modules
-window.ProposalsSystem = {
-  getProposals,
-  addProposal,
-  updateProposal,
-  deleteProposal,
-  findProposalBySlug,
-  getLatestProposals
+window.ProposalsCMS = {
+  getAll: getProposals,
+  get: getProposalById,
+  create: addProposal,
+  update: updateProposal,
+  delete: deleteProposal,
+  getLatest: getLatestProposals,
+  findBySlug: findProposalBySlug,
+  generateSlug: generateSlug
 };

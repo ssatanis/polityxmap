@@ -22,7 +22,7 @@ function setupProposalRouting() {
 // Update proposal links to use the city-based URL format
 function updateProposalLinks() {
   // Get all proposals from the unified proposals system
-  const proposals = window.ProposalsSystem ? window.ProposalsSystem.getProposals() : [];
+  const proposals = window.ProposalsCMS ? window.ProposalsCMS.getAll() : [];
   
   // Find all links to proposals and update them
   document.querySelectorAll('a[href^="/proposals/"]').forEach(link => {
@@ -81,7 +81,7 @@ function createLatestProposalLinks() {
   // Only run on the home page
   if (window.location.pathname === '/' || window.location.pathname.endsWith('index.html')) {
     // Get latest proposals from the unified proposals system
-    const latestProposals = window.ProposalsSystem ? window.ProposalsSystem.getLatestProposals(3) : [];
+    const latestProposals = window.ProposalsCMS ? window.ProposalsCMS.getLatest(3) : [];
     
     // Get the proposals container
     const proposalsContainer = document.querySelector('.home-blog-grid');

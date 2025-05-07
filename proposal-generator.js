@@ -10,8 +10,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const slug = window.location.pathname.split('/').pop().replace('.html', '');
     
     // Find the proposal by slug
-    if (window.ProposalsSystem) {
-      const proposal = window.ProposalsSystem.findProposalBySlug(slug);
+    if (window.ProposalsCMS) {
+      const proposal = window.ProposalsCMS.findProposalBySlug(slug);
       
       if (!proposal) {
         // If proposal not found, redirect to error page
@@ -23,7 +23,7 @@ document.addEventListener('DOMContentLoaded', function() {
       script.src = '/proposals.js';
       script.onload = function() {
         // Check if proposal exists
-        const proposal = window.ProposalsSystem.findProposalBySlug(slug);
+        const proposal = window.ProposalsCMS.findProposalBySlug(slug);
         if (!proposal) {
           // If proposal not found, redirect to error page
           window.location.replace('/error.html');
@@ -58,10 +58,10 @@ function createProposalPage(slug) {
 
 // Function to ensure all proposals have corresponding HTML files
 function ensureProposalPages() {
-  if (!window.ProposalsSystem) return;
+  if (!window.ProposalsCMS) return;
   
   // Get all proposals
-  const proposals = window.ProposalsSystem.getProposals();
+  const proposals = window.ProposalsCMS.getProposals();
   
   // For each proposal, check if its page exists
   proposals.forEach(proposal => {
@@ -74,4 +74,4 @@ function ensureProposalPages() {
 }
 
 // Initialize when ProposalsSystem is loaded
-window.addEventListener('proposalsUpdated', ensureProposalPages);
+window.addEventListener('proposals-updated', ensureProposalPages);

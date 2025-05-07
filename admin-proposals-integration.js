@@ -33,7 +33,7 @@ function overrideAdminFunctions() {
         originalLoadProposals();
         
         // Then update the proposals table with our unified system
-        updateProposalsTable();
+        updatesTable();
       };
     }
     
@@ -46,18 +46,18 @@ function overrideAdminFunctions() {
     
     // Add event listener for proposal updates
     window.addEventListener('proposalsUpdated', function() {
-      updateProposalsTable();
+      updatesTable();
     });
     
     // Initialize the proposals table
-    updateProposalsTable();
+    updatesTable();
   }, 500);
 }
 
 /**
  * Update the proposals table with data from the unified proposals system
  */
-function updateProposalsTable() {
+function updatesTable() {
   const proposalsTable = document.querySelector('.proposals-table tbody');
   if (!proposalsTable) return;
   
@@ -65,7 +65,7 @@ function updateProposalsTable() {
   proposalsTable.innerHTML = '';
   
   // Get proposals from the unified proposals system
-  const proposals = window.ProposalsSystem ? window.ProposalsSystem.getProposals() : [];
+  const proposals = window.ProposalsCMS ? window.ProposalsCMS.getAll() : [];
   
   // Sort proposals by newest first
   const sortedProposals = [...proposals].sort((a, b) => {
@@ -152,7 +152,7 @@ function handleProposalFormSubmit(event) {
   
   if (editId) {
     // Update existing proposal using the unified proposals system
-    const updatedProposal = window.ProposalsSystem.updateProposal(editId, proposalData);
+    const updatedProposal = window.ProposalsCMS.update(editId, proposalData);
     
     if (updatedProposal) {
       // Show success message
@@ -166,7 +166,7 @@ function handleProposalFormSubmit(event) {
     }
   } else {
     // Add new proposal using the unified proposals system
-    const newProposal = window.ProposalsSystem.addProposal(proposalData);
+    const newProposal = window.ProposalsCMS.create(proposalData);
     
     if (newProposal) {
       // Show success message
@@ -185,7 +185,7 @@ function handleProposalFormSubmit(event) {
   document.getElementById('edit-id').value = '';
   
   // Update proposals table
-  updateProposalsTable();
+  updatesTable();
 }
 
 /**
@@ -193,7 +193,7 @@ function handleProposalFormSubmit(event) {
  */
 function handleEditProposal(id) {
   // Get proposals from the unified proposals system
-  const proposals = window.ProposalsSystem ? window.ProposalsSystem.getProposals() : [];
+  const proposals = window.ProposalsCMS ? window.ProposalsCMS.getAll() : [];
   
   // Find the proposal
   const proposal = proposals.find(p => p.id === id);
@@ -235,15 +235,15 @@ function handleEditProposal(id) {
 function handleDeleteProposal(id) {
   if (confirm('Are you sure you want to delete this proposal?')) {
     // Get the proposal before deleting it
-    const proposals = window.ProposalsSystem ? window.ProposalsSystem.getProposals() : [];
+    const proposals = window.ProposalsCMS ? window.ProposalsCMS.getAll() : [];
     const proposal = proposals.find(p => p.id === id);
     
     // Delete the proposal using the unified proposals system
-    const deleted = window.ProposalsSystem.deleteProposal(id);
+    const deleted = window.ProposalsCMS.delete(id);
     
     if (deleted) {
       // Update proposals table
-      updateProposalsTable();
+      updatesTable();
       
       // Show success message
       showMessage('Proposal deleted successfully!', 'success');

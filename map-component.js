@@ -106,13 +106,19 @@ function loadProposals(map) {
   }
   window.mapMarkers = [];
 
-  // Get proposals from the unified proposals system
-  const proposals = window.ProposalsSystem ? window.ProposalsSystem.getProposals() : [];
+  // Get proposals from the CMS
+  const proposals = window.ProposalsCMS ? window.ProposalsCMS.getAll() : [];
 
   // Add markers for each proposal
   proposals.forEach(proposal => {
-    if (proposal.latitude && proposal.longitude) {
-      addProposalMarker(map, proposal);
+    const lat = Number(proposal.latitude);
+    const lng = Number(proposal.longitude);
+    if (!isNaN(lat) && !isNaN(lng)) {
+      addProposalMarker(map, {
+        ...proposal,
+        latitude: lat,
+        longitude: lng
+      });
     }
   });
 }
@@ -364,11 +370,20 @@ function getSampleProposals() {
 }
 
 function addProposalMarker(map, proposal) {
-  // Determine marker color based on primary tag
-  let markerColor = '#8A67FF'; // Default purple
-  
-  if (proposal.tags && proposal.tags.length > 0) {
-    const primaryTag = proposal.tags[0];
+  // Color palette for unique marker dots
+  const markerColors = [
+    '#38B6FF', // blue
+    '#8A67FF', // purple
+    '#FF6F91', // pink
+    '#00C48C', // green
+    '#FFA63A', // orange
+    '#FFD600'  // yellow
+  ];
+  let colorIdx = 0;
+  if (proposal.id) {
+    colorIdx = proposal.id.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0) % markerColors.length;
+  } else if (proposal.city) {
+    colorIdx = proposal.city.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0) % markerColors.length;
     
     // Color coding based on primary tag
     switch (primaryTag) {
@@ -462,18 +477,15 @@ function addProposalMarker(map, proposal) {
             </div>
         `;
   
-  // Create and bind popup with custom styling
-  const popup = L.popup({
-    className: 'custom-popup',
-    maxWidth: 300,
-    minWidth: 280,
-    closeButton: true,
-    autoClose: false, // Don't auto-close the popup
-    closeOnClick: false, // Don't close when clicking elsewhere on map
-    closeOnEscapeKey: true
-  }).setContent(popupContent);
-  
-  marker.bindPopup(popup);
+  // Format popup content as specified
+  const popupHTML = `
+    <div style=\"font-family: 'Satoshi', sans-serif;\">
+      <h3 style=\"font-family:Satoshi, sans-serif;font-weight:700;font-size:18px;\">${proposal.healthcareIssue} in ${proposal.city}, ${proposal.country}</h3>
+      <p style=\"font-size:15px;font-weight:500;\"><strong>Issue:</strong> ${proposal.description}</p>
+      <p style=\"font-size:15px;font-weight:500;\"><strong>Policy Proposal:</strong> <a href=\"/proposals/${proposal.city.toLowerCase().replace(/\s+/g,'-')}\">${proposal.city.toLowerCase().replace(/\s+/g,'-')}.polityxmap.org</a></p>
+    </div>`;
+  marker.bindPopup(popupHTML);
+  window.mapMarkers.push(marker);
   
   // Handle marker hover effects with improved event handling
   marker.on('mouseover', function(e) {
@@ -555,6 +567,86 @@ function addProposalMarker(map, proposal) {
 // Add custom CSS for the markers and popups
 const style = document.createElement('style');
 style.textContent = `
+  /* Animated colored marker dot */
+  .marker-dot-animated {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    box-shadow: 0 2px 10px #0005;
+    border: 3px solid #fff;
+    transition: transform 0.2s cubic-bezier(.4,2,.6,1), box-shadow 0.25s cubic-bezier(.4,2,.6,1);
+    will-change: transform, box-shadow;
+    margin-bottom: 2px;
+  }
+
+  /* Popup card: visually stunning, DM Sans, home bg, glass effect */
+  .policy-popup-card {
+    background: linear-gradient(135deg, #1C1A24 85%, #232046 100%);
+    border-radius: 20px;
+    box-shadow: 0 8px 32px 0 rgba(56,182,255,0.22), 0 2px 8px rgba(0,0,0,0.25);
+    padding: 28px 28px 22px 28px;
+    color: #fff;
+    font-family: 'DM Sans', 'Satoshi', Arial, sans-serif;
+    min-width: 230px;
+    max-width: 340px;
+    position: relative;
+    animation: popCardIn 0.5s cubic-bezier(.4,2,.6,1);
+    backdrop-filter: blur(10px);
+  }
+  @keyframes popCardIn {
+    0% { opacity:0; transform: translateY(30px) scale(0.95); }
+    100% { opacity:1; transform: translateY(0) scale(1); }
+  }
+  .policy-popup-title {
+    font-family: 'DM Sans', 'Satoshi', Arial, sans-serif;
+    font-weight: 700;
+    font-size: 21px;
+    margin: 0 0 12px 0;
+    letter-spacing: 0.01em;
+    color: #fff;
+    line-height: 1.25;
+    text-shadow: 0 2px 6px #0002;
+  }
+  .policy-popup-desc {
+    font-size: 16px;
+    font-weight: 500;
+    margin: 0 0 20px 0;
+    color: #e0e0e0;
+    font-family: 'DM Sans', 'Satoshi', Arial, sans-serif;
+    line-height: 1.55;
+  }
+  .policy-popup-btn {
+    display: inline-block;
+    font-family: 'DM Sans', 'Satoshi', Arial, sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    background: linear-gradient(90deg, #38B6FF 0%, #8A67FF 100%);
+    color: #fff;
+    border: none;
+    border-radius: 14px;
+    padding: 12px 30px;
+    text-decoration: none;
+    box-shadow: 0 4px 18px 0 #8A67FF33;
+    transition: background 0.25s, box-shadow 0.25s, transform 0.18s cubic-bezier(.4,2,.6,1);
+    cursor: pointer;
+    outline: none;
+    position: relative;
+    overflow: hidden;
+    margin-top: 6px;
+    letter-spacing: 0.01em;
+    z-index: 1;
+  }
+  .policy-popup-btn:hover, .policy-popup-btn:focus {
+    background: linear-gradient(90deg, #8A67FF 0%, #38B6FF 100%);
+    box-shadow: 0 6px 24px 0 #38B6FF55, 0 2px 8px #0003;
+    transform: scale(1.045);
+    text-shadow: 0 2px 8px #38B6FF44;
+  }
+  .policy-popup-btn:active {
+    transform: scale(0.98);
+    box-shadow: 0 2px 8px #8A67FF55;
+  }
+
   .custom-popup .leaflet-popup-content-wrapper {
     background-color: rgba(28, 26, 36, 0.95);
     border-radius: 10px;

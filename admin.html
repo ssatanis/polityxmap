@@ -40,16 +40,18 @@
       const last = parseInt(localStorage.getItem('lastActivity')||'0', 10);
       const now  = Date.now();
 
-      // not logged in → quick redirect
+      // not logged in → quick redirect with clear state
       if (!auth) {
-        return window.location.replace('login.html');
+        localStorage.removeItem('adminAuthenticated');
+        localStorage.removeItem('lastActivity');
+        return window.location.replace('login.html?session=expired');
       }
 
       // expired → clear and redirect
       if (now - last > 10*60*1000) {
         localStorage.removeItem('adminAuthenticated');
         localStorage.removeItem('lastActivity');
-        return window.location.replace('login.html?expired=true');
+        return window.location.replace('login.html?session=expired');
       }
 
       // still valid → bump lastActivity

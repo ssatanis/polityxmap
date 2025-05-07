@@ -68,7 +68,7 @@
       const slug = pathSegments[pathSegments.length - 1].replace('.html', '');
       
       // Find the proposal by slug
-      const proposal = window.ProposalsSystem.findProposalBySlug(slug);
+      const proposal = window.ProposalsCMS.findProposalBySlug(slug);
       
       if (proposal) {
         // Update page title
@@ -107,9 +107,9 @@
       }
       
       // Listen for proposal updates
-      window.addEventListener('proposalsUpdated', function() {
+      window.addEventListener('proposals-updated', function() {
         // Reload the proposal data
-        const updatedProposal = window.ProposalsSystem.findProposalBySlug(slug);
+        const updatedProposal = window.ProposalsCMS.findProposalBySlug(slug);
         if (updatedProposal) {
           // Update the page with new data
           document.getElementById('proposal-title').textContent = updatedProposal.healthcareIssue || updatedProposal.issue;

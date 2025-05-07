@@ -23,8 +23,8 @@ const AdminProposals = () => {
   const loadProposals = () => {
     // In a real app, this would fetch data from an API
     // For now, we'll use mock data from localStorage
-    const storedProposals = JSON.parse(localStorage.getItem('polityxMapProposals') || '[]');
-    setProposals(storedProposals);
+    const storedProposals = JSON.parse(window.ProposalsCMS.getAll() || '[]');
+    setProposals(window.ProposalsCMS.getAll());
   };
   
   const addToHistoryLog = (action, details) => {

@@ -25,7 +25,7 @@ document.addEventListener('DOMContentLoaded', function() {
   }
   
   // Listen for proposal updates
-  window.addEventListener('proposalsUpdated', function() {
+  window.addEventListener('proposals-updated', function() {
     if (citySlug) {
       loadProposalData(citySlug);
     }
@@ -37,7 +37,7 @@ document.addEventListener('DOMContentLoaded', function() {
  */
 function loadProposalData(citySlug) {
   // Use the unified proposals system to find the proposal
-  const proposal = window.ProposalsSystem.findProposalBySlug(citySlug);
+  const proposal = window.ProposalsCMS.findProposalBySlug(citySlug);
   
   if (proposal) {
     // Populate the page with proposal data
