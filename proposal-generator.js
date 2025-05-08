@@ -16,6 +16,9 @@ document.addEventListener('DOMContentLoaded', function() {
       if (!proposal) {
         // If proposal not found, redirect to error page
         window.location.replace('/error.html');
+      } else {
+        // If proposal found, redirect to the template with the slug as a parameter
+        window.location.href = `/proposals/_template.html?city=${slug}`;
       }
     } else {
       // If ProposalsSystem not loaded yet, load it
@@ -27,6 +30,9 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!proposal) {
           // If proposal not found, redirect to error page
           window.location.replace('/error.html');
+        } else {
+          // If proposal found, redirect to the template with the slug as a parameter
+          window.location.href = `/proposals/_template.html?city=${slug}`;
         }
       };
       document.head.appendChild(script);
@@ -42,10 +48,10 @@ function createProposalPage(slug) {
 <head>
   <meta charset="utf-8">
   <title>${slug} Healthcare Proposal | PolityxMap</title>
-  <meta http-equiv="refresh" content="0;url=/proposal.html?city=${slug}">
+  <meta http-equiv="refresh" content="0;url=/_template.html?city=${slug}">
   <script>
     // Redirect to the proposal template with the city parameter
-    window.location.href = "/proposal.html?city=${slug}";
+    window.location.href = "/_template.html?city=${slug}";
   </script>
 </head>
 <body>

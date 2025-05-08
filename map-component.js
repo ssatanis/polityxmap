@@ -106,8 +106,25 @@ function loadProposals(map) {
   }
   window.mapMarkers = [];
 
-  // Get proposals from the CMS
-  const proposals = window.ProposalsCMS ? window.ProposalsCMS.getAll() : [];
+  // Get proposals from storage
+  let proposals = [];
+  if (window.ProposalsCMS && typeof window.ProposalsCMS.getAll === 'function') {
+    proposals = window.ProposalsCMS.getAll();
+  } else if (typeof getProposals === 'function') {
+    proposals = getProposals();
+  } else {
+    // Fallback to localStorage
+    try {
+      const storedProposals = localStorage.getItem('polityxMapProposals');
+      proposals = storedProposals ? JSON.parse(storedProposals) : [];
+    } catch (error) {
+      console.error('Error loading proposals:', error);
+      proposals = [];
+    }
+  }
+  
+  // Log the proposals for debugging
+  console.log('Loaded proposals for map:', proposals);
 
   // Add markers for each proposal
   proposals.forEach(proposal => {

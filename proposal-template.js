@@ -21,7 +21,10 @@ document.addEventListener('DOMContentLoaded', function() {
   if (citySlug) {
     loadProposalData(citySlug);
   } else {
-    showProposalNotFound();
+    // If we're on the proposal.html page but don't have a slug, show not found
+    if (window.location.pathname.includes('proposal.html')) {
+      showProposalNotFound();
+    }
   }
   
   // Listen for proposal updates

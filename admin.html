@@ -142,7 +142,7 @@
             <h3 class="admin-card-title">
               <i class="fas fa-file-medical"></i> Total Proposals
             </h3>
-            <div class="metric-counter" data-metric="totalProposals">12</div>
+            <div class="metric-counter" data-metric="totalProposals" id="total-proposals-count">0</div>
           </div>
           
           <div class="admin-card">
@@ -219,33 +219,6 @@
               </thead>
               <tbody id="proposal-table-body">
                 <!-- Proposals will be loaded here -->
-                <script>
-                  fetch('proposals-data.json')
-                    .then(response => response.json())
-                    .then(data => {
-                      const tableBody = document.getElementById('proposal-table-body');
-                      data.forEach(proposal => {
-                        const row = document.createElement('tr');
-                        row.innerHTML = `
-                          <td>${proposal.issue} in ${proposal.city}, ${proposal.country}</td>
-                          <td>${proposal.city}, ${proposal.state}</td>
-                          <td>${proposal.tags.map(tag => 
-                            `<span class="tag" style="background-color: rgba(138, 103, 255, 0.2); color: #8A67FF; padding: 4px 8px; border-radius: 4px; margin-right: 4px;">${tag}</span>`
-                          ).join('')}</td>
-                          <td>
-                            <button class="admin-header-btn" data-id="${proposal.id}" style="margin-right: 15px;">
-                              <i class="fas fa-edit"></i> Edit
-                            </button>
-                            <button class="admin-header-btn" data-id="${proposal.id}">
-                              <i class="fas fa-trash"></i> Delete
-                            </button>
-                          </td>
-                        `;
-                        tableBody.appendChild(row);
-                      });
-                    })
-                    .catch(error => console.error('Error loading proposals:', error));
-                </script>
               </tbody>
             </table>
           </div>
@@ -282,7 +255,7 @@
               
               <div class="admin-form-field">
                 <label class="admin-form-label">Name of Healthcare Issue *</label>
-                <input type="text" class="admin-form-input" id="proposal-title" name="healthcareIssue" required>
+                <input type="text" class="admin-form-input" id="healthcare-issue" name="healthcareIssue" class="admin-input" placeholder="e.g. Malaria in Lagos, Nigeria" required>
               </div>
             </div>
             
@@ -353,14 +326,7 @@
             <div class="admin-form-field">
               <label class="admin-form-label">Tags *</label>
               <div class="tag-container" id="proposal-tags">
-                <div class="tag">Healthcare Access <i class="fas fa-times"></i></div>
-                <div class="tag">Maternal Health <i class="fas fa-times"></i></div>
-                <div class="tag">Mental Health <i class="fas fa-times"></i></div>
-                <div class="tag">Rural Health <i class="fas fa-times"></i></div>
-                <div class="tag">Health Equity <i class="fas fa-times"></i></div>
-                <div class="tag">Telehealth <i class="fas fa-times"></i></div>
-                <div class="tag">Urban Health <i class="fas fa-times"></i></div>
-                <div class="tag">Preventative Care <i class="fas fa-times"></i></div>
+                <!-- Tags will be added here by user selection -->
               </div>
               <div style="margin-top: 10px;">
                 <input type="text" class="admin-form-input" id="new-tag" placeholder="Add Tag" style="width: auto; display: inline-block;">

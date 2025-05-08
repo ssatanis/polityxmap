@@ -16,6 +16,10 @@
   --warning-color: #F39C12;
   --danger-color: #E74C3C;
   --info-color: #3498DB;
+  --tag-bg: rgba(155, 89, 182, 0.2);
+  --tag-text: #9B59B6;
+  --tag-more-bg: rgba(52, 152, 219, 0.2);
+  --tag-more-text: #3498DB;
 }
 
 body {
@@ -345,6 +349,7 @@ body {
   box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
   border: 1px solid rgba(155, 89, 182, 0.1);
   position: relative;
+  margin-bottom: 30px;
 }
 
 .admin-table-container::after {
@@ -379,6 +384,10 @@ body {
   color: var(--secondary-color);
 }
 
+.admin-table-responsive {
+  overflow-x: auto;
+}
+
 .admin-table {
   width: 100%;
   border-collapse: collapse;
@@ -393,6 +402,7 @@ body {
   border-bottom: 1px solid var(--border-color);
   text-transform: uppercase;
   letter-spacing: 1px;
+  background-color: rgba(155, 89, 182, 0.05);
 }
 
 .admin-table td {
@@ -407,6 +417,67 @@ body {
 
 .admin-table tr:hover {
   background-color: rgba(255, 255, 255, 0.03);
+}
+
+/* Tag Pills in Admin Table */
+.tag-pill {
+  display: inline-block;
+  padding: 5px 10px;
+  margin-right: 8px;
+  margin-bottom: 5px;
+  background-color: var(--tag-bg);
+  color: var(--tag-text);
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.tag-more {
+  display: inline-block;
+  padding: 5px 10px;
+  margin-bottom: 5px;
+  background-color: var(--tag-more-bg);
+  color: var(--tag-more-text);
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+/* Action Buttons */
+.actions-cell {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.action-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: white;
+}
+
+.action-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.edit-btn {
+  background: linear-gradient(to bottom right, #3498DB, #2980B9);
+}
+
+.delete-btn {
+  background: linear-gradient(to bottom right, #E74C3C, #C0392B);
+}
+
+.view-btn {
+  background: linear-gradient(to bottom right, #2ECC71, #27AE60);
 }
 
 /* Form Styles */
@@ -795,6 +866,221 @@ body {
   justify-content: flex-end;
   gap: 10px;
   border-top: 1px solid var(--border-color);
+}
+
+/* Message Styles */
+.message-container {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+}
+
+.message {
+  padding: 15px 20px;
+  border-radius: 10px;
+  color: white;
+  font-weight: 500;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+  animation: slideIn 0.3s ease forwards;
+  max-width: 300px;
+}
+
+.message-success {
+  background: linear-gradient(to right, #2ECC71, #27AE60);
+}
+
+.message-error {
+  background: linear-gradient(to right, #E74C3C, #C0392B);
+}
+
+.message-info {
+  background: linear-gradient(to right, #3498DB, #2980B9);
+}
+
+.message-warning {
+  background: linear-gradient(to right, #F39C12, #D35400);
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* Confirmation Popup Styles */
+.confirmation-popup-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  background-color: rgba(0, 0, 0, 0.5);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  visibility: hidden;
+}
+
+.confirmation-popup-container.show {
+  opacity: 1;
+  visibility: visible;
+}
+
+.confirmation-popup {
+  background: var(--card-bg);
+  border-radius: 20px;
+  padding: 30px;
+  max-width: 500px;
+  width: 90%;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+  text-align: center;
+  transform: translateY(20px);
+  transition: transform 0.3s ease;
+  border: 1px solid rgba(155, 89, 182, 0.2);
+}
+
+.confirmation-popup-container.show .confirmation-popup {
+  transform: translateY(0);
+}
+
+.confirmation-popup-icon {
+  font-size: 60px;
+  color: var(--success-color);
+  margin-bottom: 20px;
+}
+
+.confirmation-popup-title {
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 10px;
+  color: var(--text-primary);
+}
+
+.confirmation-popup-message {
+  font-size: 16px;
+  color: var(--text-secondary);
+  margin-bottom: 25px;
+}
+
+.confirmation-popup-button {
+  padding: 12px 25px;
+  background: linear-gradient(to right, var(--primary-color), var(--primary-light));
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.confirmation-popup-button:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(155, 89, 182, 0.4);
+}
+
+/* History Log Styles */
+.history-log {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  padding: 10px 0;
+}
+
+.history-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 15px;
+  padding: 15px;
+  background-color: rgba(255, 255, 255, 0.03);
+  border-radius: 12px;
+  transition: all 0.2s ease;
+}
+
+.history-item:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+  transform: translateY(-2px);
+}
+
+.history-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: white;
+  font-size: 16px;
+}
+
+.login-action {
+  background: linear-gradient(to bottom right, #3498DB, #2980B9);
+}
+
+.logout-action {
+  background: linear-gradient(to bottom right, #95A5A6, #7F8C8D);
+}
+
+.submit-action {
+  background: linear-gradient(to bottom right, #2ECC71, #27AE60);
+}
+
+.edit-action {
+  background: linear-gradient(to bottom right, #9B59B6, #8E44AD);
+}
+
+.delete-action {
+  background: linear-gradient(to bottom right, #E74C3C, #C0392B);
+}
+
+.view-action {
+  background: linear-gradient(to bottom right, #F39C12, #D35400);
+}
+
+.history-content {
+  flex: 1;
+}
+
+.history-action {
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 5px;
+}
+
+.history-details {
+  color: var(--text-secondary);
+  margin-bottom: 8px;
+  line-height: 1.4;
+}
+
+.history-time {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--text-secondary);
+}
+
+.empty-state i {
+  font-size: 40px;
+  margin-bottom: 15px;
+  opacity: 0.5;
 }
 
 /* Responsive Adjustments */

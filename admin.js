@@ -25,6 +25,13 @@ document.addEventListener('DOMContentLoaded', function() {
   // Initialize history log
   loadHistoryLog();
   
+  // Load the proposal page generator script
+  if (!document.querySelector('script[src="proposal-page-generator.js"]')) {
+    const script = document.createElement('script');
+    script.src = 'proposal-page-generator.js';
+    document.head.appendChild(script);
+  }
+  
   // Chart removed as requested
 
   // Set current date

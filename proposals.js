@@ -136,8 +136,13 @@ function deleteProposal(id) {
  * @returns {Object|null} The proposal or null if not found
  */
 function findProposalBySlug(slug) {
+  if (!slug) return null;
+  
+  // Normalize the slug (remove any file extension, lowercase)
+  const normalizedSlug = slug.toLowerCase().replace('.html', '');
+  
   const proposals = getProposals();
-  return proposals.find(p => p.slug === slug) || null;
+  return proposals.find(p => p.slug === normalizedSlug) || null;
 }
 
 /**
@@ -210,37 +215,55 @@ function updateProposalsList() {
 }
 
 /**
- * Update the latest proposals section on the home page
+ * Update the latest proposals on the home page
  */
 function updateLatestProposals() {
   // Only update if we're on the home page
   if (window.location.pathname === '/' || window.location.pathname.endsWith('index.html')) {
-    const latestProposalsContainer = document.querySelector('.latest-proposals');
-    if (!latestProposalsContainer) return;
+    const proposalsContainer = document.querySelector('.latest-proposals');
+    if (!proposalsContainer) return;
     
-    const latestProposals = getLatestProposals();
+    const latestProposals = getLatestProposals(4); // Get latest 4 proposals
     
     // Clear existing content
-    latestProposalsContainer.innerHTML = '';
+    proposalsContainer.innerHTML = '';
     
-    // Add latest proposals
+    // Add proposals to the grid
     latestProposals.forEach(proposal => {
-      const proposalItem = document.createElement('div');
-      proposalItem.className = 'latest-proposal-item';
-      proposalItem.innerHTML = `
-        <h4>${proposal.city}, ${proposal.state}</h4>
-        <p>${proposal.healthcareIssue}</p>
-        <a href="/proposals/${proposal.slug}.html" class="read-more">Read More</a>
+      const proposalCard = document.createElement('div');
+      proposalCard.className = 'card post-item';
+      
+      // Get a random color class for the tag
+      const colorClass = `color${Math.floor(Math.random() * 6) + 1}`;
+      
+      // Create card content with improved structure
+      proposalCard.innerHTML = `
+        <div class="proposal-tag ${colorClass}">${proposal.tags && proposal.tags.length > 0 ? proposal.tags[0] : 'Healthcare'}</div>
+        <h3 class="proposal-title">${proposal.healthcareIssue || 'Untitled Proposal'}</h3>
+        <p class="proposal-desc">${proposal.description || 'No description provided.'}</p>
+        <p class="proposal-location"><i class="fas fa-map-marker-alt" style="margin-right: 5px;"></i>${proposal.city || ''}, ${proposal.state || ''}, ${proposal.country || ''}</p>
+        <a href="/proposals/${proposal.slug || 'detail'}" class="proposal-btn">View Policy Proposal</a>
       `;
-      latestProposalsContainer.appendChild(proposalItem);
+      
+      proposalsContainer.appendChild(proposalCard);
+      
+      // Add click event to the entire card (except the button)
+      proposalCard.addEventListener('click', function(e) {
+        // If the click is not on the button, navigate to the proposal page
+        if (!e.target.classList.contains('proposal-btn')) {
+          window.location.href = `/proposals/${proposal.slug}`;
+      // Make sure the URL works with the _template.html file
+        }
+      });
+      
+      // Make the card look clickable
+      proposalCard.style.cursor = 'pointer';
     });
     
-    // Add "View all proposals" link
-    const viewAllLink = document.createElement('a');
-    viewAllLink.href = '/proposals.html';
-    viewAllLink.className = 'view-all-link';
-    viewAllLink.textContent = 'View all proposals';
-    latestProposalsContainer.appendChild(viewAllLink);
+    // If no proposals, show a message
+    if (latestProposals.length === 0) {
+      proposalsContainer.innerHTML = '<div class="no-proposals" style="text-align: center; padding: 40px; color: rgba(255,255,255,0.7); font-size: 18px;">No proposals available yet. Be the first to submit one!</div>';
+    }
   }
 }
 
