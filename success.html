@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Form Submitted - PolityxMap</title>
+  <link rel="stylesheet" href="css/css_family_DM_Sans_regular_500_700.css">
+  <style>
+    :root {
+      --primary-color: #8A67FF;
+      --secondary-color: #38B6FF;
+      --background-color: #0A0A0A;
+      --text-color: #FFFFFF;
+    }
+    
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background-color: var(--background-color);
+      color: var(--text-color);
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+    
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 40px 20px;
+      text-align: center;
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    
+    .success-icon {
+      font-size: 80px;
+      margin-bottom: 20px;
+      color: var(--primary-color);
+    }
+    
+    h1 {
+      font-size: 36px;
+      margin-bottom: 20px;
+      background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    
+    p {
+      font-size: 18px;
+      margin-bottom: 30px;
+      line-height: 1.6;
+    }
+    
+    .button {
+      display: inline-block;
+      padding: 12px 30px;
+      background: linear-gradient(-45deg, var(--primary-color), var(--secondary-color), var(--primary-color));
+      background-size: 200% 200%;
+      color: white;
+      text-decoration: none;
+      border-radius: 30px;
+      font-weight: 500;
+      transition: all 0.3s ease;
+      animation: gradient 7s ease infinite;
+    }
+    
+    .button:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 10px 20px rgba(138, 103, 255, 0.3);
+    }
+    
+    @keyframes gradient {
+      0% {
+        background-position: 0% 50%;
+      }
+      50% {
+        background-position: 100% 50%;
+      }
+      100% {
+        background-position: 0% 50%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="success-icon">✓</div>
+    <h1>Thank You!</h1>
+    <p>Your message has been successfully submitted. We appreciate your feedback and will get back to you as soon as possible.</p>
+    <a href="/" class="button">Return to Home</a>
+  </div>
+  
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Add any additional scripts if needed
+      console.log('Form successfully submitted');
+    });
+  </script>
+</body>
+</html> 
