@@ -547,24 +547,122 @@ async function updateLatestProposals() {
   }
 }
 
-// Initialize proposal system when the DOM is loaded
-document.addEventListener('DOMContentLoaded', function() {
-  initProposalListeners();
-  
-  // Initial update of UI components
-  updateMapMarkers();
-  updateProposalsList();
-  updateLatestProposals();
-});
+/**
+ * Create sample proposals if none exist
+ * @returns {Promise<Array>} Promise resolving to an array of created proposals
+ */
+async function createSampleProposalsIfNeeded() {
+  try {
+    // Check if we have any proposals
+    const existingProposals = await getProposals();
+    
+    if (existingProposals.length === 0) {
+      console.log('No proposals found, creating sample proposals...');
+      
+      // Sample proposals as specified
+      const sampleProposals = [
+        {
+          fullName: "Dr. Maria Rodriguez",
+          email: "m.rodriguez@utdallas.edu",
+          institution: "University of Texas Medical Center",
+          healthcareIssue: "Renewable Dialysis Initiative",
+          city: "Dallas",
+          state: "Texas",
+          country: "USA",
+          latitude: 32.7767,
+          longitude: -96.7970,
+          description: "Pilot program to power dialysis clinics in South Dallas with solar energy.",
+          background: "Dialysis centers require significant energy consumption and are vulnerable to power outages, which can be life-threatening for patients. South Dallas communities face higher rates of kidney disease and frequent power disruptions.",
+          policy: "Install solar panels and battery backup systems at five dialysis clinics in South Dallas, creating a model for resilient healthcare infrastructure that reduces operational costs and environmental impact.",
+          stakeholders: "Dialysis patients, nephrologists, clinic administrators, local utility companies, environmental justice advocates, and community health workers.",
+          costs: "$1.2M for initial installation across five centers; $80K annual maintenance; projected 60% reduction in energy costs after 4 years.",
+          metrics: "100% operational continuity during power outages, 80% reduction in carbon footprint, 20% reduction in patient transportation needs due to clinic resilience.",
+          timeline: "3 months planning, 6 months implementation, 12 months evaluation with quarterly progress reviews.",
+          proposalText: "The Renewable Dialysis Initiative aims to create sustainable, resilient healthcare infrastructure for one of our most vulnerable patient populations. By implementing solar power and battery storage at dialysis centers, we address multiple challenges: reducing operating costs, eliminating treatment disruptions during grid failures, and decreasing environmental impact. This pilot in South Dallas will serve as a model for national expansion, with particular attention to addressing health equity in communities disproportionately affected by kidney disease and environmental injustice.",
+          tags: ["Healthcare Access", "Rural Health", "Health Equity"]
+        },
+        {
+          fullName: "Dr. James Chen",
+          email: "j.chen@cornell.edu",
+          institution: "Cornell University Medical College",
+          healthcareIssue: "Rural Telehealth Expansion",
+          city: "Ithaca",
+          state: "New York",
+          country: "USA",
+          latitude: 42.4430,
+          longitude: -76.5019,
+          description: "Expanding high‑bandwidth telehealth services to six Cayuga County towns.",
+          background: "Rural communities in upstate New York face significant healthcare access barriers, with provider shortages and transportation challenges exacerbated by harsh winter conditions. Many residents must travel 60+ miles for specialist care.",
+          policy: "Deploy high-speed fiber internet to six rural libraries and community centers, equipped with private telehealth stations and medical devices for remote monitoring, supported by a rotating staff of telehealth coordinators.",
+          stakeholders: "Rural residents, primary care providers, specialists, librarians, county health department, broadband providers, and Medicare/Medicaid officials.",
+          costs: "$875K for infrastructure installation; $320K annual operating costs including staff, maintenance, and licensing.",
+          metrics: "50% increase in specialist consultation completion rates, 35% reduction in emergency department visits, 80% patient satisfaction with telehealth services.",
+          timeline: "4 months site preparation, 8 months equipment installation and staff training, full implementation within 14 months.",
+          proposalText: "The Rural Telehealth Expansion project will bridge critical gaps in healthcare access for isolated communities throughout Cayuga County. By transforming existing community spaces into telehealth access points, we overcome both technical and logistical barriers to care. The program specifically addresses the needs of elderly and disabled residents who face the greatest challenges in traveling to distant medical facilities. Each telehealth station will be equipped with user-friendly technology and staffed by trained coordinators who can assist patients unfamiliar with digital tools. By partnering with regional healthcare systems, we ensure that telehealth consultations integrate seamlessly with patients' existing care plans. This model represents a cost-effective, scalable approach to rural healthcare delivery that could be replicated across similar communities nationwide.",
+          imageLink: "https://images.unsplash.com/photo-1576091160550-2173dba999ef?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80",
+          tags: ["Rural Health", "Telehealth", "Healthcare Access"]
+        }
+      ];
+      
+      // Add each sample proposal
+      const createdProposals = [];
+      for (const proposal of sampleProposals) {
+        const createdProposal = await addProposal(proposal);
+        createdProposals.push(createdProposal);
+      }
+      
+      console.log(`Created ${createdProposals.length} sample proposals`);
+      return createdProposals;
+    }
+    
+    return [];
+  } catch (error) {
+    console.error('Error creating sample proposals:', error);
+    return [];
+  }
+}
 
-// Export functions for use in other modules
-window.ProposalsCMS = {
-  getAll: getProposals,
-  get: getProposalById,
-  create: addProposal,
-  update: updateProposal,
-  delete: deleteProposal,
-  getLatest: getLatestProposals,
-  findBySlug: findProposalBySlug,
-  generateSlug: generateSlug
-};
+/**
+ * ProposalsCMS initialization function
+ * Call this to ensure the system is ready and samples are loaded
+ */
+async function initializeProposalsCMS() {
+  // Wait for Supabase client to be ready if it's included
+  if (typeof window !== 'undefined' && window.getSupabaseClient) {
+    try {
+      await window.getSupabaseClient();
+    } catch (error) {
+      console.warn('Supabase client initialization failed, using localStorage fallback');
+    }
+  }
+  
+  // Load all proposals
+  await getProposals();
+  
+  // Create sample proposals if needed
+  await createSampleProposalsIfNeeded();
+  
+  // Dispatch event that proposals are ready
+  window.dispatchEvent(new Event('proposals-cms-ready'));
+}
+
+// Main initialization
+document.addEventListener('DOMContentLoaded', function() {
+  // Create global ProposalsCMS object
+  window.ProposalsCMS = {
+    getAll: getProposals,
+    get: getProposalById,
+    add: addProposal,
+    update: updateProposal,
+    delete: deleteProposal,
+    findBySlug: findProposalBySlug,
+    getLatest: getLatestProposals,
+    initialize: initializeProposalsCMS
+  };
+  
+  // Initialize automatically
+  initializeProposalsCMS();
+  
+  // Set up event listeners for the map and other components
+  initProposalListeners();
+});

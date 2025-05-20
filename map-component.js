@@ -406,53 +406,26 @@ function getSampleProposals() {
 }
 
 function addProposalMarker(map, proposal) {
-  // Color palette for unique marker dots
-  const markerColors = [
-    '#38B6FF', // blue
-    '#8A67FF', // purple
-    '#FF6F91', // pink
-    '#00C48C', // green
-    '#FFA63A', // orange
-    '#FFD600'  // yellow
-  ];
-  let colorIdx = 0;
-  if (proposal.id) {
-    colorIdx = proposal.id.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0) % markerColors.length;
-  } else if (proposal.city) {
-    colorIdx = proposal.city.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0) % markerColors.length;
-    
-    // Color coding based on primary tag
-    switch (primaryTag) {
-      case 'Healthcare Access':
-        markerColor = '#8A67FF'; // Purple
-        break;
-      case 'Maternal Health':
-        markerColor = '#38B6FF'; // Blue
-        break;
-      case 'Mental Health':
-        markerColor = '#FF6767'; // Red
-        break;
-      case 'Rural Health':
-        markerColor = '#67FF8A'; // Green
-        break;
-      case 'Health Equity':
-        markerColor = '#FFD700'; // Gold
-        break;
-      case 'Telehealth':
-        markerColor = '#FF67E5'; // Pink
-        break;
-      case 'Preventative Care':
-        markerColor = '#FFA500'; // Orange
-        break;
-      case 'Urban Health':
-        markerColor = '#00CED1'; // Turquoise
-        break;
-      case 'Indigenous Health':
-        markerColor = '#9ACD32'; // YellowGreen
-        break;
-      // Add more as needed
-    }
-  }
+  // Get primary tag if available
+  const primaryTag = proposal.tags && proposal.tags.length > 0 ? proposal.tags[0] : 'Healthcare Access';
+  
+  // Color based on the primary tag
+  let markerColor = '#38B6FF'; // Default blue
+  
+  // Color coding based on primary tag
+  if (primaryTag.includes('Healthcare Access')) markerColor = '#8A67FF'; // Purple
+  else if (primaryTag.includes('Maternal')) markerColor = '#38B6FF'; // Blue
+  else if (primaryTag.includes('Mental')) markerColor = '#FF6767'; // Red
+  else if (primaryTag.includes('Rural')) markerColor = '#67FF8A'; // Green
+  else if (primaryTag.includes('Equity')) markerColor = '#FFD700'; // Gold
+  else if (primaryTag.includes('Telehealth')) markerColor = '#FF67E5'; // Pink
+  else if (primaryTag.includes('Preventative')) markerColor = '#FFA500'; // Orange
+  else if (primaryTag.includes('Urban')) markerColor = '#00CED1'; // Turquoise
+  else if (primaryTag.includes('Indigenous')) markerColor = '#9ACD32'; // YellowGreen
+  
+  // Generate city slug for the URL
+  const citySlug = proposal.city ? proposal.city.toLowerCase().replace(/\s+/g, '-') + '-' + 
+                  (proposal.state ? proposal.state.toLowerCase().replace(/\s+/g, '-') : '') : '';
   
   // Improved marker implementation with better interactivity
   const customIcon = L.divIcon({
@@ -484,54 +457,58 @@ function addProposalMarker(map, proposal) {
   marker.addTo(map);
   
   // Prepare tags html
-  const tagsHtml = proposal.tags.map(tag => 
+  const tagsHtml = proposal.tags && proposal.tags.length > 0 ? proposal.tags.map(tag => 
     `<span style="display: inline-block; background-color: rgba(56, 182, 255, 0.2); border-radius: 20px; 
              padding: 3px 10px; font-size: 12px; color: #38B6FF; margin-right: 5px; margin-bottom: 5px;">${tag}</span>`
-  ).join('');
+  ).join('') : '';
   
-  // Create popup content
-        const popupContent = `
-    <div style="width: 280px; color: white;">
-      <h3 style="margin-top: 0; margin-bottom: 8px; font-size: 18px; color: white;">
+  // Improved marker popup with better styling
+  const popupContent = `
+    <div style="width: 300px; padding: 10px; font-family: 'DM Sans', sans-serif;">
+      <h3 style="margin-top: 0; margin-bottom: 8px; font-size: 18px; color: #ffffff; font-weight: 700;">
         ${proposal.healthcareIssue}
       </h3>
-      <div style="font-size: 14px; color: rgba(255, 255, 255, 0.7); margin-bottom: 10px;">
-        ${proposal.city}, ${proposal.country}
+      <div style="font-size: 14px; color: rgba(255, 255, 255, 0.7); margin-bottom: 10px; font-weight: 500;">
+        ${proposal.city}, ${proposal.state || ''} ${proposal.country}
       </div>
-      <p style="margin-bottom: 15px; font-size: 14px; color: rgba(255, 255, 255, 0.9);">
+      <p style="margin-bottom: 15px; font-size: 14px; color: rgba(255, 255, 255, 0.9); line-height: 1.5;">
         ${proposal.description}
       </p>
       <div style="margin-bottom: 15px;">
         ${tagsHtml}
       </div>
-      <a href="/proposals/${proposal.city.toLowerCase().replace(/\s+/g, '-')}" 
-         style="display: inline-block; background: linear-gradient(-45deg, #8A67FF, #38B6FF); 
-                border-radius: 20px; padding: 8px 16px; color: white; text-decoration: none; 
-                font-size: 14px; font-weight: 500; transition: transform 0.3s ease, box-shadow 0.3s ease;">
-        View Full Proposal
+      <a href="/proposals/${citySlug}" 
+         style="display: inline-block; background: linear-gradient(90deg, #38B6FF, #8A67FF); 
+                border-radius: 25px; padding: 10px 20px; color: white; text-decoration: none; 
+                font-size: 14px; font-weight: 600; transition: all 0.3s ease; text-align: center; 
+                box-shadow: 0 4px 10px rgba(56, 182, 255, 0.3); width: 100%;">
+        Read Full Proposal
       </a>
-            </div>
-        `;
+    </div>
+  `;
   
-  // Format popup content as specified
-  const popupHTML = `
-    <div style=\"font-family: 'Satoshi', sans-serif;\">
-      <h3 style=\"font-family:Satoshi, sans-serif;font-weight:700;font-size:18px;\">${proposal.healthcareIssue} in ${proposal.city}, ${proposal.country}</h3>
-      <p style=\"font-size:15px;font-weight:500;\"><strong>Issue:</strong> ${proposal.description}</p>
-      <p style=\"font-size:15px;font-weight:500;\"><strong>Policy Proposal:</strong> <a href=\"/proposals/${proposal.city.toLowerCase().replace(/\s+/g,'-')}\">${proposal.city.toLowerCase().replace(/\s+/g,'-')}.polityxmap.org</a></p>
-    </div>`;
-  marker.bindPopup(popupHTML);
+  // Create a styled popup
+  const popup = L.popup({
+    className: 'custom-popup',
+    closeButton: true,
+    autoClose: true,
+    closeOnEscapeKey: true,
+    closeOnClick: true,
+    minWidth: 300,
+    maxWidth: 300,
+    offset: [0, -10]
+  }).setContent(popupContent);
+  
+  // Bind the popup to the marker
+  marker.bindPopup(popup);
+  
+  // Track markers in global array
   window.mapMarkers.push(marker);
   
-  // Handle marker hover effects with improved event handling
+  // Handle marker hover effects
   marker.on('mouseover', function(e) {
-    L.DomEvent.stopPropagation(e);
-    L.DomEvent.preventDefault(e);
-    
-    if (!this._popup.isOpen()) { // Only scale up if popup is not open
-      this._icon.querySelector('.marker-dot').style.transform = 'scale(1.3)';
-      this._icon.querySelector('.marker-dot').style.boxShadow = '0 0 15px rgba(0, 0, 0, 0.6)';
-    }
+    this._icon.querySelector('.marker-dot').style.transform = 'scale(1.3)';
+    this._icon.querySelector('.marker-dot').style.boxShadow = '0 0 15px rgba(138, 103, 255, 0.6)';
     
     // Show a tooltip with the name of the proposal
     this.bindTooltip(proposal.healthcareIssue, {
@@ -542,27 +519,19 @@ function addProposalMarker(map, proposal) {
   });
   
   marker.on('mouseout', function(e) {
-    L.DomEvent.stopPropagation(e);
-    L.DomEvent.preventDefault(e);
-    
-    if (!this._popup.isOpen()) { // Only scale down if popup is not open
+    if (!this._popup.isOpen()) {
       this._icon.querySelector('.marker-dot').style.transform = 'scale(1)';
       this._icon.querySelector('.marker-dot').style.boxShadow = '0 0 10px rgba(0, 0, 0, 0.5)';
     }
     this.closeTooltip();
   });
   
-  // Improved click handler with better event handling and popup management
+  // Improved click handler
   marker.on('click', function(e) {
-    // Ensure the event doesn't propagate
-    L.DomEvent.stopPropagation(e);
-    L.DomEvent.preventDefault(e);
-    
     // Close any other open popups
     map.eachLayer(function(layer) {
       if (layer instanceof L.Marker && layer !== marker) {
         layer.closePopup();
-        // Reset any scaled markers
         if (layer._icon && layer._icon.querySelector('.marker-dot')) {
           layer._icon.querySelector('.marker-dot').style.transform = 'scale(1)';
           layer._icon.querySelector('.marker-dot').style.boxShadow = '0 0 10px rgba(0, 0, 0, 0.5)';
@@ -570,25 +539,18 @@ function addProposalMarker(map, proposal) {
       }
     });
     
-    // Ensure the marker stays highlighted when popup is open
+    // Highlight this marker
     this._icon.querySelector('.marker-dot').style.transform = 'scale(1.5)';
-    this._icon.querySelector('.marker-dot').style.boxShadow = '0 0 15px rgba(0, 0, 0, 0.8)';
+    this._icon.querySelector('.marker-dot').style.boxShadow = '0 0 15px rgba(138, 103, 255, 0.8)';
     
-    // Zoom in slightly if needed
-    if (map.getZoom() < 4) {
-      map.setZoom(4);
-    }
-    
-    // Pan map to center on marker with offset for popup
-    map.panTo([this._latlng.lat, this._latlng.lng], {
+    // Center the map on this marker with animation
+    map.flyTo([this._latlng.lat, this._latlng.lng], map.getZoom() < 4 ? 4 : map.getZoom(), {
       animate: true,
       duration: 0.5
     });
     
-    // Open this popup with a slight delay to ensure smooth animation
-    setTimeout(() => {
-      this.openPopup();
-    }, 100);
+    // Open popup
+    this.openPopup();
   });
   
   // Reset marker when popup is closed
@@ -596,8 +558,6 @@ function addProposalMarker(map, proposal) {
     this._icon.querySelector('.marker-dot').style.transform = 'scale(1)';
     this._icon.querySelector('.marker-dot').style.boxShadow = '0 0 10px rgba(0, 0, 0, 0.5)';
   });
-  
-  return marker;
 }
 
 // Add custom CSS for the markers and popups

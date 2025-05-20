@@ -423,79 +423,206 @@
       
       <script src="/proposals.js"></script>
       <script>
-        // Function to load and display proposals
         document.addEventListener('DOMContentLoaded', function() {
-          loadAndDisplayProposals();
+          // Initialize necessary scripts
+          loadProposals();
+          
+          // Setup search and filter functionality
+          setupFilters();
         });
         
-        function loadAndDisplayProposals() {
-          // Get proposals from unified proposals system or localStorage as fallback
-          let proposals = [];
-          if (window.ProposalsCMS) {
-            proposals = window.ProposalsCMS.getProposals();
-          } else {
-            const storedProposals = localStorage.getItem('polityxMapProposals');
-            if (storedProposals) {
-              proposals = JSON.parse(storedProposals);
-            }
-          }
-          
-          // Get the container
-          const container = document.getElementById('proposals-container');
-          if (!container) return;
-          
-          // If no stored proposals, use the existing ones on the page
-          if (proposals.length === 0) return;
-          
-          // Clear the container
-          container.innerHTML = '';
-          
-          // Display each proposal
-          if (proposals.length > 0) {
-            proposals.forEach(proposal => {
-              // Create URL-friendly city slug
-              const citySlug = proposal.slug || proposal.city.toLowerCase().replace(/\s+/g, '-');
-              
-              // Create proposal card
-              const card = document.createElement('a');
-              card.className = 'proposal-card';
-              card.href = `/proposals/${citySlug}.html`;
-              
-              // Determine tag class based on proposal tags
-              let tagClass = 'healthcare';
-              if (proposal.tags && proposal.tags.length > 0) {
-                const tag = proposal.tags[0].toLowerCase();
-                if (tag.includes('maternal')) tagClass = 'maternal';
-                else if (tag.includes('mental')) tagClass = 'mental';
-                else if (tag.includes('pediatric')) tagClass = 'pediatrics';
-                else if (tag.includes('rural')) tagClass = 'rural';
-                else if (tag.includes('urban')) tagClass = 'urban';
-              }
-              
-              // Create card content
-              card.innerHTML = `
-                <div class="proposal-tag ${tagClass}">${proposal.tags ? proposal.tags[0] : 'Healthcare'}</div>
-                <h3 class="proposal-title">${proposal.healthcareIssue || proposal.issue}</h3>
-                <p class="proposal-description">${proposal.description.substring(0, 120)}${proposal.description.length > 120 ? '...' : ''}</p>
-                <div class="proposal-footer">
-                  <div class="proposal-location">${proposal.city}, ${proposal.country || proposal.state}</div>
-                  <div class="proposal-read-more">Read More <span>&rarr;</span></div>
-                </div>
-              `;
-              
-              // Add the card to the container
-              container.appendChild(card);
-            });
-          } else {
-            // Show no results message
-            container.innerHTML = '<div class="no-results"><p>No matching proposals found. Try adjusting your search or filters.</p></div>';
+        async function loadProposals() {
+          try {
+            // Wait for Proposals system to be ready
+            await waitForProposalsSystem();
+            
+            // Get all proposals
+            const proposals = await window.ProposalsCMS.getAll();
+            
+            // Render proposals
+            renderProposals(proposals);
+          } catch (error) {
+            console.error('Error loading proposals:', error);
+            showNoResults('Error loading proposals. Please try again later.');
           }
         }
         
-        // Listen for proposal updates
-        window.addEventListener('proposals-updated', function() {
-          loadAndDisplayProposals();
-        });
+        async function waitForProposalsSystem() {
+          if (window.ProposalsCMS && typeof window.ProposalsCMS.getAll === 'function') {
+            return Promise.resolve();
+          }
+          
+          return new Promise((resolve) => {
+            const checkInterval = setInterval(() => {
+              if (window.ProposalsCMS && typeof window.ProposalsCMS.getAll === 'function') {
+                clearInterval(checkInterval);
+                resolve();
+              }
+            }, 100);
+            
+            // Timeout after 5 seconds
+            setTimeout(() => {
+              clearInterval(checkInterval);
+              console.error('ProposalsCMS not available after timeout');
+              resolve();
+            }, 5000);
+          });
+        }
+        
+        function renderProposals(proposals) {
+          const container = document.getElementById('proposals-container');
+          if (!container) return;
+          
+          // Clear existing content
+          container.innerHTML = '';
+          
+          if (proposals.length === 0) {
+            showNoResults('No proposals found. Check back later for updates.');
+            return;
+          }
+          
+          // Generate a proposal card for each proposal
+          proposals.forEach(proposal => {
+            const card = createProposalCard(proposal);
+            container.appendChild(card);
+          });
+        }
+        
+        function createProposalCard(proposal) {
+          // Create card element
+          const card = document.createElement('a');
+          card.className = 'proposal-card';
+          
+          // Generate the slug for the URL using city-state format
+          const slug = proposal.city.toLowerCase().replace(/\s+/g, '-') + 
+                      (proposal.state ? '-' + proposal.state.toLowerCase().replace(/\s+/g, '-') : '');
+          
+          card.href = `/proposals/${slug}`;
+          
+          // Determine tag class based on proposal tags
+          let tagClass = 'healthcare';
+          if (proposal.tags && proposal.tags.length > 0) {
+            const tag = proposal.tags[0].toLowerCase();
+            if (tag.includes('maternal')) tagClass = 'maternal';
+            else if (tag.includes('mental')) tagClass = 'mental';
+            else if (tag.includes('pediatric')) tagClass = 'pediatrics';
+            else if (tag.includes('rural')) tagClass = 'rural';
+            else if (tag.includes('urban')) tagClass = 'urban';
+            else if (tag.includes('telehealth')) tagClass = 'telehealth';
+            else if (tag.includes('equity')) tagClass = 'equity';
+          }
+          
+          // Convert tags to array if it's a string
+          const tagsArray = Array.isArray(proposal.tags) ? proposal.tags : 
+                           typeof proposal.tags === 'string' ? proposal.tags.split(',').map(t => t.trim()) : [];
+          
+          const firstTag = tagsArray.length > 0 ? tagsArray[0] : 'Healthcare';
+          
+          // Set card content
+          card.innerHTML = `
+            <div class="proposal-tag ${tagClass}">${firstTag}</div>
+            <h3 class="proposal-title">${proposal.healthcareIssue}</h3>
+            <p class="proposal-description">${proposal.description}</p>
+            <div class="proposal-footer">
+              <div class="proposal-location">${proposal.city}, ${proposal.state || ''} ${proposal.country}</div>
+              <div class="proposal-read-more">Read More <span>&rarr;</span></div>
+            </div>
+          `;
+          
+          return card;
+        }
+        
+        function setupFilters() {
+          // Get filter elements
+          const searchInput = document.getElementById('proposal-search');
+          const tagButtons = document.querySelectorAll('.tag');
+          const sortSelect = document.getElementById('proposal-sort');
+          
+          // Add event listeners
+          if (searchInput) {
+            searchInput.addEventListener('input', filterProposals);
+          }
+          
+          if (tagButtons) {
+            tagButtons.forEach(tag => {
+              tag.addEventListener('click', function() {
+                // Toggle active class
+                this.classList.toggle('active');
+                
+                // Filter proposals
+                filterProposals();
+              });
+            });
+          }
+          
+          if (sortSelect) {
+            sortSelect.addEventListener('change', filterProposals);
+          }
+        }
+        
+        async function filterProposals() {
+          try {
+            // Get filter values
+            const searchValue = document.getElementById('proposal-search')?.value.toLowerCase() || '';
+            const activeTags = Array.from(document.querySelectorAll('.tag.active')).map(tag => tag.dataset.tag);
+            const sortValue = document.getElementById('proposal-sort')?.value || 'newest';
+            
+            // Get all proposals
+            const proposals = await window.ProposalsCMS.getAll();
+            
+            // Filter proposals based on search and tags
+            let filteredProposals = proposals.filter(proposal => {
+              // Search filter
+              const matchesSearch = searchValue === '' || 
+                proposal.healthcareIssue.toLowerCase().includes(searchValue) || 
+                proposal.description.toLowerCase().includes(searchValue) || 
+                proposal.city.toLowerCase().includes(searchValue) || 
+                (proposal.state && proposal.state.toLowerCase().includes(searchValue)) || 
+                proposal.country.toLowerCase().includes(searchValue);
+              
+              // Tag filter
+              let matchesTags = activeTags.length === 0;
+              if (!matchesTags && proposal.tags) {
+                const proposalTags = Array.isArray(proposal.tags) ? proposal.tags : 
+                                    typeof proposal.tags === 'string' ? proposal.tags.split(',').map(t => t.trim()) : [];
+                
+                matchesTags = activeTags.some(tag => 
+                  proposalTags.some(propTag => propTag.toLowerCase().includes(tag.toLowerCase()))
+                );
+              }
+              
+              return matchesSearch && matchesTags;
+            });
+            
+            // Sort proposals
+            switch(sortValue) {
+              case 'newest':
+                filteredProposals.sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
+                break;
+              case 'oldest':
+                filteredProposals.sort((a, b) => new Date(a.created_at || 0) - new Date(b.created_at || 0));
+                break;
+              case 'a-z':
+                filteredProposals.sort((a, b) => a.healthcareIssue.localeCompare(b.healthcareIssue));
+                break;
+              case 'z-a':
+                filteredProposals.sort((a, b) => b.healthcareIssue.localeCompare(a.healthcareIssue));
+                break;
+            }
+            
+            // Render filtered proposals
+            renderProposals(filteredProposals);
+          } catch (error) {
+            console.error('Error filtering proposals:', error);
+          }
+        }
+        
+        function showNoResults(message) {
+          const container = document.getElementById('proposals-container');
+          if (!container) return;
+          
+          container.innerHTML = `<div class="no-results">${message}</div>`;
+        }
       </script>
     </div>
   </section>

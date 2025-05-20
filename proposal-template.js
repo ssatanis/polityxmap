@@ -4,49 +4,90 @@
  */
 
 document.addEventListener('DOMContentLoaded', function() {
-  // Get the city slug from the URL - either from path or query parameter
-  let citySlug;
+  // Get the proposal slug from the URL - either from path or query parameter
+  let proposalSlug;
   
   // First check if it's in the URL path (for clean URLs)
   if (window.location.pathname.startsWith('/proposals/')) {
-    citySlug = window.location.pathname.split('/').pop().replace('.html', '');
+    proposalSlug = window.location.pathname.split('/').pop().replace('.html', '');
   } 
   // Then check if it's in the query parameter (for our implementation)
   else {
     const urlParams = new URLSearchParams(window.location.search);
-    citySlug = urlParams.get('city');
+    proposalSlug = urlParams.get('slug');
   }
   
-  // Load the proposal data if we have a city slug
-  if (citySlug) {
-    loadProposalData(citySlug);
-  } else {
-    // If we're on the proposal.html page but don't have a slug, show not found
-    if (window.location.pathname.includes('proposal.html')) {
-      showProposalNotFound();
+  // Initialize the proposals system
+  initializeProposalsSystem().then(() => {
+    // Load the proposal data if we have a slug
+    if (proposalSlug) {
+      loadProposalData(proposalSlug);
+    } else {
+      // If we're on the proposal.html page but don't have a slug, show not found
+      if (window.location.pathname.includes('proposal.html')) {
+        showProposalNotFound();
+      }
     }
-  }
+  });
   
   // Listen for proposal updates
   window.addEventListener('proposals-updated', function() {
-    if (citySlug) {
-      loadProposalData(citySlug);
+    if (proposalSlug) {
+      loadProposalData(proposalSlug);
     }
   });
 });
 
 /**
- * Load proposal data based on the city slug in the URL
+ * Initialize the proposals system if not already loaded
  */
-function loadProposalData(citySlug) {
-  // Use the unified proposals system to find the proposal
-  const proposal = window.ProposalsCMS.findProposalBySlug(citySlug);
-  
-  if (proposal) {
-    // Populate the page with proposal data
-    populateProposalPage(proposal);
-  } else {
-    // Handle case where proposal is not found
+async function initializeProposalsSystem() {
+  // Wait for the proposals system to be available
+  if (!window.ProposalsCMS) {
+    return new Promise((resolve) => {
+      // Check every 100ms if the system is loaded
+      const checkInterval = setInterval(() => {
+        if (window.ProposalsCMS) {
+          clearInterval(checkInterval);
+          resolve();
+        }
+      }, 100);
+      
+      // Timeout after 5 seconds
+      setTimeout(() => {
+        clearInterval(checkInterval);
+        console.error('ProposalsCMS not available after timeout');
+        resolve();
+      }, 5000);
+    });
+  }
+  return Promise.resolve();
+}
+
+/**
+ * Load proposal data based on the slug in the URL
+ */
+async function loadProposalData(slug) {
+  try {
+    // Get all proposals
+    const proposals = await window.ProposalsCMS.getAll();
+    
+    // Find the proposal with matching slug
+    const proposal = proposals.find(p => {
+      const generatedSlug = p.city.toLowerCase().replace(/\s+/g, '-') + 
+                         (p.state ? '-' + p.state.toLowerCase().replace(/\s+/g, '-') : '');
+      return generatedSlug === slug;
+    });
+    
+    if (proposal) {
+      // Populate the page with proposal data
+      populateProposalPage(proposal);
+    } else {
+      // Handle case where proposal is not found
+      showProposalNotFound();
+    }
+  } catch (error) {
+    console.error('Error loading proposal data:', error);
     showProposalNotFound();
   }
 }
@@ -56,7 +97,7 @@ function loadProposalData(citySlug) {
  */
 function populateProposalPage(proposal) {
   // Set page title
-  document.title = `${proposal.healthcareIssue} | PolityxMap`;
+  document.title = `${proposal.healthcareIssue} | ${proposal.city}, ${proposal.state || ''} | PolityxMap`;
   
   // Update meta description
   const metaDescription = document.querySelector('meta[name="description"]');
@@ -67,13 +108,13 @@ function populateProposalPage(proposal) {
   // Set proposal title
   const titleElement = document.getElementById('proposal-title');
   if (titleElement) {
-    titleElement.textContent = proposal.healthcareIssue;
+    titleElement.innerHTML = `${proposal.healthcareIssue} <span class="proposal-accent">Proposal</span>`;
   }
   
   // Set proposal location
   const locationElement = document.getElementById('proposal-location');
   if (locationElement) {
-    locationElement.textContent = `${proposal.city}, ${proposal.country}`;
+    locationElement.textContent = `${proposal.city}, ${proposal.state || ''} ${proposal.country}`;
   }
   
   // Set proposal description
@@ -91,7 +132,7 @@ function populateProposalPage(proposal) {
   // Set proposal policy
   const policyElement = document.getElementById('proposal-policy');
   if (policyElement) {
-    policyElement.textContent = proposal.policy;
+    policyElement.textContent = proposal.policy || proposal.overview;
   }
   
   // Set proposal stakeholders
@@ -109,7 +150,7 @@ function populateProposalPage(proposal) {
   // Set proposal metrics
   const metricsElement = document.getElementById('proposal-metrics');
   if (metricsElement) {
-    metricsElement.textContent = proposal.metrics;
+    metricsElement.textContent = proposal.metrics || proposal.successMetrics;
   }
   
   // Set proposal timeline
@@ -118,29 +159,52 @@ function populateProposalPage(proposal) {
     timelineElement.textContent = proposal.timeline;
   }
   
+  // Set full proposal text if available
+  const fullTextElement = document.getElementById('proposal-full-text');
+  if (fullTextElement) {
+    fullTextElement.textContent = proposal.proposalText || proposal.fullText || '';
+  }
+  
   // Set proposal author
   const authorElement = document.getElementById('proposal-author');
   if (authorElement) {
-    authorElement.textContent = proposal.fullName;
+    authorElement.textContent = proposal.fullName || proposal.authorName;
   }
   
   // Set proposal institution
   const institutionElement = document.getElementById('proposal-institution');
   if (institutionElement) {
-    institutionElement.textContent = proposal.institution;
+    institutionElement.textContent = proposal.institution || proposal.authorInstitution;
+  }
+  
+  // Set proposal image if available
+  const imageElement = document.getElementById('proposal-image');
+  if (imageElement && proposal.imageLink) {
+    imageElement.src = proposal.imageLink;
+    imageElement.alt = proposal.healthcareIssue;
+    imageElement.style.display = 'block';
+  } else if (imageElement) {
+    imageElement.style.display = 'none';
   }
   
   // Set proposal tags
   const tagsContainer = document.getElementById('proposal-tags');
   if (tagsContainer && proposal.tags) {
     tagsContainer.innerHTML = '';
-    proposal.tags.forEach(tag => {
+    
+    // Convert tags to array if it's a string
+    const tagsArray = Array.isArray(proposal.tags) ? proposal.tags : 
+                     typeof proposal.tags === 'string' ? proposal.tags.split(',').map(t => t.trim()) : [];
+    
+    tagsArray.forEach(tag => {
+      if (!tag) return;
+      
       const tagElement = document.createElement('span');
       tagElement.className = 'proposal-tag';
       tagElement.textContent = tag;
       
       // Add appropriate class based on tag content
-      if (tag.toLowerCase().includes('health')) {
+      if (tag.toLowerCase().includes('healthcare access')) {
         tagElement.classList.add('healthcare');
       } else if (tag.toLowerCase().includes('maternal')) {
         tagElement.classList.add('maternal');
@@ -152,6 +216,12 @@ function populateProposalPage(proposal) {
         tagElement.classList.add('rural');
       } else if (tag.toLowerCase().includes('urban')) {
         tagElement.classList.add('urban');
+      } else if (tag.toLowerCase().includes('telehealth')) {
+        tagElement.classList.add('telehealth');
+      } else if (tag.toLowerCase().includes('equity')) {
+        tagElement.classList.add('equity');
+      } else {
+        tagElement.classList.add('healthcare');
       }
       
       tagsContainer.appendChild(tagElement);
@@ -176,14 +246,33 @@ function initializeProposalMap(proposal) {
     // Create map centered on proposal location
     const map = L.map(mapContainer).setView([proposal.latitude, proposal.longitude], 10);
     
-    // Add tile layer
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    // Add tile layer with improved styling
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+      attribution: '',
+      subdomains: 'abcd',
+      maxZoom: 19
     }).addTo(map);
     
-    // Add marker for proposal location
-    const marker = L.marker([proposal.latitude, proposal.longitude]).addTo(map);
-    marker.bindPopup(`<b>${proposal.healthcareIssue}</b><br>${proposal.city}, ${proposal.country}`).openPopup();
+    // Get primary tag if available
+    const primaryTag = proposal.tags && Array.isArray(proposal.tags) && proposal.tags.length > 0 ? 
+                      proposal.tags[0] : 'Healthcare Access';
+                      
+    // Color based on the primary tag
+    let markerColor = '#38B6FF'; // Default blue
+    
+    // Add marker for proposal location with custom styling
+    const marker = L.marker([proposal.latitude, proposal.longitude], {
+      title: proposal.healthcareIssue,
+      alt: `${proposal.healthcareIssue} - ${proposal.city}, ${proposal.state || ''} ${proposal.country}`,
+      riseOnHover: true
+    }).addTo(map);
+    
+    marker.bindPopup(`
+      <div style="font-family: 'DM Sans', sans-serif; padding: 5px;">
+        <h3 style="margin: 0 0 5px 0; font-size: 16px; font-weight: 700;">${proposal.healthcareIssue}</h3>
+        <p style="margin: 0; font-size: 14px;">${proposal.city}, ${proposal.state || ''} ${proposal.country}</p>
+      </div>
+    `).openPopup();
   }
 }
 

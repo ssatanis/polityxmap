@@ -11,11 +11,11 @@ function setupProposalRouting() {
   
   // If the path starts with /proposals/ and has more segments, it's a proposal detail page
   if (path.startsWith('/proposals/') && path.split('/').length > 2) {
-    // Get the city slug from the URL (remove .html if present)
-    const citySlug = path.split('/').pop().replace('.html', '');
+    // Get the city-state slug from the URL (remove .html if present)
+    const slug = path.split('/').pop().replace('.html', '');
     
     // Redirect to the proposal template with the city slug as a query parameter
-    window.location.href = `/proposal.html?city=${encodeURIComponent(citySlug)}`;
+    window.location.href = `/proposal.html?slug=${encodeURIComponent(slug)}`;
   }
 }
 
@@ -27,10 +27,15 @@ function updateProposalLinks() {
   // Find all links to proposals and update them
   document.querySelectorAll('a[href^="/proposals/"]').forEach(link => {
     const href = link.getAttribute('href');
-    const citySlug = href.split('/').pop().replace('.html', '');
+    const slug = href.split('/').pop().replace('.html', '');
     
     // Find the matching proposal
-    const proposal = proposals.find(p => p.slug === citySlug);
+    const proposal = proposals.find(p => {
+      // Generate the slug for comparison
+      const generatedSlug = p.city.toLowerCase().replace(/\s+/g, '-') + 
+                         (p.state ? '-' + p.state.toLowerCase().replace(/\s+/g, '-') : '');
+      return generatedSlug === slug;
+    });
     
     if (proposal) {
       // Update the link text if needed
@@ -38,11 +43,8 @@ function updateProposalLinks() {
         link.textContent = proposal.healthcareIssue;
       }
     } else {
-      // Redirect to error page if proposal not found
-      link.addEventListener('click', function(e) {
-        e.preventDefault();
-        window.location.href = '/error.html';
-      });
+      // Mark as pending
+      console.log(`Proposal not found for slug: ${slug}`);
     }
   });
 }
@@ -53,13 +55,13 @@ document.addEventListener('DOMContentLoaded', function() {
   if (window.location.pathname.endsWith('proposal.html')) {
     // Get the city slug from the query parameter
     const urlParams = new URLSearchParams(window.location.search);
-    const citySlug = urlParams.get('city');
+    const slug = urlParams.get('slug');
     
-    if (citySlug) {
+    if (slug) {
       // Update the browser URL to show the clean URL format without actually navigating
       // This is for visual purposes only and won't affect functionality
       if (window.history && window.history.replaceState) {
-        window.history.replaceState({}, document.title, `/proposals/${citySlug}`);
+        window.history.replaceState({}, document.title, `/proposals/${slug}`);
       }
     }
   } else {
@@ -71,10 +73,21 @@ document.addEventListener('DOMContentLoaded', function() {
   setupProposalRouting();
   
   // Listen for proposal updates to refresh links
-  window.addEventListener('proposalsUpdated', function() {
+  window.addEventListener('proposals-updated', function() {
     updateProposalLinks();
   });
 });
+
+// Generate the proper URL slug for a proposal
+function generateProposalSlug(proposal) {
+  if (!proposal || !proposal.city) return '';
+  
+  return proposal.city.toLowerCase().replace(/\s+/g, '-') + 
+         (proposal.state ? '-' + proposal.state.toLowerCase().replace(/\s+/g, '-') : '');
+}
+
+// Make the function available globally
+window.generateProposalSlug = generateProposalSlug;
 
 // Create latest proposal links on the home page
 function createLatestProposalLinks() {
@@ -95,7 +108,7 @@ function createLatestProposalLinks() {
         // Create the proposal card
         const card = document.createElement('a');
         card.className = 'card post-item w-inline-block';
-        card.href = `/proposals/${citySlug}`;
+        card.href = `/proposals/${generateProposalSlug(proposal)}`;
         card.style.display = 'block';
         card.style.backgroundColor = '#1C1A24';
         card.style.borderRadius = '18px';
