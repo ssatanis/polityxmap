@@ -28,6 +28,8 @@
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <!-- Leaflet JS -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <!-- Supabase Client -->
+  <script src="js/supabase-client.js"></script>
   <!-- Our Map Component -->
   <script src="map-component.js"></script>
   <!-- Features Navigation Script -->
@@ -44,7 +46,136 @@
   display:none !important;
   }
  </style>
-<script type="text/javascript">window.__WEBFLOW_CURRENCY_SETTINGS = {"currencyCode":"USD","symbol":"$","decimal":".","fractionDigits":2,"group":",","template":"{{wf {\"path\":\"symbol\",\"type\":\"PlainText\"} }} {{wf {\"path\":\"amount\",\"type\":\"CommercePrice\"} }} {{wf {\"path\":\"currencyCode\",\"type\":\"PlainText\"} }}","hideDecimalForWholeNumbers":false};</script><style type="text/css">* { animation-duration: 0.001s !important; transition-duration: 0.001s !important; }</style></head>
+<script type="text/javascript">window.__WEBFLOW_CURRENCY_SETTINGS = {"currencyCode":"USD","symbol":"$","decimal":".","fractionDigits":2,"group":",","template":"{{wf {\"path\":\"symbol\",\"type\":\"PlainText\"} }} {{wf {\"path\":\"amount\",\"type\":\"CommercePrice\"} }} {{wf {\"path\":\"currencyCode\",\"type\":\"PlainText\"} }}","hideDecimalForWholeNumbers":false};</script><style type="text/css">* { animation-duration: 0.001s !important; transition-duration: 0.001s !important; }</style>
+<style>
+  /* Enhanced Feature Cards Styling */
+  .home-features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 30px;
+    padding: 20px 0;
+  }
+
+  .card.home-feature {
+    background: linear-gradient(135deg, rgba(28, 26, 36, 0.8) 0%, rgba(35, 32, 70, 0.8) 100%);
+    border-radius: 24px;
+    padding: 40px 32px;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    transform: translateY(0);
+    opacity: 0;
+    animation: cardFadeIn 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  }
+
+  .card.home-feature:nth-child(1) { animation-delay: 0.1s; }
+  .card.home-feature:nth-child(2) { animation-delay: 0.2s; }
+  .card.home-feature:nth-child(3) { animation-delay: 0.3s; }
+  .card.home-feature:nth-child(4) { animation-delay: 0.4s; }
+  .card.home-feature:nth-child(5) { animation-delay: 0.5s; }
+  .card.home-feature:nth-child(6) { animation-delay: 0.6s; }
+
+  @keyframes cardFadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .card.home-feature::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(56, 182, 255, 0.1) 0%, rgba(138, 103, 255, 0.1) 100%);
+    opacity: 0;
+    transition: opacity 0.4s ease;
+    z-index: 0;
+  }
+
+  .card.home-feature:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3),
+                0 0 20px rgba(56, 182, 255, 0.2);
+    border-color: rgba(56, 182, 255, 0.3);
+  }
+
+  .card.home-feature:hover::before {
+    opacity: 1;
+  }
+
+  .image.card-home-feature {
+    width: 64px;
+    height: 64px;
+    margin-bottom: 24px;
+    transition: transform 0.4s ease;
+    position: relative;
+    z-index: 1;
+  }
+
+  .card.home-feature:hover .image.card-home-feature {
+    transform: scale(1.1) rotate(5deg);
+  }
+
+  .card-home-feature-content {
+    position: relative;
+    z-index: 1;
+  }
+
+  .title.card-home-feature {
+    font-size: 24px;
+    font-weight: 700;
+    color: #ffffff;
+    margin-bottom: 16px;
+    transition: color 0.3s ease;
+  }
+
+  .card.home-feature:hover .title.card-home-feature {
+    background: linear-gradient(90deg, #38B6FF, #8A67FF);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .paragraph.card-home-feature {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 16px;
+    line-height: 1.6;
+    margin-bottom: 0;
+    transition: color 0.3s ease;
+  }
+
+  .card.home-feature:hover .paragraph.card-home-feature {
+    color: rgba(255, 255, 255, 0.95);
+  }
+
+  /* Add a subtle glow effect on hover */
+  .card.home-feature::after {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    background: linear-gradient(135deg, #38B6FF, #8A67FF);
+    border-radius: 26px;
+    z-index: -1;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+  }
+
+  .card.home-feature:hover::after {
+    opacity: 0.15;
+  }
+</style>
+</head>
 <body class="bg-neutral-800">
 <div class="page-wrapper" style="opacity: 1;">
   <!-- Header placeholder - will be filled by includes.js -->

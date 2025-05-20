@@ -4,26 +4,55 @@
  */
 
 document.addEventListener('DOMContentLoaded', function() {
+  // Load Supabase client script
+  const supabaseScript = document.createElement('script');
+  supabaseScript.src = '/js/supabase-client.js';
+  document.head.appendChild(supabaseScript);
+  
   // Load our unified proposals system
-  const script = document.createElement('script');
-  script.src = '/proposals.js';
-  script.onload = function() {
-    // Load data migration script
-    const migrationScript = document.createElement('script');
-    migrationScript.src = '/data-migration.js';
-    document.head.appendChild(migrationScript);
+  const proposalsScript = document.createElement('script');
+  proposalsScript.src = '/proposals.js';
+  document.head.appendChild(proposalsScript);
     
-    // Override admin portal proposal functions
-    overrideAdminFunctions();
+  // Load data migration script
+  const migrationScript = document.createElement('script');
+  migrationScript.src = '/data-migration.js';
+  document.head.appendChild(migrationScript);
     
-    // Initialize available tags without pre-selecting them
-    initializeTagOptions();
-    
-    // Add CSS styles for tag selection modal
-    addTagSelectionStyles();
-  };
-  document.head.appendChild(script);
+  // Wait for both Supabase and proposals scripts to load
+  Promise.all([
+    waitForScriptLoad(supabaseScript),
+    waitForScriptLoad(proposalsScript),
+    waitForScriptLoad(migrationScript)
+  ]).then(() => {
+    // Only initialize after Supabase is ready
+    window.addEventListener('supabase-ready', function() {
+      // Override admin portal proposal functions
+      overrideAdminFunctions();
+      
+      // Initialize available tags without pre-selecting them
+      initializeTagOptions();
+      
+      // Add CSS styles for tag selection modal
+      addTagSelectionStyles();
+    });
+  });
 });
+
+/**
+ * Wait for a script to load
+ * @param {HTMLElement} script - The script element to wait for
+ * @returns {Promise} Promise resolving when the script is loaded
+ */
+function waitForScriptLoad(script) {
+  return new Promise((resolve) => {
+    if (script.loaded) {
+      resolve();
+    } else {
+      script.onload = resolve;
+    }
+  });
+}
 
 /**
  * Add CSS styles for tag selection modal
@@ -255,422 +284,441 @@ function addTagToContainer(tagText) {
  * Override admin portal proposal functions to use the unified proposals system
  */
 function overrideAdminFunctions() {
-  // Wait for the admin.js to initialize
-  setTimeout(() => {
-    // Override the loadProposalsForManagement function
-    if (typeof loadProposalsForManagement === 'function') {
-      const originalLoadProposals = loadProposalsForManagement;
-      window.loadProposalsForManagement = function() {
-        // Call the original function first
-        originalLoadProposals();
-        
-        // Then update the proposals table with our unified system
-        updatesTable();
-      };
+  // Populate proposals table on admin.html page load
+  if (window.location.pathname.endsWith('admin.html') || window.location.pathname === '/admin') {
+    // Wait for DOM to be ready in case this script loads early
+    if (document.readyState === 'complete' || document.readyState === 'interactive') {
+      updateProposalsTable();
+    } else {
+      window.addEventListener('DOMContentLoaded', updateProposalsTable);
     }
     
-    // Override the form submission handler
-    const proposalForm = document.getElementById('proposal-form');
-    if (proposalForm) {
-      proposalForm.removeEventListener('submit', proposalForm.onsubmit);
-      proposalForm.addEventListener('submit', handleProposalFormSubmit);
-    }
-    
-    // Add event listener for proposal updates
-    window.addEventListener('proposalsUpdated', function() {
-      updatesTable();
-    });
-    
-    // Initialize the proposals table
-    updatesTable();
-  }, 500);
+    // Listen for proposal update events to refresh the table
+    window.addEventListener('proposals-updated', updateProposalsTable);
+  }
+  
+  // Override the form submission on the admin page
+  const proposalForm = document.getElementById('proposal-form');
+  if (proposalForm) {
+    proposalForm.addEventListener('submit', handleProposalFormSubmit);
+  }
 }
 
 /**
- * Update the proposals table with data from the unified proposals system
+ * Update the proposals table on the admin page
  */
-// Update the proposals table and dashboard metrics
-function updatesTable() {
-  const proposalTableBody = document.getElementById('proposal-table-body');
-  const totalProposalsCount = document.getElementById('total-proposals-count');
-  const statesRepresented = document.querySelector('[data-metric="statesRepresented"]');
-  const countriesRepresented = document.querySelector('[data-metric="countriesRepresented"]');
+async function updateProposalsTable() {
+  const tableBody = document.querySelector('#proposals-table tbody');
+  if (!tableBody) return;
   
-  let proposals = [];
-  if (window.ProposalsCMS && typeof window.ProposalsCMS.getAll === 'function') {
-    proposals = window.ProposalsCMS.getAll();
-  }
-  
-  // Update proposals table
-  if (proposalTableBody) {
-    proposalTableBody.innerHTML = '';
+  try {
+    // Show loading state
+    tableBody.innerHTML = '<tr><td colspan="6" class="text-center"><i class="fas fa-spinner fa-spin"></i> Loading proposals...</td></tr>';
     
+    // Get all proposals using the unified system
+    let proposals = [];
+    
+    if (window.ProposalsCMS && typeof window.ProposalsCMS.getAll === 'function') {
+      proposals = await window.ProposalsCMS.getAll();
+    } else if (typeof getProposals === 'function') {
+      proposals = await getProposals();
+    } else {
+      // Fallback to localStorage 
+      const storedProposals = localStorage.getItem('polityxMapProposals');
+      proposals = storedProposals ? JSON.parse(storedProposals) : [];
+    }
+    
+    // Clear loading message
+    tableBody.innerHTML = '';
+    
+    if (proposals.length === 0) {
+      tableBody.innerHTML = '<tr><td colspan="6" class="text-center">No proposals found. <a href="#" onclick="document.querySelector(\'.admin-nav-link[data-target=\\\'add-proposal-section\\\']\').click(); return false;">Add your first proposal</a></td></tr>';
+      return;
+    }
+    
+    // Sort by created_at descending (or timestamp for fallback)
+    proposals.sort((a, b) => {
+      // Use created_at if available, fallback to timestamp
+      const aDate = a.created_at ? new Date(a.created_at) : new Date(a.timestamp || 0);
+      const bDate = b.created_at ? new Date(b.created_at) : new Date(b.timestamp || 0);
+      return bDate - aDate;
+    });
+    
+    // Add each proposal to the table
     proposals.forEach(proposal => {
-      const row = document.createElement('tr');
+      const tr = document.createElement('tr');
       
-      // Create title cell
-      const titleCell = document.createElement('td');
-      titleCell.textContent = proposal.healthcareIssue || 'Untitled Proposal';
-      row.appendChild(titleCell);
+      // Format date
+      const dateCreated = proposal.created_at 
+        ? new Date(proposal.created_at).toLocaleDateString() 
+        : new Date(proposal.timestamp || Date.now()).toLocaleDateString();
       
-      // Create location cell
-      const locationCell = document.createElement('td');
-      const location = [];
-      if (proposal.city) location.push(proposal.city);
-      if (proposal.state) location.push(proposal.state);
-      if (proposal.country) location.push(proposal.country);
-      locationCell.textContent = location.join(', ');
-      row.appendChild(locationCell);
-      
-      // Create tags cell
-      const tagsCell = document.createElement('td');
-      if (proposal.tags && Array.isArray(proposal.tags)) {
-        proposal.tags.slice(0, 3).forEach(tag => {
-          const tagSpan = document.createElement('span');
-          tagSpan.className = 'tag-pill';
-          tagSpan.textContent = tag;
-          tagsCell.appendChild(tagSpan);
-        });
-        
-        if (proposal.tags.length > 3) {
-          const moreSpan = document.createElement('span');
-          moreSpan.className = 'tag-more';
-          moreSpan.textContent = `+${proposal.tags.length - 3} more`;
-          tagsCell.appendChild(moreSpan);
-        }
+      // Check if we have tags, ensure it's an array
+      let tags = proposal.tags || [];
+      if (!Array.isArray(tags)) {
+        tags = String(tags).split(',').map(tag => tag.trim());
       }
-      row.appendChild(tagsCell);
       
-      // Create actions cell
-      const actionsCell = document.createElement('td');
-      actionsCell.className = 'actions-cell';
+      tr.innerHTML = `
+        <td>${proposal.id}</td>
+        <td>${proposal.city || 'N/A'}, ${proposal.state || 'N/A'}</td>
+        <td>${proposal.healthcareIssue || 'N/A'}</td>
+        <td>${dateCreated}</td>
+        <td class="tags-cell">${formatTags(tags)}</td>
+        <td class="actions-cell">
+          <button class="edit-btn" data-id="${proposal.id}">Edit</button>
+          <button class="delete-btn" data-id="${proposal.id}">Delete</button>
+          <a href="/proposals/${proposal.slug || proposal.city.toLowerCase().replace(/\s+/g, '-')}.html" target="_blank" class="view-btn">View</a>
+        </td>
+      `;
       
-      // Edit button
-      const editButton = document.createElement('button');
-      editButton.className = 'action-btn edit-btn';
-      editButton.innerHTML = '<i class="fas fa-edit"></i>';
-      editButton.title = 'Edit Proposal';
-      editButton.addEventListener('click', () => {
-        // Show authentication modal before editing
-        const authModal = document.getElementById('auth-modal');
-        if (authModal) {
-          authModal.style.display = 'flex';
-          const authConfirmBtn = document.getElementById('auth-confirm-btn');
-          const authCancelBtn = document.getElementById('auth-cancel-btn');
-          
-          // Store the proposal ID for later use
-          authModal.dataset.proposalId = proposal.id;
-          
-          // Handle confirm button click
-          authConfirmBtn.onclick = function() {
-            const password = document.getElementById('auth-password').value;
-            if (password === 'admin123') { // Simple password for demo
-              authModal.style.display = 'none';
-              document.getElementById('auth-password').value = '';
-              
-              // Load proposal data into form for editing
-              loadProposalForEditing(proposal.id);
-              
-              // Switch to add proposal section
-              document.querySelector('.admin-nav-link[data-target="add-proposal-section"]').click();
-            } else {
-              alert('Invalid password. Please try again.');
-            }
-          };
-          
-          // Handle cancel button click
-          authCancelBtn.onclick = function() {
-            authModal.style.display = 'none';
-            document.getElementById('auth-password').value = '';
-          };
-        }
+      // Add event listeners to the buttons
+      tr.querySelector('.edit-btn').addEventListener('click', function() {
+        loadProposalForEditing(proposal.id);
       });
-      actionsCell.appendChild(editButton);
       
-      // Delete button
-      const deleteButton = document.createElement('button');
-      deleteButton.className = 'action-btn delete-btn';
-      deleteButton.innerHTML = '<i class="fas fa-trash"></i>';
-      deleteButton.title = 'Delete Proposal';
-      deleteButton.addEventListener('click', () => {
-        // Show delete confirmation modal
-        const deleteModal = document.getElementById('delete-modal');
-        if (deleteModal) {
-          deleteModal.style.display = 'flex';
-          const deleteConfirmBtn = document.getElementById('delete-confirm-btn');
-          const deleteCancelBtn = document.getElementById('delete-cancel-btn');
-          
-          // Store the proposal ID for later use
-          deleteModal.dataset.proposalId = proposal.id;
-          
-          // Handle confirm button click
-          deleteConfirmBtn.onclick = function() {
-            const password = document.getElementById('delete-password').value;
-            if (password === 'admin123') { // Simple password for demo
-              deleteModal.style.display = 'none';
-              document.getElementById('delete-password').value = '';
-              
-              // Delete the proposal
-              if (window.ProposalsCMS && typeof window.ProposalsCMS.delete === 'function') {
-                const deleted = window.ProposalsCMS.delete(parseInt(deleteModal.dataset.proposalId));
-                
-                if (deleted) {
-                  // Add to history log
-                  addToHistoryLog('Delete Proposal', `Deleted proposal "${proposal.healthcareIssue}"`);
-                  
-                  // Update table
-                  updatesTable();
-                  
-                  // Show success message
-                  showMessage('Proposal deleted successfully!', 'success');
-                } else {
-                  showMessage('Error deleting proposal. Please try again.', 'error');
-                }
-              }
-            } else {
-              alert('Invalid password. Please try again.');
-            }
-          };
-          
-          // Handle cancel button click
-          deleteCancelBtn.onclick = function() {
-            deleteModal.style.display = 'none';
-            document.getElementById('delete-password').value = '';
-          };
-        }
+      tr.querySelector('.delete-btn').addEventListener('click', function() {
+        handleDeleteProposal(proposal.id);
       });
-      actionsCell.appendChild(deleteButton);
       
-      // View button
-      const viewButton = document.createElement('button');
-      viewButton.className = 'action-btn view-btn';
-      viewButton.innerHTML = '<i class="fas fa-eye"></i>';
-      viewButton.title = 'View Proposal';
-      viewButton.addEventListener('click', () => {
-        // Open proposal in new tab if it has a slug
-        if (proposal.slug) {
-          window.open(`/proposals/${proposal.slug}.html`, '_blank');
-        } else {
-          showMessage('Proposal page not available', 'info');
-        }
-      });
-      actionsCell.appendChild(viewButton);
-      
-      row.appendChild(actionsCell);
-      proposalTableBody.appendChild(row);
-    });
-  }
-  
-  // Update dashboard metrics
-  if (totalProposalsCount) {
-    totalProposalsCount.textContent = proposals.length;
-  }
-  
-  // Calculate unique states and countries
-  if (statesRepresented || countriesRepresented) {
-    const uniqueStates = new Set();
-    const uniqueCountries = new Set();
-    
-    proposals.forEach(proposal => {
-      if (proposal.state) uniqueStates.add(proposal.state);
-      if (proposal.country) uniqueCountries.add(proposal.country);
+      tableBody.appendChild(tr);
     });
     
-    if (statesRepresented) {
-      statesRepresented.textContent = uniqueStates.size;
-    }
+    // Update dashboard counts if on dashboard
+    updateDashboardCounts(proposals);
     
-    if (countriesRepresented) {
-      countriesRepresented.textContent = uniqueCountries.size;
-    }
-  }
-  
-  // Trigger map update if map component is available
-  if (window.policyMapInstance && typeof window.loadProposals === 'function') {
-    window.loadProposals(window.policyMapInstance);
+  } catch (error) {
+    console.error('Error updating proposals table:', error);
+    tableBody.innerHTML = '<tr><td colspan="6" class="text-center">Error loading proposals: ' + error.message + '</td></tr>';
   }
 }
 
-// Handle proposal form submission
-function handleProposalFormSubmit(event) {
+/**
+ * Update dashboard counts if on dashboard
+ */
+function updateDashboardCounts(proposals) {
+  try {
+    // Update total proposals count
+    const totalProposalsCount = document.getElementById('total-proposals-count');
+    if (totalProposalsCount) {
+      totalProposalsCount.textContent = proposals.length;
+    }
+    
+    // Count unique states
+    const statesCount = document.querySelector('.metric-counter[data-metric="statesRepresented"]');
+    if (statesCount) {
+      const uniqueStates = [...new Set(proposals.map(p => p.state).filter(Boolean))];
+      statesCount.textContent = uniqueStates.length;
+    }
+    
+    // Count unique countries
+    const countriesCount = document.querySelector('.metric-counter[data-metric="countriesRepresented"]');
+    if (countriesCount) {
+      const uniqueCountries = [...new Set(proposals.map(p => p.country).filter(Boolean))];
+      countriesCount.textContent = uniqueCountries.length;
+    }
+  } catch (error) {
+    console.error('Error updating dashboard counts:', error);
+  }
+}
+
+/**
+ * Format tags for display in the table
+ * @param {Array} tags - Array of tag strings
+ * @returns {string} HTML string with formatted tags
+ */
+function formatTags(tags) {
+  if (!tags || !Array.isArray(tags) || tags.length === 0) {
+    return '<span class="no-tags">No tags</span>';
+  }
+  
+  return tags.map(tag => `<span class="tag-badge">${tag}</span>`).join(' ');
+}
+
+/**
+ * Initialize table components
+ */
+function initTableComponents() {
+  // Any additional initialization needed for table components
+}
+
+/**
+ * Handle proposal form submission
+ * @param {Event} event - The form submission event
+ */
+async function handleProposalFormSubmit(event) {
   event.preventDefault();
-  // Add proposal to ProposalsCMS
-  const form = event.target;
   
-  // Get all form fields
-  const name = document.getElementById('proposal-name').value;
-  const email = document.getElementById('proposal-email').value;
-  const institution = document.getElementById('proposal-institution').value;
-  const healthcareIssue = document.getElementById('healthcare-issue').value;
-  const city = document.getElementById('proposal-city').value;
-  const state = document.getElementById('proposal-state').value;
-  const country = document.getElementById('proposal-country').value;
-  const lat = document.getElementById('proposal-lat').value;
-  const lng = document.getElementById('proposal-lng').value;
-  const description = document.getElementById('proposal-description').value;
-  const background = document.getElementById('proposal-background').value;
-  const overview = document.getElementById('proposal-overview').value;
-  const stakeholders = document.getElementById('proposal-stakeholders').value;
-  const costs = document.getElementById('proposal-costs').value;
-  const metrics = document.getElementById('proposal-metrics').value;
-  const timeline = document.getElementById('proposal-timeline').value;
-  
-  // Get selected tags
-  const tagElements = document.querySelectorAll('#proposal-tags .tag');
-  const tags = Array.from(tagElements).map(tag => tag.textContent.trim().replace(' ×', ''));
-  
-  if (window.ProposalsCMS && typeof window.ProposalsCMS.create === 'function') {
-    // Create the complete proposal object
-    const proposal = {
-      name: name,
-      email: email,
-      institution: institution,
-      healthcareIssue: healthcareIssue,
-      city: city,
-      state: state,
-      country: country,
-      latitude: parseFloat(lat),
-      longitude: parseFloat(lng),
-      description: description,
-      background: background,
-      policy: overview,
-      stakeholders: stakeholders,
-      costs: costs,
-      metrics: metrics,
-      timeline: timeline,
-      tags: tags,
-      timestamp: Date.now()
+  try {
+    // Show loading state
+    const submitBtn = document.getElementById('proposal-form-submit-btn');
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+    }
+    
+    // Get form data
+    const form = event.target;
+    const formData = new FormData(form);
+    
+    // Collect tags from the tag elements
+    const tagsContainer = document.getElementById('proposal-tags');
+    const tags = Array.from(tagsContainer.querySelectorAll('.tag'))
+      .map(tag => tag.textContent.trim().replace(' ×', ''));
+    
+    // Build proposal object from form data - match exactly to database schema
+    const proposalData = {
+      city: formData.get('city') || '',
+      state: formData.get('state') || '',
+      country: formData.get('country') || 'United States',
+      healthcareIssue: formData.get('healthcare-issue') || '',
+      description: formData.get('description') || '',
+      background: formData.get('background') || '',
+      policy: formData.get('policy') || '',  
+      stakeholders: formData.get('stakeholders') || '',
+      costs: formData.get('costs') || '',
+      metrics: formData.get('metrics') || '',
+      timeline: formData.get('timeline') || '',
+      proposalText: formData.get('proposal-text') || '',
+      imageLink: formData.get('image-link') || '',
+      authorName: formData.get('author-name') || '',
+      authorEmail: formData.get('author-email') || '',
+      authorInstitution: formData.get('author-institution') || '',
+      latitude: parseFloat(formData.get('latitude')) || null,
+      longitude: parseFloat(formData.get('longitude')) || null,
+      tags: tags.length > 0 ? tags : []
     };
     
-    // Save the proposal
-    const savedProposal = window.ProposalsCMS.create(proposal);
-    
-    // Create a dedicated page for this proposal
-    if (window.createProposalPage) {
-      window.createProposalPage(savedProposal);
+    // Generate a slug based on the city if not provided
+    if (!proposalData.slug) {
+      proposalData.slug = proposalData.city.toLowerCase().replace(/[^a-z0-9]+/g, '-');
     }
     
-    // Update map with the new marker
-    if (window.policyMapInstance) {
-      if (typeof loadProposals === 'function') {
-        loadProposals(window.policyMapInstance);
+    // Validate required fields
+    const requiredFields = [
+      'city', 'state', 'healthcareIssue', 'description', 
+      'background', 'policy', 'stakeholders', 'costs', 
+      'metrics', 'timeline', 'authorName', 'authorEmail', 
+      'authorInstitution', 'latitude', 'longitude'
+    ];
+    
+    const missingFields = requiredFields.filter(field => {
+      return !proposalData[field] && proposalData[field] !== 0;
+    });
+    
+    if (missingFields.length > 0) {
+      const readableFields = missingFields.map(field => {
+        // Convert camelCase to readable format
+        return field
+          .replace(/([A-Z])/g, ' $1')
+          .replace(/^./, str => str.toUpperCase());
+      });
+      throw new Error(`Please fill in all required fields: ${readableFields.join(', ')}`);
+    }
+    
+    // Check if we're editing an existing proposal or creating a new one
+    const editingId = form.dataset.editingId;
+    let result;
+    
+    if (editingId && editingId !== 'new') {
+      // Update existing proposal
+      result = await window.ProposalsCMS.update(parseInt(editingId), proposalData);
+      if (!result) {
+        throw new Error('Failed to update proposal');
       }
+      showMessage('Proposal updated successfully!', 'success');
+      addToHistoryLog('Updated proposal', `Updated proposal #${result.id} - ${result.city}, ${result.state}`);
+    } else {
+      // Create new proposal
+      result = await window.ProposalsCMS.create(proposalData);
+      showMessage('New proposal created successfully!', 'success');
+      addToHistoryLog('Created proposal', `Created new proposal - ${result.city}, ${result.state}`);
     }
-    
-    // Add to history log
-    addToHistoryLog('Submit Proposal', `${name} submitted proposal titled "${healthcareIssue}"`);
     
     // Reset form
     form.reset();
-    if (document.getElementById('edit-id')) {
-      document.getElementById('edit-id').value = '';
+    form.dataset.editingId = 'new';
+    
+    // Clear tag container
+    if (tagsContainer) {
+      tagsContainer.innerHTML = '';
     }
     
-    // Update proposals table and dashboard
-    updatesTable();
+    // Update the table with the new/updated proposal
+    updateProposalsTable();
     
-    // Show confirmation popup
-    showConfirmationPopup(healthcareIssue);
-  } else {
-    // Show error message if ProposalsCMS is not available
-    showMessage('Error: Proposal system not available. Please try again later.', 'error');
+    // Refresh the map
+    if (window.syncMapWithProposals) {
+      window.syncMapWithProposals();
+    }
+    
+    // Reload the specific tab or section as needed
+    const activeTab = document.querySelector('.admin-tab.active');
+    if (activeTab && activeTab.id === 'proposals-tab') {
+      document.querySelector('#proposals-list-tab').click();
+    }
+  } catch (error) {
+    console.error('Error saving proposal:', error);
+    showMessage(error.message || 'Error saving proposal', 'error');
+  } finally {
+    // Reset button state
+    const submitBtn = document.getElementById('proposal-form-submit-btn');
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.innerHTML = 'Submit Proposal';
+    }
   }
 }
 
-// Handle deleting a proposal
-function handleDeleteProposal(id) {
-  if (confirm('Are you sure you want to delete this proposal?')) {
-    // Delete the proposal using the unified proposals system
-    const deleted = window.ProposalsCMS.delete(id);
+/**
+ * Handle delete proposal action
+ * @param {number} id - The ID of the proposal to delete
+ */
+async function handleDeleteProposal(id) {
+  try {
+    if (!id) return;
     
-    if (deleted) {
-      // Update proposals table
-      updatesTable();
-      
-      // Show success message
-      showMessage('Proposal deleted successfully!', 'success');
-    } else {
-      // Show error message
-      showMessage('Error deleting proposal. Proposal not found.', 'error');
+    // Show confirmation
+    if (!await showConfirmationPopup('Are you sure you want to delete this proposal?')) {
+      return;
     }
+    
+    // Show loading state
+    showMessage('Deleting proposal...', 'info');
+    
+    // Delete the proposal using the unified system
+    const success = await window.ProposalsCMS.delete(id);
+    
+    if (success) {
+      showMessage('Proposal deleted successfully', 'success');
+      addToHistoryLog('Deleted proposal', `Deleted proposal #${id}`);
+      
+      // Update UI components
+      updateProposalsTable();
+      
+      // Refresh the map
+      if (window.syncMapWithProposals) {
+        window.syncMapWithProposals();
+      }
+    } else {
+      throw new Error('Failed to delete proposal');
+    }
+  } catch (error) {
+    console.error('Error deleting proposal:', error);
+    showMessage('Error deleting proposal: ' + error.message, 'error');
   }
 }
 
 /**
  * Load a proposal into the form for editing
+ * @param {number} id - The ID of the proposal to edit
  */
-function loadProposalForEditing(id) {
-  if (!window.ProposalsCMS || typeof window.ProposalsCMS.get !== 'function') {
-    showMessage('Error: Proposal system not available', 'error');
-    return;
-  }
-  
-  // Get the proposal by ID
-  const proposal = window.ProposalsCMS.get(parseInt(id));
-  if (!proposal) {
-    showMessage('Error: Proposal not found', 'error');
-    return;
-  }
-  
-  // Set form to edit mode
-  const editIdField = document.getElementById('edit-id') || document.createElement('input');
-  if (!document.getElementById('edit-id')) {
-    editIdField.type = 'hidden';
-    editIdField.id = 'edit-id';
-    document.getElementById('proposal-form').appendChild(editIdField);
-  }
-  editIdField.value = proposal.id;
-  
-  // Fill in form fields
-  document.getElementById('proposal-name').value = proposal.name || '';
-  document.getElementById('proposal-email').value = proposal.email || '';
-  document.getElementById('proposal-institution').value = proposal.institution || '';
-  document.getElementById('healthcare-issue').value = proposal.healthcareIssue || '';
-  document.getElementById('proposal-city').value = proposal.city || '';
-  document.getElementById('proposal-state').value = proposal.state || '';
-  document.getElementById('proposal-country').value = proposal.country || '';
-  document.getElementById('proposal-lat').value = proposal.latitude || '';
-  document.getElementById('proposal-lng').value = proposal.longitude || '';
-  document.getElementById('proposal-description').value = proposal.description || '';
-  document.getElementById('proposal-background').value = proposal.background || '';
-  document.getElementById('proposal-overview').value = proposal.policy || '';
-  document.getElementById('proposal-stakeholders').value = proposal.stakeholders || '';
-  document.getElementById('proposal-costs').value = proposal.costs || '';
-  document.getElementById('proposal-metrics').value = proposal.metrics || '';
-  document.getElementById('proposal-timeline').value = proposal.timeline || '';
-  
-  // Handle tags
-  const tagContainer = document.getElementById('proposal-tags');
-  tagContainer.innerHTML = '';
-  
-  if (proposal.tags && Array.isArray(proposal.tags)) {
-    proposal.tags.forEach(tag => {
-      const tagElement = document.createElement('div');
-      tagElement.className = 'tag';
-      tagElement.innerHTML = `${tag} <i class="fas fa-times"></i>`;
-      
-      // Add click handler to remove tag
-      tagElement.querySelector('i').addEventListener('click', function() {
-        tagElement.remove();
-      });
-      
-      tagContainer.appendChild(tagElement);
+async function loadProposalForEditing(id) {
+  try {
+    if (!id) return;
+    
+    // Show loading message
+    showMessage('Loading proposal...', 'info');
+    
+    // Get the proposal data
+    let proposal;
+    if (window.ProposalsCMS && typeof window.ProposalsCMS.get === 'function') {
+      proposal = await window.ProposalsCMS.get(id);
+    } else if (typeof getProposalById === 'function') {
+      proposal = await getProposalById(id);
+    } else {
+      // Fallback to localStorage
+      const proposals = JSON.parse(localStorage.getItem('polityxMapProposals') || '[]');
+      proposal = proposals.find(p => p.id === id);
+    }
+    
+    if (!proposal) {
+      throw new Error('Proposal not found');
+    }
+    
+    // Get the form
+    const form = document.getElementById('proposal-form');
+    if (!form) return;
+    
+    // Set the form's editing ID
+    form.dataset.editingId = id.toString();
+    
+    // Populate form fields
+    const fields = {
+      'city': proposal.city || '',
+      'state': proposal.state || '',
+      'country': proposal.country || 'United States',
+      'healthcare-issue': proposal.healthcareIssue || '',
+      'description': proposal.description || '',
+      'background': proposal.background || '',
+      'policy': proposal.policy || '',
+      'stakeholders': proposal.stakeholders || '',
+      'costs': proposal.costs || '',
+      'metrics': proposal.metrics || '',
+      'timeline': proposal.timeline || '',
+      'proposal-text': proposal.proposalText || '',
+      'image-link': proposal.imageLink || '',
+      'author-name': proposal.authorName || '',
+      'author-email': proposal.authorEmail || '',
+      'author-institution': proposal.authorInstitution || '',
+      'latitude': proposal.latitude || '',
+      'longitude': proposal.longitude || ''
+    };
+    
+    console.log('Loading form fields:', fields);
+    
+    // Set form field values
+    Object.entries(fields).forEach(([fieldName, value]) => {
+      const field = form.elements[fieldName];
+      if (field) {
+        field.value = value;
+      } else {
+        console.warn(`Field not found in form: ${fieldName}`);
+      }
     });
+    
+    // Clear existing tags
+    const tagContainer = document.getElementById('proposal-tags');
+    if (tagContainer) {
+      tagContainer.innerHTML = '';
+      
+      // Add tags from the proposal
+      if (proposal.tags) {
+        let tags = proposal.tags;
+        // Ensure tags is an array
+        if (!Array.isArray(tags)) {
+          tags = String(tags).split(',').map(tag => tag.trim()).filter(Boolean);
+        }
+        
+        tags.forEach(tag => {
+          addTagToContainer(tag);
+        });
+      }
+    }
+    
+    // Switch to the add/edit tab
+    const addTab = document.querySelector('.admin-nav-link[data-target="add-proposal-section"]');
+    if (addTab) {
+      addTab.click();
+    }
+    
+    // Update form title to show we're editing
+    const formTitle = document.querySelector('.admin-form-title');
+    if (formTitle) {
+      formTitle.innerHTML = '<i class="fas fa-edit"></i> Edit Policy Proposal';
+    }
+    
+    // Focus the first form field
+    const firstField = form.elements[0];
+    if (firstField) {
+      firstField.focus();
+    }
+    
+    showMessage('Proposal loaded for editing', 'success');
+  } catch (error) {
+    console.error('Error loading proposal for editing:', error);
+    showMessage('Error loading proposal: ' + error.message, 'error');
   }
-  
-  // Update form title and button text to indicate edit mode
-  const formTitle = document.querySelector('.admin-form-title');
-  if (formTitle) {
-    formTitle.innerHTML = '<i class="fas fa-edit"></i> Edit Proposal';
-  }
-  
-  const submitButton = document.getElementById('proposal-form-submit-btn');
-  if (submitButton) {
-    submitButton.textContent = 'Update Proposal';
-  }
-  
-  // Add to history log
-  addToHistoryLog('Edit Proposal', `Started editing proposal "${proposal.healthcareIssue}"`);
 }
 
 /**
@@ -685,7 +733,7 @@ function addToHistoryLog(action, details) {
       details
     });
     localStorage.setItem('polityxMapHistory', JSON.stringify(historyLog));
-t p    
+    
     // Refresh history log display if we're on the history section
     if (document.getElementById('history-section').style.display === 'block') {
       loadHistoryLog();
@@ -817,119 +865,61 @@ function showMessage(message, type = 'info') {
 /**
  * Show a visually appealing confirmation popup
  */
-function showConfirmationPopup(title) {
-  // Create the popup container if it doesn't exist
-  let popupContainer = document.querySelector('.confirmation-popup-container');
-  if (!popupContainer) {
-    popupContainer = document.createElement('div');
-    popupContainer.className = 'confirmation-popup-container';
-    document.body.appendChild(popupContainer);
+function showConfirmationPopup(message) {
+  return new Promise(resolve => {
+    // Create modal elements if they don't exist
+    let modal = document.getElementById('confirmation-modal');
     
-    // Add styles if they don't exist
-    if (!document.getElementById('confirmation-popup-styles')) {
-      const style = document.createElement('style');
-      style.id = 'confirmation-popup-styles';
-      style.textContent = `
-        .confirmation-popup-container {
-          position: fixed;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          z-index: 9999;
-          background-color: rgba(0, 0, 0, 0.5);
-          opacity: 0;
-          transition: opacity 0.3s ease;
-        }
-        .confirmation-popup {
-          background: var(--card-bg, #1A1A1A);
-          border-radius: 20px;
-          padding: 30px;
-          max-width: 500px;
-          width: 90%;
-          box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
-          text-align: center;
-          transform: translateY(20px);
-          transition: transform 0.3s ease;
-          border: 1px solid rgba(155, 89, 182, 0.2);
-        }
-        .confirmation-popup-icon {
-          font-size: 60px;
-          color: var(--success-color, #2ECC71);
-          margin-bottom: 20px;
-        }
-        .confirmation-popup-title {
-          font-size: 24px;
-          font-weight: 700;
-          margin-bottom: 10px;
-          color: var(--text-primary, #FFFFFF);
-        }
-        .confirmation-popup-message {
-          font-size: 16px;
-          color: var(--text-secondary, rgba(255, 255, 255, 0.7));
-          margin-bottom: 25px;
-        }
-        .confirmation-popup-button {
-          padding: 12px 25px;
-          background: linear-gradient(to right, var(--primary-color, #9B59B6), var(--primary-light, #8A67FF));
-          color: white;
-          border: none;
-          border-radius: 12px;
-          font-weight: 600;
-          cursor: pointer;
-          transition: all 0.3s ease;
-        }
-        .confirmation-popup-button:hover {
-          transform: translateY(-3px);
-          box-shadow: 0 8px 20px rgba(155, 89, 182, 0.4);
-        }
-        .confirmation-popup-container.show {
-          opacity: 1;
-        }
-        .confirmation-popup-container.show .confirmation-popup {
-          transform: translateY(0);
-        }
-      `;
-      document.head.appendChild(style);
+    if (!modal) {
+      modal = document.createElement('div');
+      modal.id = 'confirmation-modal';
+      modal.className = 'admin-modal';
+      
+      const modalContent = document.createElement('div');
+      modalContent.className = 'admin-modal-content';
+      
+      const modalBody = document.createElement('div');
+      modalBody.className = 'admin-modal-body';
+      modalBody.id = 'confirmation-body';
+      
+      const modalFooter = document.createElement('div');
+      modalFooter.className = 'admin-modal-footer';
+      
+      // Add content to the modal
+      modalContent.appendChild(modalBody);
+      modalContent.appendChild(modalFooter);
+      modal.appendChild(modalContent);
+      document.body.appendChild(modal);
     }
-  }
-  
-  // Create the popup content
-  const popup = document.createElement('div');
-  popup.className = 'confirmation-popup';
-  popup.innerHTML = `
-    <div class="confirmation-popup-icon">
-      <i class="fas fa-check-circle"></i>
-    </div>
-    <h3 class="confirmation-popup-title">Proposal Submitted!</h3>
-    <p class="confirmation-popup-message">Your proposal "${title}" has been successfully submitted and saved to the database.</p>
-    <button class="confirmation-popup-button">Continue</button>
-  `;
-  
-  // Clear existing content and add the new popup
-  popupContainer.innerHTML = '';
-  popupContainer.appendChild(popup);
-  
-  // Show the popup with animation
-  setTimeout(() => {
-    popupContainer.classList.add('show');
-  }, 10);
-  
-  // Add event listener to close button
-  const closeButton = popup.querySelector('.confirmation-popup-button');
-  closeButton.addEventListener('click', () => {
-    popupContainer.classList.remove('show');
-    setTimeout(() => {
-      popupContainer.style.display = 'none';
-    }, 300);
+    
+    // Update modal content
+    const modalBody = document.getElementById('confirmation-body');
+    modalBody.textContent = message;
+    
+    // Create modal footer with buttons
+    const modalFooter = modal.querySelector('.admin-modal-footer');
+    modalFooter.innerHTML = '';
+    
+    const confirmButton = document.createElement('button');
+    confirmButton.className = 'admin-form-button primary';
+    confirmButton.textContent = 'Confirm';
+    confirmButton.onclick = function() {
+      modal.style.display = 'none';
+      resolve(true);
+    };
+    
+    const cancelButton = document.createElement('button');
+    cancelButton.className = 'admin-form-button secondary';
+    cancelButton.textContent = 'Cancel';
+    cancelButton.onclick = function() {
+      modal.style.display = 'none';
+      resolve(false);
+    };
+    
+    modalFooter.appendChild(cancelButton);
+    modalFooter.appendChild(confirmButton);
+    
+    // Show the modal
+    modal.style.display = 'block';
   });
-  
-  // Show the popup
-  popupContainer.style.display = 'flex';
-  
-  // Also show a regular message for redundancy
-  showMessage('Proposal submitted successfully!', 'success');
 }

@@ -1,88 +1,96 @@
 /**
  * PolityxMap Data Migration Script
- * This script converts existing proposals data to the new format with slugs and timestamps
+ * This script handles migrating data from localStorage to Supabase
  */
 
 document.addEventListener('DOMContentLoaded', function() {
-  migrateProposalsData();
+  // Wait for Supabase to be ready before attempting migration
+  window.addEventListener('supabase-ready', migrateDataIfNeeded);
 });
 
-function migrateProposalsData() {
-  // Check if migration has already been performed
-  if (localStorage.getItem('proposalsMigrationCompleted')) {
-    console.log('Proposals migration already completed');
-    return;
-  }
-  
-  // Get existing proposals from localStorage
-  const storedProposals = localStorage.getItem('polityxMapProposals');
-  if (!storedProposals) {
-    console.log('No proposals data found to migrate');
-    // Load sample data from proposals-data.json if available
-    loadSampleData();
-    return;
-  }
-  
+/**
+ * Check if data migration is needed and perform it if necessary
+ */
+async function migrateDataIfNeeded() {
   try {
-    // Parse existing proposals
+    // Check if migration has already been performed
+    const migrationComplete = localStorage.getItem('supabaseMigrationComplete');
+    
+    if (migrationComplete === 'true') {
+      console.log('Supabase data migration already completed');
+      return;
+    }
+    
+    // Get proposals from localStorage
+    const storedProposals = localStorage.getItem('polityxMapProposals');
+    if (!storedProposals) {
+      console.log('No localStorage proposals found to migrate');
+      localStorage.setItem('supabaseMigrationComplete', 'true');
+      return;
+    }
+    
     const proposals = JSON.parse(storedProposals);
     
-    // Add slug and timestamp to each proposal
-    const migratedProposals = proposals.map(proposal => {
+    if (!proposals || proposals.length === 0) {
+      console.log('No proposals found to migrate');
+      localStorage.setItem('supabaseMigrationComplete', 'true');
+      return;
+    }
+    
+    console.log(`Starting migration of ${proposals.length} proposals to Supabase`);
+    
+    // Check if Supabase is available
+    if (!window.supabase) {
+      console.error('Supabase client not available for migration');
+      return;
+    }
+    
+    // First check if there's any data already in Supabase
+    const { data: existingData, error: fetchError } = await window.supabase
+      .from('proposals')
+      .select('id')
+      .limit(1);
+    
+    if (fetchError) {
+      console.error('Error checking Supabase for existing data:', fetchError);
+      return;
+    }
+    
+    // If data already exists in Supabase, don't migrate
+    if (existingData && existingData.length > 0) {
+      console.log('Supabase already contains data, skipping migration');
+      localStorage.setItem('supabaseMigrationComplete', 'true');
+      return;
+    }
+    
+    // Prepare proposals for Supabase by converting timestamp to created_at
+    const preparedProposals = proposals.map(proposal => {
+      const { timestamp, ...rest } = proposal;
       return {
-        ...proposal,
-        // Generate slug from city name if not already present
-        slug: proposal.slug || generateSlug(proposal.city),
-        // Add timestamp if not already present
-        timestamp: proposal.timestamp || Date.now()
+        ...rest,
+        created_at: timestamp ? new Date(timestamp).toISOString() : new Date().toISOString()
       };
     });
     
-    // Save migrated proposals back to localStorage
-    localStorage.setItem('polityxMapProposals', JSON.stringify(migratedProposals));
+    // Insert data into Supabase
+    const { data, error } = await window.supabase
+      .from('proposals')
+      .insert(preparedProposals);
     
-    // Mark migration as completed
-    localStorage.setItem('proposalsMigrationCompleted', 'true');
+    if (error) {
+      console.error('Error migrating data to Supabase:', error);
+      return;
+    }
     
-    console.log('Proposals migration completed successfully');
+    console.log('Successfully migrated proposals to Supabase:', data);
     
-    // Notify components about the update
-    window.dispatchEvent(new Event('proposalsUpdated'));
+    // Mark migration as complete
+    localStorage.setItem('supabaseMigrationComplete', 'true');
+    
+    // Notify system of data update
+    window.dispatchEvent(new Event('proposals-updated'));
+    
   } catch (error) {
-    console.error('Error migrating proposals data:', error);
+    console.error('Error during data migration:', error);
   }
-}
-
-function generateSlug(city) {
-  return city.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, '');
-}
-
-function loadSampleData() {
-  // Fetch sample data from proposals-data.json
-  fetch('/proposals-data.json')
-    .then(response => response.json())
-    .then(data => {
-      // Add slug and timestamp to each proposal
-      const proposals = data.map(proposal => {
-        return {
-          ...proposal,
-          slug: generateSlug(proposal.city),
-          timestamp: Date.now() - Math.floor(Math.random() * 30 * 24 * 60 * 60 * 1000) // Random timestamp within last 30 days
-        };
-      });
-      
-      // Save proposals to localStorage
-      localStorage.setItem('polityxMapProposals', JSON.stringify(proposals));
-      
-      // Mark migration as completed
-      localStorage.setItem('proposalsMigrationCompleted', 'true');
-      
-      console.log('Sample proposals data loaded successfully');
-      
-      // Notify components about the update
-      window.dispatchEvent(new Event('proposalsUpdated'));
-    })
-    .catch(error => {
-      console.error('Error loading sample proposals data:', error);
-    });
 }

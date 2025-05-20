@@ -75,19 +75,25 @@ window.addEventListener('policySyncEvent', () => {
 
 // Add event listeners for proposal changes
 function setupProposalSync() {
+    // Listen for unified proposal update event
+    window.addEventListener('proposals-updated', () => {
+        loadProposals(map);
+    });
+    
+    // Legacy event listeners for backward compatibility
     // Listen for proposal additions
     document.addEventListener('proposalAdded', () => {
-        loadProposals(window.policyMapInstance);
+        loadProposals(map);
     });
 
     // Listen for proposal edits
     document.addEventListener('proposalEdited', () => {
-        loadProposals(window.policyMapInstance);
+        loadProposals(map);
     });
 
     // Listen for proposal deletions
     document.addEventListener('proposalDeleted', () => {
-        loadProposals(window.policyMapInstance);
+        loadProposals(map);
     });
 }
 
@@ -99,45 +105,58 @@ document.addEventListener('DOMContentLoaded', setupProposalSync);
 }
 
 // Function to load proposals from the unified system and add markers to the map
-function loadProposals(map) {
+async function loadProposals(map, proposalsData) {
   // Clear existing markers
   if (window.mapMarkers) {
     window.mapMarkers.forEach(marker => marker.remove());
   }
   window.mapMarkers = [];
 
-  // Get proposals from storage
+  // Get proposals - either from passed data or fetch from storage
   let proposals = [];
-  if (window.ProposalsCMS && typeof window.ProposalsCMS.getAll === 'function') {
-    proposals = window.ProposalsCMS.getAll();
-  } else if (typeof getProposals === 'function') {
-    proposals = getProposals();
-  } else {
-    // Fallback to localStorage
-    try {
-      const storedProposals = localStorage.getItem('polityxMapProposals');
-      proposals = storedProposals ? JSON.parse(storedProposals) : [];
-    } catch (error) {
-      console.error('Error loading proposals:', error);
-      proposals = [];
+  try {
+    if (proposalsData) {
+      // Use data passed directly to the function (preferred approach)
+      proposals = proposalsData;
+    } else if (window.ProposalsCMS && typeof window.ProposalsCMS.getAll === 'function') {
+      // Use the unified proposals system (async)
+      proposals = await window.ProposalsCMS.getAll();
+    } else if (typeof getProposals === 'function') {
+      // Fallback to global getProposals function if available
+      proposals = await getProposals();
+    } else {
+      // Fallback to localStorage
+      try {
+        const storedProposals = localStorage.getItem('polityxMapProposals');
+        proposals = storedProposals ? JSON.parse(storedProposals) : [];
+      } catch (error) {
+        console.error('Error loading proposals from localStorage:', error);
+        proposals = [];
+      }
     }
-  }
   
-  // Log the proposals for debugging
-  console.log('Loaded proposals for map:', proposals);
+    // Log the proposals for debugging
+    console.log('Loaded proposals for map:', proposals.length);
 
-  // Add markers for each proposal
-  proposals.forEach(proposal => {
-    const lat = Number(proposal.latitude);
-    const lng = Number(proposal.longitude);
-    if (!isNaN(lat) && !isNaN(lng)) {
-      addProposalMarker(map, {
-        ...proposal,
-        latitude: lat,
-        longitude: lng
-      });
-    }
-  });
+    // Add markers for each proposal
+    proposals.forEach(proposal => {
+      // Convert strings to numbers if needed
+      const lat = typeof proposal.latitude === 'string' ? parseFloat(proposal.latitude) : proposal.latitude;
+      const lng = typeof proposal.longitude === 'string' ? parseFloat(proposal.longitude) : proposal.longitude;
+      
+      if (lat && lng && !isNaN(lat) && !isNaN(lng)) {
+        addProposalMarker(map, {
+          ...proposal,
+          latitude: lat,
+          longitude: lng
+        });
+      } else {
+        console.warn('Invalid coordinates for proposal:', proposal);
+      }
+    });
+  } catch (error) {
+    console.error('Error loading proposals for map:', error);
+  }
 }
 
 // Function to generate sample proposals
