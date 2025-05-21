@@ -9,7 +9,11 @@ RewriteRule ^admin/(.*)$ admin-react.html [L]
 RewriteRule ^login$ login-react.html [L]
 RewriteRule ^auth/login$ login-react.html [L]
 
-# Special rule for proposal pages - MODIFIED to prevent redirect loops
+# Special case for /proposals/ithaca with or without trailing slash
+# This handles the most common case specifically to prevent redirect loops
+RewriteRule ^proposals/ithaca/?$ /proposals/ithaca/index.html [L,NC]
+
+# More general rule for proposal pages
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule ^proposals/([^/]+)/?$ /proposals/$1/index.html [L,NC]

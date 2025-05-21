@@ -4,6 +4,20 @@
  * and integrates with the unified proposals system
  */
 
+// Detect if we're on a page with a trailing slash and normalize if needed
+(function() {
+  // Only run on production site, not localhost
+  if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+    const path = window.location.pathname;
+    if (path.match(/^\/proposals\/[^\/]+\/$/) && !path.endsWith('/index.html')) {
+      // We have a URL like /proposals/ithaca/ - let's normalize to /proposals/ithaca
+      const normalizedPath = path.replace(/\/$/, '');
+      console.log(`Normalizing path from ${path} to ${normalizedPath}`);
+      window.history.replaceState({}, document.title, normalizedPath);
+    }
+  }
+})();
+
 // Function to create proposal pages dynamically
 function setupProposalRouting() {
   // Check if we're on a proposal detail page

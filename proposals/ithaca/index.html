@@ -15,6 +15,8 @@
   <meta content="summary_large_image" name="twitter:card"/>
   <meta content="width=device-width, initial-scale=1" name="viewport"/>
   <meta content="Webflow" name="generator"/>
+  <!-- Canonical URL to prevent redirect loops -->
+  <link rel="canonical" href="https://polityxmap.org/proposals/ithaca">
   <link href="https://cdn.prod.website-files.com/61113c4e9f23df1e7f554117/css/darktemplate.webflow.eb6e6d95d.css" rel="stylesheet" type="text/css"/>
   <link href="https://fonts.googleapis.com" rel="preconnect"/>
   <link href="https://fonts.gstatic.com" rel="preconnect"/>
@@ -36,6 +38,8 @@
   <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
   <!-- Font Awesome -->
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet"/>
+  <!-- Base path for handling relative URLs properly -->
+  <base href="/">
   <!-- Includes script for header and footer -->
   <script src="/includes.js"></script>
   <!-- Unified Proposals System -->
@@ -555,47 +559,46 @@
   </div>
 
   <div class="page-wrapper">
-    <!-- Features Navigation Script -->
-<script src="/features-navigation.js"></script>
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-  var menuButton = document.querySelector('.menu-button.w-nav-button');
-  var navMenu = document.querySelector('.nav-menu.w-nav-menu');
-  var navOverlay = document.querySelector('.w-nav-overlay');
-  var body = document.querySelector('body');
-  
-  if(menuButton && navMenu) {
-    // Toggle mobile menu
-    menuButton.addEventListener('click', function(e) {
-      e.stopPropagation();
-      body.classList.toggle('mobile-menu-open');
-      navMenu.classList.toggle('w--open');
-      menuButton.classList.toggle('w--open');
-      if(navOverlay) navOverlay.classList.toggle('w--open');
-    });
-    
-    // Close menu when clicking outside
-    document.addEventListener('click', function(e) {
-      if(!navMenu.contains(e.target) && !menuButton.contains(e.target)) {
-        body.classList.remove('mobile-menu-open');
-        navMenu.classList.remove('w--open');
-        menuButton.classList.remove('w--open');
-        if(navOverlay) navOverlay.classList.remove('w--open');
+    <script src="/features-navigation.js"></script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      var menuButton = document.querySelector('.menu-button.w-nav-button');
+      var navMenu = document.querySelector('.nav-menu.w-nav-menu');
+      var navOverlay = document.querySelector('.w-nav-overlay');
+      var body = document.querySelector('body');
+      
+      if(menuButton && navMenu) {
+        // Toggle mobile menu
+        menuButton.addEventListener('click', function(e) {
+          e.stopPropagation();
+          body.classList.toggle('mobile-menu-open');
+          navMenu.classList.toggle('w--open');
+          menuButton.classList.toggle('w--open');
+          if(navOverlay) navOverlay.classList.toggle('w--open');
+        });
+        
+        // Close menu when clicking outside
+        document.addEventListener('click', function(e) {
+          if(!navMenu.contains(e.target) && !menuButton.contains(e.target)) {
+            body.classList.remove('mobile-menu-open');
+            navMenu.classList.remove('w--open');
+            menuButton.classList.remove('w--open');
+            if(navOverlay) navOverlay.classList.remove('w--open');
+          }
+        });
+        
+        // Close menu when clicking nav items
+        document.querySelectorAll('.nav-link').forEach(link => {
+          link.addEventListener('click', function() {
+            body.classList.remove('mobile-menu-open');
+            navMenu.classList.remove('w--open');
+            menuButton.classList.remove('w--open');
+            if(navOverlay) navOverlay.classList.remove('w--open');
+          });
+        });
       }
     });
-    
-    // Close menu when clicking nav items
-    document.querySelectorAll('.nav-link').forEach(link => {
-      link.addEventListener('click', function() {
-        body.classList.remove('mobile-menu-open');
-        navMenu.classList.remove('w--open');
-        menuButton.classList.remove('w--open');
-        if(navOverlay) navOverlay.classList.remove('w--open');
-      });
-    });
-  }
-});
-</script>
+    </script>
 
 <div class="header w-nav" data-animation="over-left" data-collapse="medium" data-duration="400" data-easing="ease" data-easing2="ease" role="banner" data-w-id="58db7844-5919-d71b-dd74-2323ed8dffe9" style="opacity: 1;">
   <div class="container-default w-container">
