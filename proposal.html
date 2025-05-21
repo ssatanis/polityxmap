@@ -593,11 +593,6 @@
           <div id="proposal-map" class="proposal-map"></div>
         </div>
         
-        <!-- Proposal Image -->
-        <div data-aos="fade-up" data-aos-delay="250" style="margin-bottom: 40px; text-align: center;">
-          <img id="proposal-image" class="proposal-image" style="max-width: 100%; border-radius: 20px; display: none; max-height: 400px; object-fit: cover;" alt="Proposal Image">
-        </div>
-        
         <!-- Author & Institution -->
         <div class="proposal-meta" data-aos="fade-up" data-aos-delay="300">
           <div class="proposal-meta-item">
@@ -747,10 +742,8 @@
           container.innerHTML = '';
           
           similarProposals.forEach((proposal, index) => {
-            // Generate the proposal slug
+            // Generate the proposal slug - ONLY USE CITY NAME
             const citySlug = proposal.city ? proposal.city.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, '') : '';
-            const stateSlug = proposal.state ? proposal.state.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, '') : '';
-            const slug = citySlug + (stateSlug ? `-${stateSlug}` : '');
             
             // Get a tag from the proposal
             const tag = proposal.tags && proposal.tags.length > 0 ? proposal.tags[0] : 'Healthcare';
@@ -760,7 +753,7 @@
             
             // Create the card element
             const card = document.createElement('a');
-            card.href = `/proposals/${slug}`;
+            card.href = `/proposals/${citySlug}/`;
             card.className = 'similar-proposal-card';
             card.setAttribute('data-aos', 'fade-up');
             card.setAttribute('data-aos-delay', (100 * (index + 1)).toString());

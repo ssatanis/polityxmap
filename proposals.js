@@ -391,7 +391,7 @@ async function updateProposalsList() {
       proposalCard.innerHTML = `
         <h3>${proposal.city}, ${proposal.state}</h3>
         <p>${proposal.healthcareIssue}</p>
-        <a href="/proposals/${citySlug}" class="read-more">Read More</a>
+        <a href="/proposals/${citySlug}/" class="read-more">Read More</a>
       `;
       proposalsContainer.appendChild(proposalCard);
     });
@@ -426,10 +426,10 @@ async function updateLatestProposals() {
       // Create card content with improved structure
       proposalCard.innerHTML = `
         <div class="proposal-tag ${colorClass}">${proposal.tags && proposal.tags.length > 0 ? proposal.tags[0] : 'Healthcare'}</div>
-        <h3 class="proposal-title">${proposal.healthcareIssue || 'Untitled Proposal'}</h3>
+        <h3 class="proposal-title">${proposal.healthcareIssue || proposal.name || 'Untitled Proposal'}</h3>
         <p class="proposal-desc">${proposal.description || 'No description provided.'}</p>
         <p class="proposal-location"><i class="fas fa-map-marker-alt" style="margin-right: 5px;"></i>${proposal.city || ''}, ${proposal.state || ''}, ${proposal.country || ''}</p>
-        <a href="/proposals/${citySlug}" class="proposal-btn">View Policy Proposal</a>
+        <a href="/proposals/${citySlug}/" class="proposal-btn">View Policy Proposal</a>
       `;
       
       proposalsContainer.appendChild(proposalCard);
@@ -438,7 +438,7 @@ async function updateLatestProposals() {
       proposalCard.addEventListener('click', function(e) {
         // If the click is not on the button, navigate to the proposal page
         if (!e.target.classList.contains('proposal-btn')) {
-          window.location.href = `/proposals/${citySlug}`;
+          window.location.href = `/proposals/${citySlug}/`;
         }
       });
       
@@ -452,6 +452,45 @@ async function updateLatestProposals() {
     }
   }
 }
+
+/**
+ * Global function to refresh all proposal components across the site
+ * This function can be called from the browser console to update everything
+ * after editing the proposals data
+ */
+function refreshProposals() {
+  console.log('🔄 Refreshing all proposals across the site...');
+  
+  try {
+    // Create and dispatch a custom event to notify all components
+    const event = new CustomEvent('proposals-updated');
+    window.dispatchEvent(event);
+    
+    // Update the map specifically if we're on a page with the map
+    if (window.syncMapWithProposals) {
+      window.syncMapWithProposals();
+    }
+    
+    // Update the proposals page if applicable
+    if (window.updateProposalsList) {
+      window.updateProposalsList();
+    }
+    
+    // Update proposal links everywhere
+    if (window.updateProposalLinks) {
+      window.updateProposalLinks();
+    }
+    
+    console.log('✅ Proposals refreshed successfully! All components updated.');
+    return true;
+  } catch (error) {
+    console.error('❌ Error refreshing proposals:', error);
+    return false;
+  }
+}
+
+// Make the function available globally
+window.refreshProposals = refreshProposals;
 
 /**
  * Create sample proposals if none exist

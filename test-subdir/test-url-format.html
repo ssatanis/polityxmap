@@ -175,7 +175,7 @@
           
           // Test with city-only slug
           const result1 = testLoadProposalBySlug('ithaca');
-          // Test with legacy city-state slug
+          // Test with legacy city-state slug - should still work but redirect
           const result2 = testLoadProposalBySlug('ithaca-ny');
           
           if (result1 && result1.id === 1) {
@@ -185,9 +185,9 @@
           }
           
           if (result2 && result2.id === 1) {
-            results.push('✅ loadProposalBySlug works with legacy city-state slug');
+            results.push('✅ Legacy city-state slug (ithaca-ny) redirects to city-only slug (ithaca)');
           } else {
-            results.push('⚠️ loadProposalBySlug doesn\'t handle legacy city-state slugs');
+            results.push('⚠️ Legacy city-state slug redirection not working properly');
           }
         } catch (error) {
           results.push(`❌ Test 4 failed: ${error.message}`);

@@ -74,7 +74,7 @@ const login = async (password) => {
   // In a real app, this would make an API call to validate credentials
   // For this example, we're using a hardcoded password
   
-  if (password === 'Polityx37232') {
+  if (password === 'Polityx76092') {
     // Generate a random auth token
     const authToken = generateRandomString(32);
     

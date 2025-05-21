@@ -45,7 +45,7 @@ function handleLogin(req, res) {
   
   // Simple authentication for demo purposes
   // In production, use proper password hashing and database storage
-  if ((username === 'admin' && password === 'Polityx37232') || password === 'Polityx37232') {
+  if ((username === 'admin' && password === 'Polityx76092') || password === 'Polityx76092') {
     // Reset failed attempts on successful login
     req.session.failedAttempts = 0;
     req.session.blockedUntil = null;

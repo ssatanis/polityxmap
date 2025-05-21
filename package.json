@@ -6,6 +6,7 @@
   "scripts": {
     "start": "node server.js",
     "dev": "nodemon server.js",
+    "build:proposals": "node build-proposals.js",
     "deploy": "git init && git add . && git checkout -B main && git commit -m 'Initial commit' && git push -f origin main"
   },
   "dependencies": {

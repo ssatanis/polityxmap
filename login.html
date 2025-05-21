@@ -780,7 +780,7 @@
         
         // Client-side authentication for demo purposes
         // In a real application, this would be handled server-side
-        if (password === 'Polityx37232') {
+        if (password === 'Polityx76092') {
           // clear any old state
           localStorage.removeItem('polityxMapSession');
           localStorage.removeItem('isLoggedIn');
@@ -794,7 +794,7 @@
           historyLog.unshift({ action: 'Login', timestamp: Date.now(), details: 'Admin logged in' });
           localStorage.setItem('polityxMapHistory', JSON.stringify(historyLog));
           
-          // redirect with replace so back-button won’t bounce you right back
+          // redirect with replace so back-button won't bounce you right back
           return window.location.replace('admin.html');
         } else {
           // Failed login

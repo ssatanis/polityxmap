@@ -348,9 +348,12 @@
       
       // Initialize map if coordinates are available
       if (proposal.latitude && proposal.longitude) {
-        const map = L.map('proposal-map').setView([proposal.latitude, proposal.longitude], 10);
+        const map = L.map('proposal-map', {
+          attributionControl: false // Disable attribution control to remove Leaflet watermark
+        }).setView([proposal.latitude, proposal.longitude], 10);
+        
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          attribution: ''
         }).addTo(map);
         
         // Add marker for the proposal location

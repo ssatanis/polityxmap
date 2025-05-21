@@ -1,119 +1,177 @@
 /**
- * Proposal Page Generator
- * Automatically creates dedicated pages for each proposal based on city name
+ * PolityxMap Proposal Page Generator
+ * This script generates static proposal pages from proposals data
  */
 
-// Import necessary functions from proposals.js
-function createProposalPage(proposal) {
-  if (!proposal || !proposal.city) {
-    console.error('Invalid proposal data');
-    return false;
-  }
-  
-  // Generate slug from city name
-  const slug = proposal.slug || generateSlug(proposal.city);
-  
-  // Fetch the template HTML
-  fetch('/proposals/_template.html')
-    .then(response => response.text())
-    .then(templateHtml => {
-      // Create the new proposal page content by replacing placeholders
-      const pageContent = templateHtml
-        .replace('<title>Policy Proposal | PolityxMap</title>', `<title>${proposal.healthcareIssue} | PolityxMap</title>`)
-        .replace('<meta name="description" content="View detailed healthcare policy proposal information with PolityxMap.">', 
-                 `<meta name="description" content="${proposal.description} - Healthcare policy proposal for ${proposal.city}, ${proposal.country}.">`)
-        .replace('<script src="/proposals.js"></script>', 
-                 `<script src="/proposals.js"></script>\n  <script>\n    document.addEventListener('DOMContentLoaded', function() {\n      populateProposalPage('${slug}');\n    });\n  </script>`);
-      
-      // Use the Fetch API to send the content to the server
-      return fetch('/api/create-proposal-page', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          slug: slug,
-          content: pageContent
-        })
-      });
-    })
-    .then(response => response.json())
-    .then(data => {
-      console.log('Proposal page created:', data);
-      return true;
-    })
-    .catch(error => {
-      console.error('Error creating proposal page:', error);
-      // Fallback method: Create a client-side record of the page
-      storeProposalPageData(slug, proposal);
-      return false;
-    });
-}
+const fs = require('fs');
+const path = require('path');
+const { execSync } = require('child_process');
 
-// Fallback: Store proposal page data client-side
-function storeProposalPageData(slug, proposal) {
+// Constants
+const PROPOSAL_TEMPLATE_PATH = path.join(__dirname, 'proposal.html');
+const PROPOSALS_DATA_PATH = path.join(__dirname, 'data', 'proposals.json');
+const FOOTER_TEMPLATE_PATH = path.join(__dirname, 'components', 'footer.html'); 
+const HEADER_TEMPLATE_PATH = path.join(__dirname, 'components', 'header.html');
+const OUTPUT_DIR = path.join(__dirname, 'proposals');
+
+// Main function to generate all proposal pages
+async function generateProposalPages() {
+  console.log('=== PolityxMap Proposal Page Generator ===');
+  console.log('Starting proposal page generation process...');
+  
   try {
-    // Get existing pages data
-    const pagesData = JSON.parse(localStorage.getItem('proposalPagesData') || '{}');
+    // Read proposal template HTML
+    const template = fs.readFileSync(PROPOSAL_TEMPLATE_PATH, 'utf8');
     
-    // Add this page
-    pagesData[slug] = {
-      proposal: proposal,
-      timestamp: Date.now()
-    };
+    // Read header and footer templates
+    const headerTemplate = fs.readFileSync(HEADER_TEMPLATE_PATH, 'utf8');
+    const footerTemplate = fs.readFileSync(FOOTER_TEMPLATE_PATH, 'utf8');
     
-    // Save back to localStorage
-    localStorage.setItem('proposalPagesData', JSON.stringify(pagesData));
-    console.log('Proposal page data stored locally:', slug);
+    // Get all proposals from the data file
+    const proposals = JSON.parse(fs.readFileSync(PROPOSALS_DATA_PATH, 'utf8'));
+    
+    console.log(`Found ${proposals.length} proposals to process`);
+    
+    // Create proposals directory if it doesn't exist
+    if (!fs.existsSync(OUTPUT_DIR)) {
+      fs.mkdirSync(OUTPUT_DIR);
+      console.log('Created proposals directory');
+    }
+    
+    // Process each proposal
+    for (const proposal of proposals) {
+      // Generate URL-friendly slug (city only)
+      const slug = proposal.city.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, '');
+      
+      // Create directory for proposal
+      const proposalDir = path.join(OUTPUT_DIR, slug);
+      if (!fs.existsSync(proposalDir)) {
+        fs.mkdirSync(proposalDir);
+        console.log(`Created directory for ${slug}`);
+      }
+      
+      // Create index.html with proposal data embedded
+      const proposalHtml = template
+        .replace('<!-- Header will be inserted here by the includes.js script -->', headerTemplate)
+        .replace('<!-- Footer will be inserted here by the includes.js script -->', footerTemplate)
+        .replace(/<title>.*?<\/title>/, `<title>${proposal.name || proposal.healthcareIssue} | ${proposal.city}, ${proposal.state || ''} | PolityxMap</title>`)
+        
+        // Fix all resource paths to use absolute paths
+        .replace(/src="img\//g, 'src="/img/')
+        .replace(/href="css\//g, 'href="/css/')
+        .replace(/src="js\//g, 'src="/js/')
+        .replace(/src="features-navigation.js"/g, 'src="/features-navigation.js"')
+        .replace(/href="proposals.html"/g, 'href="/proposals.html"')
+        .replace(/src="includes.js"/g, 'src="/includes.js"')
+        .replace(/src="proposals.js"/g, 'src="/proposals.js"')
+        .replace(/src="proposal-template.js"/g, 'src="/proposal-template.js"')
+        .replace(/src="proposals-router.js"/g, 'src="/proposals-router.js"')
+        .replace(/src="data-migration.js"/g, 'src="/data-migration.js"')
+        
+        // Ensure all script sources have absolute paths
+        .replace(/<script src="(?!\/)([^"]+)"/g, '<script src="/$1"')
+        .replace(/<link [^>]*href="(?!\/)([^"]+)"/g, '<link href="/$1"')
+        
+        // Fix relative paths in the page
+        .replace('id="site-header"', 'id="site-header" class="site-header"')
+        .replace('id="site-footer"', 'id="site-footer" class="site-footer"');
+      
+      // Write the file
+      fs.writeFileSync(path.join(proposalDir, 'index.html'), proposalHtml);
+      console.log(`Generated page for ${proposal.city}, ${proposal.state || ''}`);
+      
+      // Create a symbolic link for legacy URL format (city-state) if state exists
+      if (proposal.state) {
+        const legacySlug = `${slug}-${proposal.state.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, '')}`;
+        const legacyDir = path.join(OUTPUT_DIR, legacySlug);
+        
+        // Create directory for legacy slug if it doesn't exist
+        if (!fs.existsSync(legacyDir)) {
+          fs.mkdirSync(legacyDir);
+          console.log(`Created directory for legacy slug ${legacySlug}`);
+          
+          // Copy the index.html to the legacy directory
+          fs.writeFileSync(path.join(legacyDir, 'index.html'), proposalHtml);
+          console.log(`Created page for legacy slug ${legacySlug}`);
+        }
+      }
+    }
+    
+    console.log('All proposal pages generated successfully!');
+    console.log(`Generated ${proposals.length} proposal pages`);
+    
+    return { success: true, count: proposals.length };
   } catch (error) {
-    console.error('Error storing proposal page data:', error);
+    console.error('Error generating proposal pages:', error);
+    return { success: false, error: error.message };
   }
 }
 
-// Function to populate a proposal page with data
-function populateProposalPage(slug) {
-  // Get the proposal data
-  const proposal = findProposalBySlug(slug);
+// Function to sync map, proposals page, and admin portal
+async function syncAll() {
+  console.log('=== PolityxMap Sync System ===');
+  console.log('Starting full system synchronization...');
   
-  if (!proposal) {
-    console.error('Proposal not found:', slug);
-    document.getElementById('proposal-title').textContent = 'Proposal not found';
-    return;
+  try {
+    // Generate proposal pages
+    const pagesResult = await generateProposalPages();
+    if (!pagesResult.success) {
+      throw new Error(`Failed to generate proposal pages: ${pagesResult.error}`);
+    }
+    
+    // Indicate that proposals have been updated (used by other components)
+    if (typeof window !== 'undefined') {
+      // Browser environment
+      const event = new CustomEvent('proposals-updated');
+      window.dispatchEvent(event);
+      console.log('Dispatched proposals-updated event to update UI components');
+    } else {
+      // Node.js environment
+      console.log('Running in Node.js environment - UI components will update on page load');
+    }
+    
+    console.log('System synchronization completed successfully!');
+    return { success: true };
+  } catch (error) {
+    console.error('Error during system synchronization:', error);
+    return { success: false, error: error.message };
   }
+}
+
+// Command line interface
+if (require.main === module) {
+  // This script is being run directly
+  const args = process.argv.slice(2);
+  const command = args[0] || 'generate';
   
-  // Set page title
-  document.title = `${proposal.healthcareIssue} | PolityxMap`;
-  
-  // Populate the page elements
-  document.getElementById('proposal-title').textContent = proposal.healthcareIssue;
-  document.getElementById('proposal-location').textContent = `${proposal.city}, ${proposal.state}, ${proposal.country}`;
-  document.getElementById('proposal-description').textContent = proposal.description;
-  document.getElementById('proposal-background').textContent = proposal.background;
-  document.getElementById('proposal-policy').textContent = proposal.policy;
-  document.getElementById('proposal-stakeholders').textContent = proposal.stakeholders;
-  document.getElementById('proposal-costs').textContent = proposal.costs;
-  document.getElementById('proposal-metrics').textContent = proposal.metrics;
-  document.getElementById('proposal-timeline').textContent = proposal.timeline;
-  
-  // Add tags
-  const tagsContainer = document.getElementById('proposal-tags');
-  if (tagsContainer && proposal.tags && Array.isArray(proposal.tags)) {
-    tagsContainer.innerHTML = '';
-    proposal.tags.forEach(tag => {
-      const tagElement = document.createElement('span');
-      tagElement.className = 'proposal-tag';
-      tagElement.textContent = tag;
-      tagsContainer.appendChild(tagElement);
+  if (command === 'generate') {
+    generateProposalPages().then(result => {
+      if (result.success) {
+        console.log('Command completed successfully');
+        process.exit(0);
+      } else {
+        console.error('Command failed:', result.error);
+        process.exit(1);
+      }
     });
+  } else if (command === 'sync') {
+    syncAll().then(result => {
+      if (result.success) {
+        console.log('Sync completed successfully');
+        process.exit(0);
+      } else {
+        console.error('Sync failed:', result.error);
+        process.exit(1);
+      }
+    });
+  } else {
+    console.error('Unknown command. Available commands: generate, sync');
+    process.exit(1);
   }
-  
-  // Add submitter info
-  const submitterElement = document.getElementById('proposal-submitter');
-  if (submitterElement) {
-    submitterElement.textContent = `Submitted by ${proposal.name} from ${proposal.institution}`;
-  }
+} else {
+  // This script is being imported as a module
+  module.exports = {
+    generateProposalPages,
+    syncAll
+  };
 }
-
-// Add this function to the window object for global access
-window.createProposalPage = createProposalPage;
-window.populateProposalPage = populateProposalPage;

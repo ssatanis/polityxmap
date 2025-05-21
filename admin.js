@@ -1213,7 +1213,7 @@ function handleEditConfirmation(e) {
   const passwordInput = document.getElementById('edit-password-input');
   const proposalId = e.target.getAttribute('data-proposal-id');
   
-  if (passwordInput.value === 'Polityx37232') {
+  if (passwordInput.value === 'Polityx76092') {
     // Close modal
     const passwordModal = document.getElementById('edit-password-modal');
     passwordModal.style.display = 'none';
@@ -1323,7 +1323,7 @@ function handleDeleteConfirmation(e) {
   const passwordInput = document.getElementById('delete-password-input');
   const proposalId = e.target.getAttribute('data-proposal-id');
   
-  if (passwordInput.value === 'Polityx37232') {
+  if (passwordInput.value === 'Polityx76092') {
     // Close modal
     const deleteModal = document.getElementById('delete-password-modal');
     deleteModal.style.display = 'none';

@@ -9,27 +9,34 @@ document.addEventListener('DOMContentLoaded', function() {
   
   // First check if it's in the URL path (for clean URLs)
   if (window.location.pathname.startsWith('/proposals/')) {
+    // Get just the city part of the slug (without any state part)
     proposalSlug = window.location.pathname.split('/').pop().replace('.html', '');
+    
+    // If slug contains a dash (like city-state format), just use the city part
+    if (proposalSlug.includes('-')) {
+      proposalSlug = proposalSlug.split('-')[0];
+      
+      // Redirect to the proper city-only URL format with trailing slash
+      window.location.href = `/proposals/${proposalSlug}/`;
+      return;
+    }
   } 
   // Then check if it's in the query parameter (for our implementation)
   else {
     const urlParams = new URLSearchParams(window.location.search);
     proposalSlug = urlParams.get('slug');
+    
+    // If slug contains a dash (like city-state format), just use the city part
+    if (proposalSlug && proposalSlug.includes('-')) {
+      proposalSlug = proposalSlug.split('-')[0];
+    }
   }
   
-  // Special handling for Ithaca proposal
-  if (proposalSlug === 'ithaca' || proposalSlug === 'ithaca-ny') {
-    // Check if we have the Ithaca proposal in localStorage from the static file
-    const ithacaProposal = localStorage.getItem('ithaca_proposal');
-    if (ithacaProposal) {
-      try {
-        const proposal = JSON.parse(ithacaProposal);
-        renderProposal(proposal);
-        return;
-      } catch (e) {
-        console.error('Error parsing Ithaca proposal from localStorage:', e);
-      }
-    }
+  // Special handling for Ithaca proposal - support both formats but redirect to the clean one
+  if (proposalSlug === 'ithaca-ny') {
+    // Redirect to the proper format
+    window.location.href = '/proposals/ithaca/';
+    return;
   }
   
   // Load the proposal data if we have a slug
@@ -255,27 +262,6 @@ function renderProposal(proposal) {
     institutionElement.textContent = proposal.university || proposal.institution || proposal.authorInstitution || '';
   }
   
-  // Set proposal image if available
-  const imageElement = document.getElementById('proposal-image');
-  if (imageElement && (proposal.image || proposal.imageLink)) {
-    imageElement.src = proposal.image || proposal.imageLink;
-    imageElement.alt = title;
-    imageElement.style.display = 'block';
-    
-    // Add a nice loading animation
-    imageElement.style.opacity = '0';
-    imageElement.style.transform = 'scale(0.95)';
-    imageElement.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
-    
-    // Show image when loaded
-    imageElement.onload = function() {
-      imageElement.style.opacity = '1';
-      imageElement.style.transform = 'scale(1)';
-    };
-  } else if (imageElement) {
-    imageElement.style.display = 'none';
-  }
-  
   // Set proposal tags
   const tagsContainer = document.getElementById('proposal-tags');
   if (tagsContainer && proposal.tags) {
@@ -363,8 +349,10 @@ function initializeProposalMap(proposal) {
   
   // Check if Leaflet is available
   if (typeof L !== 'undefined' && latNum && lngNum && !isNaN(latNum) && !isNaN(lngNum)) {
-    // Create map centered on proposal location
-    const map = L.map(mapContainer).setView([latNum, lngNum], 10);
+    // Create map centered on proposal location with attribution disabled
+    const map = L.map(mapContainer, {
+      attributionControl: false  // Disable attribution control to remove Leaflet watermark
+    }).setView([latNum, lngNum], 10);
     
     // Add tile layer with improved styling
     L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {

@@ -21,7 +21,7 @@ const BASE_URL = 'http://localhost:3000';
 // Test credentials
 const TEST_CREDENTIALS = {
   username: 'admin',
-  password: 'Polityx37232'
+  password: 'Polityx76092'
 };
 
 // Cookie jar to store session cookies

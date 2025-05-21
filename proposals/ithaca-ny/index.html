@@ -6,7 +6,7 @@
   <script>
   (function() {
     // This script runs immediately to fix all resource paths
-    console.log("Path fixer script running for Ithaca proposal");
+    console.log("Path fixer script running for Ithaca-NY proposal");
     
     // Utility function to fix resource paths in the document
     function fixResourcePaths() {
@@ -995,7 +995,7 @@ document.addEventListener('DOMContentLoaded', function() {
   <script>
     // Wait for DOM ready
     document.addEventListener('DOMContentLoaded', function() {
-      console.log("Ithaca proposal page DOM loaded, ensuring content loads properly");
+      console.log("Ithaca-NY proposal page DOM loaded, ensuring content loads properly");
       
       // Make sure the footer is loaded
       if (!document.querySelector('.footer-logo')) {
@@ -1053,6 +1053,28 @@ document.addEventListener('DOMContentLoaded', function() {
           }
         }
       }, 2000);
+      
+      // Add handler to redirect to new URL format if needed
+      if (window.location.pathname.includes('ithaca-ny')) {
+        // Add a small delay to allow the page to load first
+        setTimeout(function() {
+          // Set up a link to the new URL format
+          const noticeDiv = document.createElement('div');
+          noticeDiv.style.position = 'fixed';
+          noticeDiv.style.top = '80px';
+          noticeDiv.style.left = '0';
+          noticeDiv.style.right = '0';
+          noticeDiv.style.padding = '10px';
+          noticeDiv.style.background = 'rgba(56, 182, 255, 0.9)';
+          noticeDiv.style.color = 'white';
+          noticeDiv.style.textAlign = 'center';
+          noticeDiv.style.zIndex = '9999';
+          noticeDiv.innerHTML = `
+            This URL format is deprecated. Using <a href="/proposals/ithaca/" style="color: white; text-decoration: underline; font-weight: bold;">the new URL format</a> is recommended.
+          `;
+          document.body.appendChild(noticeDiv);
+        }, 3000);
+      }
     });
   </script>
 </body>

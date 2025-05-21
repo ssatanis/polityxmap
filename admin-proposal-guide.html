@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <title>Adding New Proposals | PolityxMap Admin</title>
+  <meta content="Guide to adding new healthcare policy proposals to PolityxMap" name="description"/>
+  <meta content="width=device-width, initial-scale=1" name="viewport"/>
+  
+  <!-- CSS from the main site -->
+  <link href="https://cdn.prod.website-files.com/61113c4e9f23df1e7f554117/css/darktemplate.webflow.eb6e6d95d.css" rel="stylesheet" type="text/css"/>
+  
+  <!-- Font -->
+  <link href="https://fonts.googleapis.com/css?family=DM+Sans:regular,500,700" media="all" rel="stylesheet"/>
+  
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml" href="/img/PolityxFavicon.svg">
+  
+  <!-- Scripts -->
+  <script src="/js/supabase-client.js"></script>
+  <script src="/features-navigation.js"></script>
+  <script src="/includes.js"></script>
+  
+  <!-- Syntax highlighting for code snippets -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/vs2015.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+  <script>hljs.highlightAll();</script>
+  
+  <style>
+    body {
+      background-color: #14111E;
+      color: #fff;
+      font-family: 'DM Sans', sans-serif;
+    }
+    
+    .content {
+      padding: 40px;
+      margin-top: 80px;
+      margin-bottom: 60px;
+      max-width: 800px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    
+    h1 {
+      color: #fff;
+      font-size: 36px;
+      margin-bottom: 20px;
+      background: linear-gradient(90deg, #38B6FF, #8A67FF);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    
+    h2 {
+      color: #fff;
+      font-size: 24px;
+      margin-top: 30px;
+      margin-bottom: 15px;
+    }
+    
+    h3 {
+      color: #fff;
+      font-size: 20px;
+      margin-top: 25px;
+      margin-bottom: 10px;
+    }
+    
+    p {
+      line-height: 1.6;
+      margin-bottom: 20px;
+    }
+    
+    ul, ol {
+      margin-bottom: 20px;
+      padding-left: 20px;
+    }
+    
+    li {
+      margin-bottom: 10px;
+      line-height: 1.5;
+    }
+    
+    pre {
+      background-color: #1C1A24;
+      border-radius: 10px;
+      padding: 15px;
+      margin: 20px 0;
+      overflow: auto;
+    }
+    
+    code {
+      font-family: 'Consolas', 'Monaco', monospace;
+      font-size: 14px;
+    }
+    
+    .card {
+      background: linear-gradient(135deg, rgba(28, 26, 36, 0.8) 0%, rgba(35, 32, 70, 0.8) 100%);
+      border-radius: 15px;
+      padding: 25px;
+      margin: 30px 0;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .important {
+      border-left: 4px solid #38B6FF;
+      padding-left: 15px;
+      background-color: rgba(56, 182, 255, 0.1);
+      padding: 15px;
+      border-radius: 5px;
+      margin-bottom: 20px;
+    }
+    
+    .note {
+      border-left: 4px solid #8A67FF;
+      padding-left: 15px;
+      background-color: rgba(138, 103, 255, 0.1);
+      padding: 15px;
+      border-radius: 5px;
+      margin-bottom: 20px;
+    }
+    
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+    }
+    
+    th, td {
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 10px;
+      text-align: left;
+    }
+    
+    th {
+      background-color: rgba(56, 182, 255, 0.1);
+    }
+    
+    tr:nth-child(even) {
+      background-color: rgba(0, 0, 0, 0.2);
+    }
+  </style>
+</head>
+<body>
+  <div class="page-wrapper">
+    <!-- Header will be inserted here by the includes.js script -->
+    <div id="site-header"></div>
+    
+    <div class="content">
+      <h1>Adding New Proposals to PolityxMap</h1>
+      
+      <div class="important">
+        <strong>Important:</strong> This guide explains how to add new healthcare policy proposals to the PolityxMap system. Follow these instructions carefully to ensure all proposals display correctly.
+      </div>
+      
+      <h2>Step 1: Understanding the Proposals JSON Format</h2>
+      
+      <p>All proposals are stored in the <code>data/proposals.json</code> file. This is the single source of truth for the PolityxMap website. When you add a new proposal, the site will automatically:</p>
+      
+      <ul>
+        <li>Create a new proposal page at <code>/proposals/city-name/</code></li>
+        <li>Add the proposal to the map</li>
+        <li>Include it in the proposals listing page</li>
+        <li>Feature it on the home page (if it's one of the most recent)</li>
+      </ul>
+      
+      <h2>Step 2: Proposal JSON Structure</h2>
+      
+      <p>Each proposal needs the following fields:</p>
+      
+      <div class="card">
+        <pre><code class="language-json">{
+  "fullName": "Dr. Example Person",       // Author's full name
+  "email": "example@university.edu",      // Author's email (not displayed publicly)
+  "institution": "Example University",    // Author's institution
+  "healthcareIssue": "Policy Proposal Title", // Main title of the proposal
+  "city": "CityName",                     // City name (IMPORTANT for URL generation)
+  "state": "StateName",                   // State name
+  "country": "USA",                       // Country name
+  "latitude": 40.7128,                    // Latitude for map marker
+  "longitude": -74.0060,                  // Longitude for map marker
+  "description": "Short description...",  // Brief summary (1-2 sentences)
+  "background": "Problem background...",  // Background context section
+  "policy": "Policy overview...",         // Policy details section
+  "stakeholders": "List of stakeholders...", // Key stakeholders section
+  "costs": "$X for implementation...",    // Cost analysis section
+  "metrics": "Success metrics...",        // Metrics for evaluation
+  "timeline": "Implementation timeline...", // Timeline for implementation
+  "proposalText": "Full proposal text...", // Complete proposal text
+  "tags": ["Tag1", "Tag2", "Tag3"]       // Category tags (up to 3)
+}</code></pre>
+      </div>
+      
+      <div class="note">
+        <strong>Note:</strong> The <code>city</code> field is especially important as it's used to generate the URL for the proposal page (<code>/proposals/cityname/</code>). Make sure it's unique and contains no special characters.
+      </div>
+      
+      <h2>Step 3: Adding a New Proposal</h2>
+      
+      <p>Follow these steps to add a new proposal:</p>
+      
+      <ol>
+        <li>Open the <code>data/proposals.json</code> file</li>
+        <li>The file contains an array of proposal objects. Add your new proposal to the beginning of the array (for it to show up as the most recent)</li>
+        <li>Make sure to follow the JSON format exactly - all keys should be in quotes, and don't forget commas between fields</li>
+        <li>Save the file</li>
+      </ol>
+      
+      <h3>Example of Adding a New Proposal</h3>
+      
+      <pre><code class="language-json">[
+  {
+    "fullName": "Dr. New Author",
+    "email": "new.author@university.edu",
+    "institution": "University Medical Center",
+    "healthcareIssue": "Mobile Mental Health Units",
+    "city": "Chicago",
+    "state": "Illinois",
+    "country": "USA",
+    "latitude": 41.8781,
+    "longitude": -87.6298,
+    "description": "Deploying mobile mental health units in underserved neighborhoods.",
+    "background": "Mental health access is limited in certain Chicago neighborhoods...",
+    "policy": "Mobile units staffed with mental health professionals...",
+    "stakeholders": "City health department, community organizations, residents...",
+    "costs": "$2.5M for initial fleet of 5 units; $1.2M annual operating costs.",
+    "metrics": "30% increase in mental health consultations in target areas...",
+    "timeline": "6 months planning, 12 months phased implementation.",
+    "proposalText": "The full proposal details the implementation of mobile mental health units...",
+    "tags": ["Mental Health", "Urban Health", "Healthcare Access"]
+  },
+  // Existing proposals below...
+  {
+    "fullName": "Dr. James Chen",
+    "email": "j.chen@cornell.edu",
+    // ... rest of existing proposal ...
+  }
+]</code></pre>
+      
+      <h2>Step 4: Building the Site with New Proposals</h2>
+      
+      <p>After adding your proposal to <code>data/proposals.json</code>, you need to build the site to generate all necessary pages:</p>
+      
+      <div class="card">
+        <h3>Using the build:proposals Command</h3>
+        <p>Run the following command from the project root directory to build all proposal pages and update the system:</p>
+        <pre><code class="language-bash">npm run build:proposals</code></pre>
+        <p>This will:</p>
+        <ul>
+          <li>Generate individual proposal pages for each entry in proposals.json</li>
+          <li>Create necessary folder structures for each proposal</li>
+          <li>Update the map, proposals page, and admin portal to show the new content</li>
+          <li>Set up legacy redirects for backward compatibility</li>
+        </ul>
+        <p>After running this command, start your local server to view the changes:</p>
+        <pre><code class="language-bash">python3 -m http.server 8000</code></pre>
+      </div>
+      
+      <h2>Step 5: Testing Your New Proposal</h2>
+      
+      <p>After building the site with your new proposal, test it by:</p>
+      
+      <ol>
+        <li>Refreshing the home page to see if your new proposal appears in the recent proposals section</li>
+        <li>Checking the proposals listing page to verify your proposal is listed</li>
+        <li>Clicking on your proposal to make sure its detail page loads correctly at <code>/proposals/cityname/</code></li>
+        <li>Verifying the marker appears on the map in the correct location</li>
+        <li>Testing that the footer logo appears correctly on the proposal page</li>
+      </ol>
+      
+      <div class="note">
+        <strong>Note:</strong> You can also use the <code>refreshProposals()</code> function in your browser console to update all site components without rebuilding if you've only made minor changes:
+        <pre><code class="language-javascript">// In browser console
+refreshProposals();
+// Output:
+// 🔄 Refreshing all proposals across the site...
+// ✅ Proposals refreshed successfully! All components updated.</code></pre>
+      </div>
+      
+      <h2>Troubleshooting</h2>
+      
+      <table>
+        <tr>
+          <th>Problem</th>
+          <th>Possible Solution</th>
+        </tr>
+        <tr>
+          <td>Proposal doesn't appear on the site</td>
+          <td>Check for JSON syntax errors in proposals.json. Every key and string value needs double quotes, and items must be separated by commas.</td>
+        </tr>
+        <tr>
+          <td>Proposal page shows "not found"</td>
+          <td>Verify that the city name contains only letters, numbers, and hyphens - no spaces or special characters.</td>
+        </tr>
+        <tr>
+          <td>Map marker is in the wrong location</td>
+          <td>Double-check the latitude and longitude values. Remember that longitude is negative for locations in the Western hemisphere.</td>
+        </tr>
+        <tr>
+          <td>Cannot see your proposal on the map</td>
+          <td>Make sure the map is zoomed out enough to see the new location.</td>
+        </tr>
+      </table>
+      
+      <div class="important">
+        <strong>Important:</strong> Always make a backup copy of proposals.json before making changes!
+      </div>
+      
+      <h2>Using the Admin Proposal Tool</h2>
+      
+      <p>For a more user-friendly way to add proposals, you can use our <a href="/admin.html" style="color: #38B6FF;">Admin Proposal Tool</a> which provides a form interface and handles the JSON formatting for you.</p>
+    </div>
+    
+    <!-- Footer will be inserted here by the includes.js script -->
+    <div id="site-footer"></div>
+  </div>
+  
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Highlight all code blocks using highlight.js
+      document.querySelectorAll('pre code').forEach(block => {
+        hljs.highlightBlock(block);
+      });
+    });
+  </script>
+</body>
+</html> 

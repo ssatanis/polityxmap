@@ -417,7 +417,9 @@
       
       // Initialize map
       if (typeof L !== 'undefined') {
-        const map = L.map('proposal-map').setView([LATITUDE, LONGITUDE], 10);
+        const map = L.map('proposal-map', {
+          attributionControl: false // Disable attribution control to remove Leaflet watermark
+        }).setView([LATITUDE, LONGITUDE], 10);
         
         L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
           subdomains: 'abcd',

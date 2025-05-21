@@ -17,7 +17,7 @@ This is the admin portal for the PolityxMap application. It includes secure serv
 3. Access the application:
    - Open your browser and navigate to `http://localhost:3000`
    - The admin portal is at `http://localhost:3000/admin.html`
-   - Login with username: `admin` and password: `Polityx37232`
+   - Login with username: `admin` and password: `Polityx76092`
 
 ## Security Features
 

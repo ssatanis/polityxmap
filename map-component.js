@@ -204,11 +204,9 @@ function addProposalMarker(map, proposal) {
   if (!window.mapMarkers) window.mapMarkers = [];
   window.mapMarkers.push(marker);
 
-  // Generate URL-friendly slug for links
+  // Generate URL-friendly slug for links - ONLY USE CITY NAME
   const citySlug = proposal.city ? proposal.city.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, '') : '';
-  const stateSlug = proposal.state ? proposal.state.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, '') : '';
-  const slug = citySlug + (stateSlug ? `-${stateSlug}` : '');
-
+  
   // Get proposal title - use name if available, otherwise use healthcareIssue (for backward compatibility)
   const title = proposal.name || proposal.healthcareIssue || 'Healthcare Proposal';
   
@@ -224,7 +222,7 @@ function addProposalMarker(map, proposal) {
         <strong>Location:</strong> ${proposal.city}, ${proposal.state || ''} ${proposal.country || ''}
       </p>
       <div style="margin-top: 15px; text-align: center;">
-        <a href="/proposals/${slug}" style="
+        <a href="/proposals/${citySlug}/" style="
           display: inline-block;
           padding: 8px 16px;
           background: linear-gradient(90deg, #38B6FF, #8A67FF);
