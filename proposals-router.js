@@ -551,7 +551,7 @@ function fixPathsForProposalPages() {
     // Fix all image paths
     document.querySelectorAll('img[src]:not([src^="http"]):not([src^="data:"])').forEach(img => {
       const src = img.getAttribute('src');
-      if (!src.startsWith('/')) {
+      if (src && !src.startsWith('/')) {
         img.src = '/' + src;
       }
     });
@@ -570,23 +570,35 @@ function fixPathsForProposalPages() {
     // Fix all script sources
     document.querySelectorAll('script[src]:not([src^="http"]):not([src^="data:"])').forEach(script => {
       const src = script.getAttribute('src');
-      if (!src.startsWith('/')) {
+      if (src && !src.startsWith('/')) {
         script.src = '/' + src;
       }
     });
     
-    // Fix all stylesheet links
-    document.querySelectorAll('link[rel="stylesheet"][href]:not([href^="http"]):not([href^="data:"])').forEach(link => {
+    // Fix all stylesheet links - be careful with external links
+    document.querySelectorAll('link[rel="stylesheet"][href]').forEach(link => {
       const href = link.getAttribute('href');
-      if (!href.startsWith('/')) {
+      if (href && !href.startsWith('http') && !href.startsWith('//') && !href.startsWith('/')) {
         link.href = '/' + href;
+      } else if (href && href.startsWith('/http')) {
+        // Fix mistake where we added a slash before http
+        link.href = href.substring(1);
+      }
+    });
+    
+    // Fix all link prefetch/preload tags
+    document.querySelectorAll('link[rel="preconnect"]').forEach(link => {
+      const href = link.getAttribute('href');
+      if (href && href.startsWith('/http')) {
+        // Fix mistake where we added a slash before http
+        link.href = href.substring(1);
       }
     });
     
     // Fix nav links
-    document.querySelectorAll('a[href]:not([href^="http"]):not([href^="mailto:"])').forEach(link => {
+    document.querySelectorAll('a[href]:not([href^="mailto:"])').forEach(link => {
       const href = link.getAttribute('href');
-      if (href && !href.startsWith('/') && !href.startsWith('#')) {
+      if (href && !href.startsWith('http') && !href.startsWith('//') && !href.startsWith('/') && !href.startsWith('#')) {
         link.href = '/' + href;
       }
     });

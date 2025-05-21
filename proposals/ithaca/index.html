@@ -2,61 +2,6 @@
 <html class="w-mod-js w-mod-ix wf-dmsans-n5-active wf-dmsans-n7-active wf-dmsans-n4-active wf-active" data-wf-domain="darktemplate.webflow.io" data-wf-locale="en" data-wf-page="61113c4e9f23df42e2554109" data-wf-site="61113c4e9f23df1e7f554117" data-wf-status="1" lang="en">
 <head>
   <style>.wf-force-outline-none[tabindex="-1"]:focus{outline:none;}</style>
-  <!-- Path Fixer Script - Ensures all resources load correctly -->
-  <script>
-  (function() {
-    // This script runs immediately to fix all resource paths
-    console.log("Path fixer script running for Ithaca proposal");
-    
-    // Utility function to fix resource paths in the document
-    function fixResourcePaths() {
-      // Get all link elements
-      const links = document.getElementsByTagName('link');
-      for (let i = 0; i < links.length; i++) {
-        const href = links[i].getAttribute('href');
-        if (href && !href.startsWith('http') && !href.startsWith('/')) {
-          links[i].href = '/' + href;
-        }
-        // Remove any double slashes in URLs
-        if (href && href.includes('//') && !href.startsWith('http')) {
-          links[i].href = href.replace(/([^:])\/+/g, '$1/');
-        }
-      }
-      
-      // Get all script elements
-      const scripts = document.getElementsByTagName('script');
-      for (let i = 0; i < scripts.length; i++) {
-        const src = scripts[i].getAttribute('src');
-        if (src && !src.startsWith('http') && !src.startsWith('/')) {
-          scripts[i].src = '/' + src;
-        }
-        // Remove any double slashes in URLs
-        if (src && src.includes('//') && !src.startsWith('http')) {
-          scripts[i].src = src.replace(/([^:])\/+/g, '$1/');
-        }
-      }
-    }
-    
-    // Fix paths immediately
-    fixResourcePaths();
-    
-    // Also fix paths after DOM is loaded
-    document.addEventListener('DOMContentLoaded', function() {
-      fixResourcePaths();
-      console.log("Path fixer completed DOM content loaded phase");
-      
-      // Fix the footer logo specifically
-      setTimeout(function() {
-        const footerLogo = document.querySelector('.footer-logo');
-        if (footerLogo) {
-          footerLogo.src = '/img/PolityxMap.svg';
-          console.log("Footer logo fixed:", footerLogo.src);
-        }
-      }, 1000);
-    });
-  })();
-  </script>
-  
   <meta charset="utf-8"/>
   <title>Rural Telehealth Expansion | Ithaca, NY | PolityxMap</title>
   <meta content="View detailed healthcare policy proposal information with PolityxMap. Explore background, implementation details, and expected impact." name="description"/>
@@ -90,7 +35,7 @@
   <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
   <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
   <!-- Font Awesome -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"/>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet"/>
   <!-- Includes script for header and footer -->
   <script src="/includes.js"></script>
   <!-- Unified Proposals System -->
@@ -691,7 +636,6 @@ document.addEventListener('DOMContentLoaded', function() {
   </div>
   <div class="w-nav-overlay" data-wf-ignore="" id="w-nav-overlay-0"></div>
 </div>
-    <div id="site-header" class="site-header"></div>
     
     <!-- Main Content -->
     <section class="section" style="padding-top: 120px; position: relative;">
@@ -799,63 +743,6 @@ document.addEventListener('DOMContentLoaded', function() {
       </div>
     </section>
     
-    <footer class="footer">
-  <div class="container-default w-container">
-    <div class="footer-content" data-w-id="eeb31b51-83df-fb96-9e65-fcd1067756fb" style="opacity: 1; margin-bottom: 20px;">
-      <div class="footer-menu-main-content">
-        <div class="footer-menu-wrapper">
-          <div class="title footer-menu">Quick Links</div>
-          <div class="footer-menu-content">
-            <ul class="footer-nav w-list-unstyled" role="list">
-              <li class="footer-nav-item"><a class="footer-nav-link" href="/">Home</a></li>
-              <li class="footer-nav-item"><a class="footer-nav-link" href="/#map">Map</a></li>
-              <li class="footer-nav-item"><a class="footer-nav-link" href="/proposals.html">Proposals</a></li>
-              <li class="footer-nav-item"><a class="footer-nav-link features-link" href="/#features">Features</a></li>
-              <li class="footer-nav-item"><a class="footer-nav-link" href="/contribute.html">Contribute</a></li>
-              <li class="footer-nav-item"><a class="footer-nav-link" href="/about.html">About</a></li>
-              <li class="footer-nav-item"><a class="footer-nav-link" href="mailto:support@polityxmap.org">Contact</a></li>
-              <li class="footer-nav-item"><a class="footer-nav-link" href="/admin.html">Admin Portal</a></li>
-              <li class="footer-nav-item"><a class="footer-nav-link" href="/privacy-policy.html">Privacy Policy</a></li>
-              <li class="footer-nav-item"><a class="footer-nav-link" href="/terms-and-conditions.html">Terms and Conditions</a></li>
-            </ul>
-          </div>
-        </div>
-      </div>
-      <div class="footer-newsletter-content">
-        <div class="title footer-menu">Contact Us</div>
-        <p class="paragraph footer-newsletter">Have questions or suggestions? We'd love to hear from you.</p>
-        <div class="footer-contact-form-block w-form" style="max-width: 85%; margin: 0 auto;">
-          <form class="footer-contact-form">
-            <div style="margin-bottom: 8px;">
-              <div class="form-input-wrapper" style="position: relative; margin-bottom: 12px;">
-                <input class="input footer-form w-input" id="name-contact" maxlength="256" name="name" placeholder="Your name" required="" type="text" style="background-color: rgba(138, 103, 255, 0.07); border: 1px solid rgba(138, 103, 255, 0.2); border-radius: 8px; color: white; padding: 8px 10px; font-size: 14px; transition: all 0.3s ease;"/>
-              </div>
-              
-              <div class="form-input-wrapper" style="position: relative; margin-bottom: 12px;">
-                <input class="input footer-form w-input" id="email-contact" maxlength="256" name="email" placeholder="Your email address" required="" type="email" style="background-color: rgba(138, 103, 255, 0.07); border: 1px solid rgba(138, 103, 255, 0.2); border-radius: 8px; color: white; padding: 8px 10px; font-size: 14px; transition: all 0.3s ease;"/>
-              </div>
-              
-              <div class="form-input-wrapper" style="position: relative;">
-                <textarea class="input footer-form textarea w-input" id="message-contact" maxlength="5000" name="message" placeholder="Your message" required="" style="background-color: rgba(138, 103, 255, 0.07); border: 1px solid rgba(138, 103, 255, 0.2); border-radius: 8px; color: white; height: 45px; padding: 8px 10px; font-size: 14px; resize: none; transition: all 0.3s ease;"></textarea>
-              </div>
-            </div>
-            <div style="display: flex; justify-content: center; margin-top: 20px;">
-              <div class="button-gradient-animated" style="background: linear-gradient(-45deg, #8A67FF, #38B6FF, #8A67FF); background-size: 200% 200%; border-radius: 30px; transition: all 0.3s ease; position: relative; overflow: hidden; width: 100px;">
-                <input class="button-primary footer-contact w-button" type="submit" value="Send" style="background: transparent; border: none; color: white; padding: 6px 20px; font-size: 14px; position: relative; z-index: 2; width: 100%;"/>
-              </div>
-            </div>
-          </form>
-        </div>
-      </div>
-    </div>
-    <div class="footer-content-bottom" data-w-id="7ddc8154-5985-c814-10de-e9f5faad4e13" style="opacity: 1; margin-top: 0px;">
-      <a class="footer-logo-container w-inline-block" href="/">
-        <img alt="PolityxMap - Logo" class="footer-logo" src="/img/PolityxMap.svg"/>
-      </a>
-      <div class="footer-small-print">© 2025 PolityxMap. All Rights Reserved.</div>
-    </div>
-  </div>
-</footer>
     <div id="site-footer" class="site-footer"></div>
   </div>
   
@@ -989,71 +876,6 @@ document.addEventListener('DOMContentLoaded', function() {
         loadSimilarProposals(proposal);
       };
     }
-  </script>
-  
-  <!-- Additional script to ensure everything loads correctly -->
-  <script>
-    // Wait for DOM ready
-    document.addEventListener('DOMContentLoaded', function() {
-      console.log("Ithaca proposal page DOM loaded, ensuring content loads properly");
-      
-      // Make sure the footer is loaded
-      if (!document.querySelector('.footer-logo')) {
-        console.log("Footer not found, manually loading it");
-        fetch('/components/footer.html')
-          .then(response => response.text())
-          .then(html => {
-            const footerContainer = document.getElementById('site-footer');
-            if (footerContainer) {
-              footerContainer.innerHTML = html;
-              console.log("Footer manually loaded");
-            }
-          })
-          .catch(err => console.error("Error loading footer:", err));
-      }
-      
-      // Make sure the Ithaca proposal data is loaded
-      setTimeout(function() {
-        const titleElement = document.getElementById('proposal-title');
-        if (!titleElement || !titleElement.textContent || titleElement.textContent === "Healthcare Policy Proposal") {
-          console.log("Proposal data not loaded, manually loading Ithaca proposal");
-          
-          // Hardcoded fallback for the Ithaca proposal
-          const ithacaProposal = {
-            name: "Rural Telehealth Expansion",
-            city: "Ithaca",
-            state: "NY",
-            country: "USA",
-            lat: 42.4430,
-            lng: -76.5019,
-            description: "Expanding high‑bandwidth telehealth services to six Cayuga County towns.",
-            full_name: "Dr. James Chen",
-            email: "j.chen@cornell.edu",
-            university: "Cornell University Medical College",
-            background: "Rural communities in upstate New York face significant healthcare access barriers, with provider shortages and transportation challenges exacerbated by harsh winter conditions. Many residents must travel 60+ miles for specialist care.",
-            overview: "Deploy high-speed fiber internet to six rural libraries and community centers, equipped with private telehealth stations and medical devices for remote monitoring, supported by a rotating staff of telehealth coordinators.",
-            stakeholders: "Rural residents, primary care providers, specialists, librarians, county health department, broadband providers, and Medicare/Medicaid officials.",
-            costs: "$875K for infrastructure installation; $320K annual operating costs including staff, maintenance, and licensing.",
-            metrics: "50% increase in specialist consultation completion rates, 35% reduction in emergency department visits, 80% patient satisfaction with telehealth services.",
-            timeline: "4 months site preparation, 8 months equipment installation and staff training, full implementation within 14 months.",
-            proposal_text: "The Rural Telehealth Expansion project will bridge critical gaps in healthcare access for isolated communities throughout Cayuga County. By transforming existing community spaces into telehealth access points, we overcome both technical and logistical barriers to care. The program specifically addresses the needs of elderly and disabled residents who face the greatest challenges in traveling to distant medical facilities. Each telehealth station will be equipped with user-friendly technology and staffed by trained coordinators who can assist patients unfamiliar with digital tools. By partnering with regional healthcare systems, we ensure that telehealth consultations integrate seamlessly with patients' existing care plans. This model represents a cost-effective, scalable approach to rural healthcare delivery that could be replicated across similar communities nationwide.",
-            tags: ["Telehealth", "Rural Health", "Access"]
-          };
-          
-          if (typeof window.renderProposal === 'function') {
-            window.renderProposal(ithacaProposal);
-            console.log("Ithaca proposal rendered from hardcoded data");
-          }
-          
-          // Make sure the loading screen is hidden
-          const loadingScreen = document.querySelector('.proposal-loading');
-          if (loadingScreen) {
-            loadingScreen.classList.add('hidden');
-            setTimeout(() => loadingScreen.style.display = 'none', 100);
-          }
-        }
-      }, 2000);
-    });
   </script>
 </body>
 </html>

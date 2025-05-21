@@ -88,12 +88,6 @@
           </a>
         </li>
         <li class="admin-nav-item">
-          <a href="#" class="admin-nav-link" data-target="manage-proposals-section">
-            <i class="fas fa-list"></i>
-            <span>Manage Proposals</span>
-          </a>
-        </li>
-        <li class="admin-nav-item">
           <a href="#" class="admin-nav-link" data-target="add-proposal-section">
             <i class="fas fa-plus-circle"></i>
             <span>Add Proposal</span>
@@ -172,11 +166,8 @@
               <i class="fas fa-plus-circle"></i> Quick Actions
             </h3>
             <div style="margin-top: 15px;">
-              <button class="admin-header-btn" style="width: 100%; justify-content: center; margin-bottom: 15px;" onclick="document.querySelector('.admin-nav-link[data-target=\'add-proposal-section\']').click()">
+              <button class="admin-header-btn" style="width: 100%; justify-content: center;" onclick="document.querySelector('.admin-nav-link[data-target=\'add-proposal-section\']').click()">
                 <i class="fas fa-plus"></i> Add New Proposal
-              </button>
-              <button class="admin-header-btn secondary" style="width: 100%; justify-content: center;" onclick="document.querySelector('.admin-nav-link[data-target=\'manage-proposals-section\']').click()">
-                <i class="fas fa-list"></i> Manage Proposals
               </button>
             </div>
           </div>
@@ -191,41 +182,6 @@
               <p style="margin: 5px 0;"><strong>Database:</strong> <span style="color: var(--success-color);">Connected</span></p>
               <p style="margin: 5px 0;"><strong>Session Expires:</strong> <span id="session-timer">9:50</span></p>
             </div>
-          </div>
-        </div>
-      </div>
-      
-      <!-- Manage Proposals Section -->
-      <div id="manage-proposals-section" class="admin-content-section" style="display: none;">
-        <div class="admin-header">
-          <h1 class="admin-header-title">Manage Proposals</h1>
-          <div class="admin-header-actions">
-            <button class="admin-header-btn" onclick="document.querySelector('.admin-nav-link[data-target=\'add-proposal-section\']').click()">
-              <i class="fas fa-plus"></i> Add New Proposal
-            </button>
-          </div>
-        </div>
-        
-        <div class="admin-table-container">
-          <div class="admin-table-header">
-            <h3 class="admin-table-title">
-              <i class="fas fa-heartbeat"></i> Healthcare Policy Proposals
-            </h3>
-          </div>
-          <div class="admin-table-responsive">
-            <table class="admin-table">
-              <thead>
-                <tr>
-                  <th>Title</th>
-                  <th>Location</th>
-                  <th>Tags</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody id="proposal-table-body">
-                <!-- Proposals will be loaded here -->
-              </tbody>
-            </table>
           </div>
         </div>
       </div>

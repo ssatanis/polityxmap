@@ -7,8 +7,17 @@
 // Import proposals from data file
 let importedProposals = [];
 
+// Flag to track if proposals are already loaded
+let isProposalsLoaded = false;
+
 // Try to import the proposals data
 async function loadProposalsData() {
+  // If proposals are already loaded, don't reload
+  if (isProposalsLoaded && importedProposals.length > 0) {
+    console.log('Proposals already loaded, skipping reload');
+    return importedProposals;
+  }
+  
   try {
     // For browser environments, use a single source of truth: proposals.json
     if (typeof window !== 'undefined') {
@@ -17,6 +26,7 @@ async function loadProposalsData() {
         const response = await fetch('/data/proposals.json');
         if (response.ok) {
           importedProposals = await response.json();
+          isProposalsLoaded = true;
           console.log('Loaded proposals from JSON file:', importedProposals.length);
           // Dispatch event to notify components
           window.dispatchEvent(new Event('proposals-updated'));
@@ -26,6 +36,7 @@ async function loadProposalsData() {
           const storedProposals = localStorage.getItem('polityxMapProposals');
           if (storedProposals) {
             importedProposals = JSON.parse(storedProposals);
+            isProposalsLoaded = true;
             console.log('Fallback to localStorage proposals:', importedProposals.length);
           }
         }
@@ -35,12 +46,15 @@ async function loadProposalsData() {
         const storedProposals = localStorage.getItem('polityxMapProposals');
         if (storedProposals) {
           importedProposals = JSON.parse(storedProposals);
+          isProposalsLoaded = true;
           console.log('Fallback to localStorage proposals:', importedProposals.length);
         }
       }
     }
+    return importedProposals;
   } catch (error) {
     console.error('Error initializing proposal data:', error);
+    return [];
   }
 }
 
@@ -568,45 +582,74 @@ async function createSampleProposalsIfNeeded() {
 }
 
 /**
- * Initialize proposals CMS for global access
+ * Initialize the Proposals CMS
+ * This creates a global object for all proposal functions
  */
 async function initializeProposalsCMS() {
-  // Create a global ProposalsCMS object that serves as the interface to the proposals system
+  // Check if we're in a browser environment
+  if (typeof window === 'undefined') return;
+  
+  console.log('Initializing ProposalsCMS...');
+  
+  // Make sure proposals are loaded first
+  await loadProposalsData();
+  
+  // Create the ProposalsCMS object for global access
   window.ProposalsCMS = {
     getAll: getProposals,
     getById: getProposalById,
     getBySlug: findProposalBySlug,
-    getLatest: async function(count = 3) {
-      return await getLatestProposals(count);
-    },
-    add: async function(proposal) {
-      const result = await addProposal(proposal);
-      window.dispatchEvent(new Event('proposals-updated'));
-      return result;
-    },
-    update: async function(id, data) {
-      const result = await updateProposal(id, data);
-      window.dispatchEvent(new Event('proposals-updated'));
-      return result;
-    },
-    delete: async function(id) {
-      const result = await deleteProposal(id);
-      window.dispatchEvent(new Event('proposals-updated'));
-      return result;
-    }
+    add: addProposal,
+    update: updateProposal,
+    delete: deleteProposal,
+    getLatest: getLatestProposals,
+    refresh: refreshProposals,
+    importedProposals: importedProposals,
+    createSampleProposalsIfNeeded: createSampleProposalsIfNeeded
   };
-
-  // Load proposals when the DOM is ready
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', function() {
-      // Initialize listeners for components
-      initProposalListeners();
-    });
-  } else {
-    // If document is already loaded
-    initProposalListeners();
-  }
+  
+  // Initialize event listeners
+  initProposalListeners();
+  
+  // Initialize map if available
+  updateMapMarkers();
+  
+  // Initialize lists if available
+  updateProposalsList();
+  
+  console.log('ProposalsCMS initialized successfully');
+  
+  // Return the object for possible direct use
+  return window.ProposalsCMS;
 }
 
-// Initialize the CMS on load
-initializeProposalsCMS();
+// Run initialization when the DOM is ready
+if (typeof document !== 'undefined') {
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeProposalsCMS);
+  } else {
+    // DOMContentLoaded has already fired, run immediately
+    initializeProposalsCMS();
+  }
+} else {
+  // Non-browser environment, run without DOM check
+  initializeProposalsCMS();
+}
+
+// Also export the CMS for ESM use
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = {
+    getProposals,
+    getProposalById,
+    findProposalBySlug,
+    addProposal,
+    updateProposal,
+    deleteProposal,
+    getLatestProposals
+  };
+}
+
+// Also initialize as early as possible to prevent duplication
+if (typeof window !== 'undefined' && !window.ProposalsCMS) {
+  initializeProposalsCMS();
+}
