@@ -21,6 +21,11 @@ function setupProposalRouting() {
     // Extract "ithaca" as the slug
     let slug = path.split('/')[2];
     
+    // Remove trailing slash if present
+    if (slug.endsWith('/')) {
+      slug = slug.slice(0, -1);
+    }
+    
     // Handle case where slug might be empty (due to trailing slash)
     // or might be "index.html" (when accessing directly)
     if (!slug || slug === '') {
@@ -489,8 +494,8 @@ async function createLatestProposalLinks() {
           // Generate URL slug - ONLY use city name
           const citySlug = proposal.city ? proposal.city.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, '') : 'detail';
           
-          // Ensure trailing slash in URL
-          const cityURL = `/proposals/${citySlug}/`;
+          // Create URL without trailing slash to avoid redirect issues
+          const cityURL = `/proposals/${citySlug}`;
           
           // Get tags
           const tags = proposal.tags || [];

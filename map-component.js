@@ -222,7 +222,7 @@ function addProposalMarker(map, proposal) {
         <strong>Location:</strong> ${proposal.city}, ${proposal.state || ''} ${proposal.country || ''}
       </p>
       <div style="margin-top: 15px; text-align: center;">
-        <a href="/proposals/${citySlug}/" style="
+        <a href="/proposals/${citySlug}" style="
           display: inline-block;
           padding: 8px 16px;
           background: linear-gradient(90deg, #38B6FF, #8A67FF);

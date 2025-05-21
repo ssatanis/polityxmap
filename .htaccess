@@ -9,6 +9,11 @@ RewriteRule ^admin/(.*)$ admin-react.html [L]
 RewriteRule ^login$ login-react.html [L]
 RewriteRule ^auth/login$ login-react.html [L]
 
+# Special rule for proposal pages
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^proposals/([^/]+)/?$ /proposals/$1/index.html [L]
+
 # If request is for a real file or directory, serve it
 RewriteCond %{REQUEST_FILENAME} -f [OR]
 RewriteCond %{REQUEST_FILENAME} -d

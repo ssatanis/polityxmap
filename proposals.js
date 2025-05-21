@@ -7,17 +7,8 @@
 // Import proposals from data file
 let importedProposals = [];
 
-// Flag to track if proposals are already loaded
-let isProposalsLoaded = false;
-
 // Try to import the proposals data
 async function loadProposalsData() {
-  // If proposals are already loaded, don't reload
-  if (isProposalsLoaded && importedProposals.length > 0) {
-    console.log('Proposals already loaded, skipping reload');
-    return importedProposals;
-  }
-  
   try {
     // For browser environments, use a single source of truth: proposals.json
     if (typeof window !== 'undefined') {
@@ -26,7 +17,6 @@ async function loadProposalsData() {
         const response = await fetch('/data/proposals.json');
         if (response.ok) {
           importedProposals = await response.json();
-          isProposalsLoaded = true;
           console.log('Loaded proposals from JSON file:', importedProposals.length);
           // Dispatch event to notify components
           window.dispatchEvent(new Event('proposals-updated'));
@@ -36,7 +26,6 @@ async function loadProposalsData() {
           const storedProposals = localStorage.getItem('polityxMapProposals');
           if (storedProposals) {
             importedProposals = JSON.parse(storedProposals);
-            isProposalsLoaded = true;
             console.log('Fallback to localStorage proposals:', importedProposals.length);
           }
         }
@@ -46,15 +35,12 @@ async function loadProposalsData() {
         const storedProposals = localStorage.getItem('polityxMapProposals');
         if (storedProposals) {
           importedProposals = JSON.parse(storedProposals);
-          isProposalsLoaded = true;
           console.log('Fallback to localStorage proposals:', importedProposals.length);
         }
       }
     }
-    return importedProposals;
   } catch (error) {
     console.error('Error initializing proposal data:', error);
-    return [];
   }
 }
 
@@ -405,7 +391,7 @@ async function updateProposalsList() {
       proposalCard.innerHTML = `
         <h3>${proposal.city}, ${proposal.state}</h3>
         <p>${proposal.healthcareIssue}</p>
-        <a href="/proposals/${citySlug}/" class="read-more">Read More</a>
+        <a href="/proposals/${citySlug}" class="read-more">Read More</a>
       `;
       proposalsContainer.appendChild(proposalCard);
     });
@@ -443,7 +429,7 @@ async function updateLatestProposals() {
         <h3 class="proposal-title">${proposal.healthcareIssue || proposal.name || 'Untitled Proposal'}</h3>
         <p class="proposal-desc">${proposal.description || 'No description provided.'}</p>
         <p class="proposal-location"><i class="fas fa-map-marker-alt" style="margin-right: 5px;"></i>${proposal.city || ''}, ${proposal.state || ''}, ${proposal.country || ''}</p>
-        <a href="/proposals/${citySlug}/" class="proposal-btn">View Policy Proposal</a>
+        <a href="/proposals/${citySlug}" class="proposal-btn">View Policy Proposal</a>
       `;
       
       proposalsContainer.appendChild(proposalCard);
@@ -452,7 +438,7 @@ async function updateLatestProposals() {
       proposalCard.addEventListener('click', function(e) {
         // If the click is not on the button, navigate to the proposal page
         if (!e.target.classList.contains('proposal-btn')) {
-          window.location.href = `/proposals/${citySlug}/`;
+          window.location.href = `/proposals/${citySlug}`;
         }
       });
       
@@ -582,74 +568,45 @@ async function createSampleProposalsIfNeeded() {
 }
 
 /**
- * Initialize the Proposals CMS
- * This creates a global object for all proposal functions
+ * Initialize proposals CMS for global access
  */
 async function initializeProposalsCMS() {
-  // Check if we're in a browser environment
-  if (typeof window === 'undefined') return;
-  
-  console.log('Initializing ProposalsCMS...');
-  
-  // Make sure proposals are loaded first
-  await loadProposalsData();
-  
-  // Create the ProposalsCMS object for global access
+  // Create a global ProposalsCMS object that serves as the interface to the proposals system
   window.ProposalsCMS = {
     getAll: getProposals,
     getById: getProposalById,
     getBySlug: findProposalBySlug,
-    add: addProposal,
-    update: updateProposal,
-    delete: deleteProposal,
-    getLatest: getLatestProposals,
-    refresh: refreshProposals,
-    importedProposals: importedProposals,
-    createSampleProposalsIfNeeded: createSampleProposalsIfNeeded
+    getLatest: async function(count = 3) {
+      return await getLatestProposals(count);
+    },
+    add: async function(proposal) {
+      const result = await addProposal(proposal);
+      window.dispatchEvent(new Event('proposals-updated'));
+      return result;
+    },
+    update: async function(id, data) {
+      const result = await updateProposal(id, data);
+      window.dispatchEvent(new Event('proposals-updated'));
+      return result;
+    },
+    delete: async function(id) {
+      const result = await deleteProposal(id);
+      window.dispatchEvent(new Event('proposals-updated'));
+      return result;
+    }
   };
-  
-  // Initialize event listeners
-  initProposalListeners();
-  
-  // Initialize map if available
-  updateMapMarkers();
-  
-  // Initialize lists if available
-  updateProposalsList();
-  
-  console.log('ProposalsCMS initialized successfully');
-  
-  // Return the object for possible direct use
-  return window.ProposalsCMS;
-}
 
-// Run initialization when the DOM is ready
-if (typeof document !== 'undefined') {
+  // Load proposals when the DOM is ready
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initializeProposalsCMS);
+    document.addEventListener('DOMContentLoaded', function() {
+      // Initialize listeners for components
+      initProposalListeners();
+    });
   } else {
-    // DOMContentLoaded has already fired, run immediately
-    initializeProposalsCMS();
+    // If document is already loaded
+    initProposalListeners();
   }
-} else {
-  // Non-browser environment, run without DOM check
-  initializeProposalsCMS();
 }
 
-// Also export the CMS for ESM use
-if (typeof module !== 'undefined' && module.exports) {
-  module.exports = {
-    getProposals,
-    getProposalById,
-    findProposalBySlug,
-    addProposal,
-    updateProposal,
-    deleteProposal,
-    getLatestProposals
-  };
-}
-
-// Also initialize as early as possible to prevent duplication
-if (typeof window !== 'undefined' && !window.ProposalsCMS) {
-  initializeProposalsCMS();
-}
+// Initialize the CMS on load
+initializeProposalsCMS();

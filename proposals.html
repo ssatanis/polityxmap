@@ -215,7 +215,6 @@
     margin-bottom: 30px;
     cursor: pointer;
     display: block;
-    text-align: left;
   }
   
   .proposal-card:hover {
@@ -230,7 +229,6 @@
     font-size: 14px;
     font-weight: 500;
     margin-bottom: 20px;
-    text-align: left;
   }
   
   .proposal-title {
@@ -240,7 +238,6 @@
     font-size: 24px;
     font-weight: 700;
     line-height: 1.3;
-    text-align: left;
   }
   
   .proposal-description {
@@ -248,7 +245,6 @@
     color: rgba(255, 255, 255, 0.7);
     font-size: 16px;
     line-height: 1.6;
-    text-align: left;
   }
   
   .proposal-footer {
@@ -308,7 +304,7 @@
     <div id="site-header"></div>
     
     <!-- Hero Section -->
-    <section class="section" style="padding-top: 180px; position: relative;">
+    <section class="section" style="padding-top: 120px; position: relative;">
       <div class="bg-gradient-blur-wrapper" style="top: 100px; left: -300px; transform: rotate(15deg);">
         <div class="bg-gradient-blur-circle-3"></div>
         <div class="bg-gradient-blur-circle-2"></div>
@@ -321,19 +317,7 @@
         <div class="bg-gradient-blur-circle-1 purple"></div>
       </div>
       
-      <div class="container-medium-940px w-container" style="position: relative; z-index: 1; text-align: center;">
-        <!-- Announcement Banner -->
-        <div class="home-hero-featured-message-wrapper" data-w-id="448f5ead-3667-0bad-b1a4-a6038870800b" style="transform: translate3d(0px, 0%, 0px) scale3d(1, 1, 1) rotateX(0deg) rotateY(0deg) rotateZ(0deg) skew(0deg, 0deg); opacity: 1; transform-style: preserve-3d; margin-bottom: 30px; display: inline-block;">
-          <div class="home-hero-featured-message-content">
-            <a class="home-hero-featured-message-link w-inline-block" data-w-id="5747d66c-b4ac-690f-6026-662ab3648be2" href="#">
-              <div class="home-hero-featured-message-tag">New</div>
-              <div class="home-hero-featured-message-text">Healthcare Policy Database Live</div>
-              <div class="home-hero-featured-message-icon"></div>
-            </a>
-            <div class="home-hero-featured-message-blur"></div>
-          </div>
-        </div>
-        
+      <div class="container-default w-container" style="position: relative; z-index: 1;">
         <div style="max-width: 800px; margin: 0 auto; text-align: center;">
           <h1 class="proposals-heading">Healthcare <span class="proposals-accent">Policy Proposals</span></h1>
           <p class="proposals-description">Explore innovative policy solutions to healthcare challenges around the world. Filter by region, issue area, or impact potential to find the proposals most relevant to your work.</p>
@@ -476,20 +460,19 @@
       let proposals = [];
       
       try {
-        // Use only one data source - this prevents duplication
+        // Try multiple sources in order of priority
         if (window.ProposalsCMS && typeof window.ProposalsCMS.getAll === 'function') {
           // Use the ProposalsCMS if available
           proposals = await window.ProposalsCMS.getAll();
         } else {
-          // Fall back to direct file loading only if ProposalsCMS is not available
+          // Try to fetch directly from data file
           try {
             const response = await fetch('/data/proposals.json');
             if (response.ok) {
               proposals = await response.json();
             } else {
-              // Try to import from JS module only as a last resort
+              // Try to import from JS module
               try {
-                console.warn('Unable to load proposals.json, attempting module import');
                 const module = await import('/data/proposals.js');
                 proposals = module.proposals;
               } catch (err) {
@@ -504,9 +487,6 @@
             return;
           }
         }
-        
-        // Log how many proposals were loaded for debugging
-        console.log(`Loaded ${proposals.length} proposals`);
         
         // Filter proposals based on search terms and tags
         const searchTerm = (document.getElementById('proposal-search')?.value || '').toLowerCase();
@@ -583,7 +563,6 @@
         // Create card element
         const card = document.createElement('div');
         card.className = 'proposal-card';
-        card.style.textAlign = 'left';
         card.onclick = function() {
           window.location.href = `/proposals/${citySlug}/`;
         };
@@ -602,13 +581,13 @@
         
         // Set card content
         card.innerHTML = `
-          <div class="proposal-tag healthcare" style="text-align: left;">${tags[0] || 'Healthcare'}</div>
-          <h3 class="proposal-title" style="text-align: left;">${title}</h3>
-          <p class="proposal-description" style="text-align: left;">${proposal.description || ''}</p>
-          <div class="proposal-footer" style="text-align: left;">
+          <div class="proposal-tag healthcare">${tags[0] || 'Healthcare'}</div>
+          <h3 class="proposal-title">${title}</h3>
+          <p class="proposal-description">${proposal.description || ''}</p>
+          <div class="proposal-footer">
             <div class="proposal-location">${proposal.city}, ${proposal.state || ''} ${proposal.country || ''}</div>
           </div>
-          <div class="proposal-tags" style="text-align: left;">
+          <div class="proposal-tags">
             ${tagElements}
           </div>
         `;
