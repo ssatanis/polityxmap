@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <title>PROPOSAL_TITLE | CITY_NAME | PolityxMap</title>
+  <meta content="PROPOSAL_DESCRIPTION" name="description"/>
+  <meta content="width=device-width, initial-scale=1" name="viewport"/>
+  
+  <!-- CSS from the main site -->
+  <link href="https://cdn.prod.website-files.com/61113c4e9f23df1e7f554117/css/darktemplate.webflow.eb6e6d95d.css" rel="stylesheet" type="text/css"/>
+  
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com/css?family=DM+Sans:regular,500,700" media="all" rel="stylesheet"/>
+  
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml" href="/img/PolityxFavicon.svg">
+  <link rel="icon" type="image/png" href="/img/PolityxFavicon.png">
+  <link rel="apple-touch-icon" href="/img/PolityxFavicon.png">
+  <link rel="shortcut icon" type="image/x-icon" href="/img/PolityxFavicon.png">
+  
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  
+  <!-- AOS Animation Library -->
+  <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+  <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+  
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"/>
+  
+  <!-- Scripts -->
+  <script src="/js/supabase-client.js"></script>
+  <script src="/features-navigation.js"></script>
+  <script src="/proposals.js"></script>
+  <script src="/data-migration.js"></script>
+  <script src="/proposals-router.js"></script>
+  <script src="/includes.js"></script>
+  
+  <style>
+    body {
+      background-color: #14111E;
+      color: #fff;
+      font-family: 'DM Sans', sans-serif;
+    }
+    
+    .bg-gradient-blur-wrapper {
+      position: absolute;
+      width: 700px;
+      height: 700px;
+      z-index: 0;
+      opacity: 0.3;
+    }
+    
+    .proposal-heading {
+      font-size: 56px;
+      line-height: 1.1;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 20px;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .proposal-heading::after {
+      content: '';
+      position: absolute;
+      bottom: 5px;
+      left: 0;
+      width: 100px;
+      height: 5px;
+      background: linear-gradient(90deg, #38B6FF, #8A67FF);
+      border-radius: 5px;
+      transform: translateX(-100%);
+      animation: slideIn 1.5s 0.5s forwards;
+    }
+    
+    @keyframes slideIn {
+      to { transform: translateX(0); }
+    }
+    
+    .proposal-accent {
+      color: #8A67FF;
+      display: inline-block;
+      background: linear-gradient(90deg, #38B6FF, #8A67FF);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      position: relative;
+    }
+    
+    .proposal-description {
+      font-size: 20px;
+      line-height: 1.6;
+      color: rgba(255, 255, 255, 0.9);
+      margin-bottom: 30px;
+      position: relative;
+    }
+    
+    .proposal-content-container {
+      background: linear-gradient(135deg, rgba(28, 26, 36, 0.8) 0%, rgba(35, 32, 70, 0.8) 100%);
+      border-radius: 24px;
+      padding: 40px;
+      margin-bottom: 40px;
+      backdrop-filter: blur(10px);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2), 0 0 20px rgba(56, 182, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .proposal-tag {
+      display: inline-block;
+      padding: 8px 16px;
+      border-radius: 30px;
+      font-size: 14px;
+      font-weight: 500;
+      margin-right: 10px;
+      margin-bottom: 10px;
+      animation: fadeIn 0.5s ease forwards;
+      opacity: 0;
+      transition: all 0.3s ease;
+      transform: scale(1);
+    }
+    
+    .proposal-tag:hover {
+      transform: scale(1.05);
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .proposal-tag:nth-child(1) { animation-delay: 0.1s; }
+    .proposal-tag:nth-child(2) { animation-delay: 0.2s; }
+    .proposal-tag:nth-child(3) { animation-delay: 0.3s; }
+    
+    .proposal-tag.telehealth {
+      background-color: rgba(255, 103, 219, 0.2);
+      color: #FF67DB;
+    }
+    
+    .proposal-tag.rural {
+      background-color: rgba(255, 181, 103, 0.2);
+      color: #FFB567;
+    }
+    
+    .proposal-tag.healthcare {
+      background-color: rgba(138, 103, 255, 0.2);
+      color: #8A67FF;
+    }
+    
+    .proposal-map {
+      height: 300px;
+      width: 100%;
+      border-radius: 15px;
+      overflow: hidden;
+      margin-bottom: 30px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      transition: all 0.3s ease;
+      transform: translateY(0);
+    }
+    
+    .proposal-map:hover {
+      box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4), 0 0 20px rgba(56, 182, 255, 0.1);
+      transform: translateY(-5px);
+      border-color: rgba(56, 182, 255, 0.2);
+    }
+    
+    .proposal-section {
+      margin-bottom: 30px;
+      transition: transform 0.3s ease, opacity 0.3s ease;
+      position: relative;
+      z-index: 1;
+    }
+    
+    .proposal-section:hover {
+      transform: translateY(-5px);
+    }
+    
+    .proposal-section-title {
+      font-size: 24px;
+      font-weight: 600;
+      color: #fff;
+      margin-bottom: 15px;
+      display: flex;
+      align-items: center;
+      position: relative;
+      padding-left: 28px;
+    }
+    
+    .proposal-section-title:before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 18px;
+      height: 18px;
+      background: linear-gradient(90deg, #38B6FF, #8A67FF);
+      border-radius: 50%;
+      opacity: 0.8;
+      box-shadow: 0 0 15px rgba(56, 182, 255, 0.5);
+      transition: all 0.3s ease;
+    }
+    
+    .proposal-section-content {
+      font-size: 16px;
+      line-height: 1.7;
+      color: rgba(255, 255, 255, 0.9);
+      padding-left: 28px;
+      position: relative;
+    }
+    
+    .proposal-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      margin-bottom: 30px;
+      padding: 20px;
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: 15px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      transition: all 0.3s ease;
+    }
+    
+    .proposal-meta-item {
+      display: flex;
+      flex-direction: column;
+      flex: 1 1 200px;
+      transition: transform 0.3s ease;
+    }
+    
+    .proposal-meta-label {
+      font-size: 14px;
+      color: rgba(255, 255, 255, 0.6);
+      margin-bottom: 5px;
+    }
+    
+    .proposal-meta-value {
+      font-size: 16px;
+      font-weight: 500;
+      color: #fff;
+    }
+    
+    .proposal-action-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 12px 24px;
+      border-radius: 30px;
+      background: linear-gradient(90deg, #38B6FF, #8A67FF);
+      color: white;
+      font-weight: 500;
+      font-size: 15px;
+      text-decoration: none;
+      transition: all 0.3s ease;
+      border: none;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      z-index: 1;
+      margin-right: 10px;
+      margin-bottom: 10px;
+    }
+    
+    .proposal-action-btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 7px 15px rgba(0, 0, 0, 0.3);
+    }
+    
+    .proposal-action-btn i {
+      margin-right: 8px;
+      font-size: 16px;
+    }
+    
+    .proposal-action-btn.secondary {
+      background: transparent;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: rgba(255, 255, 255, 0.8);
+    }
+    
+    .proposal-action-btn.secondary:hover {
+      border-color: rgba(56, 182, 255, 0.5);
+      color: white;
+    }
+  </style>
+</head>
+<body class="bg-neutral-800">
+  <div class="page-wrapper">
+    <!-- Header will be inserted here by the includes.js script -->
+    <div id="site-header"></div>
+    
+    <!-- Main Content -->
+    <section class="section" style="padding-top: 120px; position: relative;">
+      <div class="bg-gradient-blur-wrapper" style="top: 100px; left: -300px; transform: rotate(15deg);">
+        <div class="bg-gradient-blur-circle-3"></div>
+        <div class="bg-gradient-blur-circle-2"></div>
+        <div class="bg-gradient-blur-circle-1"></div>
+      </div>
+      
+      <div class="bg-gradient-blur-wrapper" style="bottom: -300px; right: -300px; transform: rotate(60deg);">
+        <div class="bg-gradient-blur-circle-3"></div>
+        <div class="bg-gradient-blur-circle-2 blue"></div>
+        <div class="bg-gradient-blur-circle-1 purple"></div>
+      </div>
+      
+      <div class="container-default w-container" style="position: relative; z-index: 1;">
+        <!-- Back Button -->
+        <a href="/proposals.html" class="proposal-action-btn secondary" style="display: inline-flex; margin-bottom: 30px;" data-aos="fade-right">
+          <i class="fas fa-arrow-left"></i> Back to Proposals
+        </a>
+        
+        <!-- Proposal Header -->
+        <div data-aos="fade-up">
+          <h1 class="proposal-heading">PROPOSAL_TITLE_FIRST <span class="proposal-accent">PROPOSAL_TITLE_SECOND</span></h1>
+          <p class="proposal-description" style="font-weight: 500; color: rgba(255, 255, 255, 0.8);">CITY, STATE, COUNTRY</p>
+          <p class="proposal-description">PROPOSAL_SHORT_DESCRIPTION</p>
+        </div>
+        
+        <!-- Proposal Tags -->
+        <div style="margin-bottom: 40px;" data-aos="fade-up" data-aos-delay="100">
+          <span class="proposal-tag telehealth">TAG_1</span>
+          <span class="proposal-tag rural">TAG_2</span>
+          <span class="proposal-tag healthcare">TAG_3</span>
+        </div>
+        
+        <!-- Proposal Map -->
+        <div data-aos="fade-up" data-aos-delay="200">
+          <div id="proposal-map" class="proposal-map"></div>
+        </div>
+        
+        <!-- Proposal Image -->
+        <div data-aos="fade-up" data-aos-delay="250" style="margin-bottom: 40px; text-align: center;">
+          <img src="PROPOSAL_IMAGE_URL" style="max-width: 100%; border-radius: 20px; max-height: 400px; object-fit: cover;" alt="PROPOSAL_TITLE">
+        </div>
+        
+        <!-- Author & Institution -->
+        <div class="proposal-meta" data-aos="fade-up" data-aos-delay="300">
+          <div class="proposal-meta-item">
+            <span class="proposal-meta-label">Author</span>
+            <span class="proposal-meta-value">AUTHOR_NAME</span>
+          </div>
+          <div class="proposal-meta-item">
+            <span class="proposal-meta-label">Institution</span>
+            <span class="proposal-meta-value">INSTITUTION_NAME</span>
+          </div>
+        </div>
+        
+        <!-- Proposal Content Sections -->
+        <div class="proposal-content-container" data-aos="fade-up" data-aos-delay="350">
+          <div class="proposal-section">
+            <h3 class="proposal-section-title">Background</h3>
+            <p class="proposal-section-content">BACKGROUND_TEXT</p>
+          </div>
+          
+          <div class="proposal-section">
+            <h3 class="proposal-section-title">Policy Overview</h3>
+            <p class="proposal-section-content">POLICY_OVERVIEW_TEXT</p>
+          </div>
+          
+          <div class="proposal-section">
+            <h3 class="proposal-section-title">Key Stakeholders</h3>
+            <p class="proposal-section-content">STAKEHOLDERS_TEXT</p>
+          </div>
+          
+          <div class="proposal-section">
+            <h3 class="proposal-section-title">Cost Analysis</h3>
+            <p class="proposal-section-content">COST_ANALYSIS_TEXT</p>
+          </div>
+          
+          <div class="proposal-section">
+            <h3 class="proposal-section-title">Success Metrics</h3>
+            <p class="proposal-section-content">SUCCESS_METRICS_TEXT</p>
+          </div>
+          
+          <div class="proposal-section">
+            <h3 class="proposal-section-title">Timeline</h3>
+            <p class="proposal-section-content">TIMELINE_TEXT</p>
+          </div>
+          
+          <div class="proposal-section">
+            <h3 class="proposal-section-title">Full Proposal Text</h3>
+            <p class="proposal-section-content">FULL_PROPOSAL_TEXT</p>
+          </div>
+        </div>
+        
+        <!-- Actions -->
+        <div class="proposal-actions" data-aos="fade-up" data-aos-delay="400">
+          <a href="/proposals.html" class="proposal-action-btn">
+            <i class="fas fa-list"></i> View All Proposals
+          </a>
+          <a href="/#map" class="proposal-action-btn secondary">
+            <i class="fas fa-map-marker-alt"></i> View on Map
+          </a>
+        </div>
+      </div>
+    </section>
+    
+    <!-- Footer will be inserted here by the includes.js script -->
+    <div id="site-footer"></div>
+  </div>
+  
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Initialize AOS
+      AOS.init({
+        duration: 800,
+        easing: 'ease-out-cubic',
+        once: true
+      });
+      
+      // Initialize map
+      if (typeof L !== 'undefined') {
+        const map = L.map('proposal-map').setView([LATITUDE, LONGITUDE], 10);
+        
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+          subdomains: 'abcd',
+          maxZoom: 19,
+          attribution: ''
+        }).addTo(map);
+        
+        const marker = L.marker([LATITUDE, LONGITUDE]).addTo(map);
+        
+        marker.bindPopup(`
+          <div style="width: 200px; padding: 10px;">
+            <h3 style="margin-top: 0; font-size: 16px; color: #8A67FF; margin-bottom: 5px;">PROPOSAL_TITLE</h3>
+            <p style="margin: 0; font-size: 14px; color: #666;">CITY_NAME, STATE</p>
+          </div>
+        `);
+      }
+    });
+  </script>
+</body>
+</html> 

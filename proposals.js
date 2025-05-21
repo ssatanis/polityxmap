@@ -144,12 +144,7 @@ async function saveProposals(proposals) {
 function generateSlug(city) {
   if (!city) return '';
   
-  // Handle if city contains both city and state
-  if (city.includes(',')) {
-    const parts = city.split(',').map(part => part.trim());
-    return parts[0].toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, '');
-  }
-  
+  // Only use the city name for the URL slug
   return city.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, '');
 }
 
@@ -281,7 +276,7 @@ async function deleteProposal(id) {
 }
 
 /**
- * Find a proposal by its slug (city-state) 
+ * Find a proposal by its slug (city name) 
  * @param {string} slug - The URL slug to search for
  * @returns {Promise<Object|null>} Promise resolving to proposal object or null
  */
@@ -289,30 +284,13 @@ async function findProposalBySlug(slug) {
   try {
     const proposals = await getProposals();
     
-    // Check for direct slug match first
-    const directMatch = proposals.find(p => p.slug === slug);
-    if (directMatch) return directMatch;
-    
-    // Generate slug from city/state and check for matches
+    // Find proposal with matching city slug
     return proposals.find(p => {
-      // Normalize the city name for slug comparison
+      // Generate slug from city name only
       const cityName = p.city || '';
-      const stateName = p.state || '';
-      
-      // Try different slug formats
       const citySlug = generateSlug(cityName);
-      const cityStateSlug = generateSlug(`${cityName}-${stateName}`);
       
-      // Try with abbreviation if full state name is available
-      const stateAbbr = getStateAbbreviation(stateName);
-      const cityStateAbbrSlug = stateAbbr ? generateSlug(`${cityName}-${stateAbbr}`) : '';
-      
-      // Check city slug alone or with various state formats
-      return citySlug === slug || 
-             cityStateSlug === slug || 
-             cityStateAbbrSlug === slug || 
-             slug === generateSlug(`${cityName}`) || // Just city name
-             (p.state && p.state.toLowerCase() === 'new york' && slug === 'ithaca-ny'); // Special case for Ithaca, NY
+      return citySlug === slug;
     }) || null;
   } catch (error) {
     console.error('Error finding proposal by slug:', error);
@@ -405,12 +383,15 @@ async function updateProposalsList() {
     
     // Add proposals to the grid
     proposals.forEach(proposal => {
+      // Create simple city slug for URL - just the city name
+      const citySlug = proposal.city ? proposal.city.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, '') : 'detail';
+      
       const proposalCard = document.createElement('div');
       proposalCard.className = 'proposal-card';
       proposalCard.innerHTML = `
         <h3>${proposal.city}, ${proposal.state}</h3>
         <p>${proposal.healthcareIssue}</p>
-        <a href="/proposals/${proposal.slug}.html" class="read-more">Read More</a>
+        <a href="/proposals/${citySlug}" class="read-more">Read More</a>
       `;
       proposalsContainer.appendChild(proposalCard);
     });
@@ -439,7 +420,7 @@ async function updateLatestProposals() {
       // Get a random color class for the tag
       const colorClass = `color${Math.floor(Math.random() * 6) + 1}`;
       
-      // Create simple city slug for URL
+      // Create simple city slug for URL - just the city name
       const citySlug = proposal.city ? proposal.city.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, '') : 'detail';
       
       // Create card content with improved structure
@@ -458,7 +439,6 @@ async function updateLatestProposals() {
         // If the click is not on the button, navigate to the proposal page
         if (!e.target.classList.contains('proposal-btn')) {
           window.location.href = `/proposals/${citySlug}`;
-          // Make sure the URL works with the _template.html file
         }
       });
       

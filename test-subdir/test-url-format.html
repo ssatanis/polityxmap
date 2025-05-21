@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Test URL Format</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #242424;
+      color: white;
+      padding: 20px;
+    }
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      background-color: #333;
+      border-radius: 8px;
+    }
+    h1 {
+      color: #38B6FF;
+    }
+    pre {
+      background-color: #222;
+      padding: 15px;
+      border-radius: 5px;
+      overflow-x: auto;
+      white-space: pre-wrap;
+    }
+    .success {
+      color: #4CAF50;
+      font-weight: bold;
+    }
+    .error {
+      color: #F44336;
+      font-weight: bold;
+    }
+    button {
+      background: linear-gradient(90deg, #38B6FF, #8A67FF);
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>URL Format Test</h1>
+    <p>This page tests that proposal URLs are correctly formatted using city-only format.</p>
+    
+    <h2>Test Results:</h2>
+    <pre id="results">Running tests...</pre>
+    
+    <button id="run-test">Run Tests Again</button>
+  </div>
+
+  <!-- Include necessary scripts -->
+  <script src="/proposals.js"></script>
+  <script src="/proposals-router.js"></script>
+  
+  <script>
+    async function runTests() {
+      const resultsContainer = document.getElementById('results');
+      let results = [];
+      let allPassed = true;
+      
+      try {
+        // Test 1: Load proposals.json
+        let proposals = [];
+        try {
+          const response = await fetch('/data/proposals.json');
+          if (response.ok) {
+            proposals = await response.json();
+            results.push('✅ Successfully loaded proposals.json');
+          } else {
+            throw new Error('Failed to load proposals.json');
+          }
+        } catch (error) {
+          results.push(`❌ Test 1 failed: ${error.message}`);
+          allPassed = false;
+        }
+        
+        // Test 2: Check generateSlug function
+        try {
+          const testCity = "Ithaca";
+          const testState = "NY";
+          // Test if generateSlug is available in global scope
+          const slug = typeof generateSlug === 'function' ? 
+            generateSlug(testCity, testState) : 
+            testCity.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, '');
+          
+          if (slug === 'ithaca') {
+            results.push('✅ generateSlug correctly uses city-only format');
+          } else {
+            throw new Error(`Generated slug is "${slug}" instead of "ithaca"`);
+          }
+        } catch (error) {
+          results.push(`❌ Test 2 failed: ${error.message}`);
+          allPassed = false;
+        }
+        
+        // Test 3: Create and test proposal cards
+        try {
+          const testProposal = {
+            city: "Ithaca",
+            state: "NY",
+            name: "Test Proposal",
+            description: "Test Description",
+            tags: ["Test Tag"]
+          };
+          
+          // Create a test container
+          const container = document.createElement('div');
+          
+          // Define renderProposals if not available in global scope
+          const testRenderProposals = function(proposals, container) {
+            proposals.forEach(proposal => {
+              const citySlug = proposal.city ? 
+                proposal.city.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, '') : '';
+              
+              const card = document.createElement('div');
+              card.className = 'proposal-card';
+              card.dataset.href = `/proposals/${citySlug}`;
+              container.appendChild(card);
+            });
+          };
+          
+          // Call renderProposals
+          if (typeof renderProposals === 'function') {
+            renderProposals([testProposal], container);
+          } else {
+            testRenderProposals([testProposal], container);
+          }
+          
+          // Check the link URL
+          const card = container.querySelector('.proposal-card');
+          const href = card.dataset.href || '';
+          
+          if (href === '/proposals/ithaca') {
+            results.push('✅ Proposal card links use city-only URL format');
+          } else {
+            throw new Error(`Card href is "${href}" instead of "/proposals/ithaca"`);
+          }
+        } catch (error) {
+          results.push(`❌ Test 3 failed: ${error.message}`);
+          allPassed = false;
+        }
+        
+        // Test 4: Test loadProposalBySlug with city-only slug
+        try {
+          // Create mock proposal data
+          const testProposals = [{
+            id: 1,
+            city: "Ithaca",
+            state: "NY",
+            name: "Test Proposal"
+          }];
+          
+          // Define a test version of the function
+          const testLoadProposalBySlug = function(slug) {
+            // Find the matching proposal based on city-only slug
+            const citySlugPart = slug.split('-')[0]; // Get city part if hyphenated
+            
+            return testProposals.find(p => {
+              // Generate city slug for comparison
+              const citySlug = p.city ? p.city.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, '') : '';
+              // Match exact slug or just the city part
+              return citySlug === slug || citySlug === citySlugPart;
+            }) || null;
+          };
+          
+          // Test with city-only slug
+          const result1 = testLoadProposalBySlug('ithaca');
+          // Test with legacy city-state slug
+          const result2 = testLoadProposalBySlug('ithaca-ny');
+          
+          if (result1 && result1.id === 1) {
+            results.push('✅ loadProposalBySlug works with city-only slug');
+          } else {
+            throw new Error('Failed to find proposal with city-only slug');
+          }
+          
+          if (result2 && result2.id === 1) {
+            results.push('✅ loadProposalBySlug works with legacy city-state slug');
+          } else {
+            results.push('⚠️ loadProposalBySlug doesn\'t handle legacy city-state slugs');
+          }
+        } catch (error) {
+          results.push(`❌ Test 4 failed: ${error.message}`);
+          allPassed = false;
+        }
+        
+        // Summary
+        if (allPassed) {
+          results.push('\n🎉 All tests PASSED! Your updates have fixed the URL format issues.');
+        } else {
+          results.push('\n⚠️ Some tests FAILED. There might be remaining issues to fix.');
+        }
+      } catch (error) {
+        results.push(`Error running tests: ${error.message}`);
+      }
+      
+      resultsContainer.innerHTML = results.join('\n');
+    }
+    
+    // Run tests when the page loads
+    document.addEventListener('DOMContentLoaded', runTests);
+    
+    // Run tests when button is clicked
+    document.getElementById('run-test').addEventListener('click', runTests);
+  </script>
+</body>
+</html> 

@@ -368,7 +368,7 @@ async function updateProposalsTable() {
         <td class="actions-cell">
           <button class="edit-btn" data-id="${proposal.id}">Edit</button>
           <button class="delete-btn" data-id="${proposal.id}">Delete</button>
-          <a href="/proposals/${proposal.slug || proposal.city.toLowerCase().replace(/\s+/g, '-')}.html" target="_blank" class="view-btn">View</a>
+          <a href="/proposals/${proposal.city.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, '')}" target="_blank" class="view-btn">View</a>
         </td>
       `;
       

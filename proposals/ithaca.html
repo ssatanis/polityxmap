@@ -5,50 +5,20 @@
   <title>Rural Telehealth Expansion | Ithaca, NY | PolityxMap</title>
   <meta content="Expanding high‑bandwidth telehealth services to six Cayuga County towns. View detailed healthcare policy proposal information with PolityxMap." name="description"/>
   <meta content="width=device-width, initial-scale=1" name="viewport"/>
-  <!-- Redirect to the proposals system which will load this proposal -->
+  <!-- Simple redirect to the ithaca proposal -->
+  <meta http-equiv="refresh" content="0;url=/proposals/ithaca">
   <script>
-    // This is a static file to ensure the Ithaca proposal loads correctly
-    // Just in case the dynamic routing system misses it
-    document.addEventListener('DOMContentLoaded', function() {
-      // Define the Ithaca proposal data so it's guaranteed to work
-      // This matches the data in proposals.json but stored here as a fallback
-      const ithacaProposal = {
-        name: "Rural Telehealth Expansion",
-        city: "Ithaca",
-        state: "NY",
-        country: "USA",
-        lat: 42.4430,
-        lng: -76.5019,
-        description: "Expanding high‑bandwidth telehealth services to six Cayuga County towns.",
-        full_name: "Sahaj Satani",
-        email: "sahaj@example.com",
-        university: "Cornell University",
-        background: "Despite high health literacy, rural residents in Tompkins County have limited access to specialists.",
-        overview: "Deploying mobile telehealth vans equipped with satellite uplink for instant access to remote providers.",
-        stakeholders: "Cayuga Health System, local clinics, internet providers, state government.",
-        costs: "$500,000 infrastructure; $250,000 annual staffing",
-        metrics: "40% increase in telehealth usage within 1 year",
-        timeline: "Rollout begins Q1 2026 with completion by Q4 2026",
-        proposal_text: "In partnership with Cornell University and the NY State Dept of Health, this project will deploy mobile telehealth vans...",
-        image: "https://example.com/telehealth.jpg",
-        tags: ["Telehealth", "Rural Health", "Access"]
-      };
-      
-      // Store the proposal data in localStorage as a fallback
-      localStorage.setItem('ithaca_proposal', JSON.stringify(ithacaProposal));
-      
-      // Redirect to the proposal detail through the router
-      window.location.href = "../proposals/index.html?slug=ithaca";
-    });
+    // Also do a JavaScript redirect in case meta redirect doesn't work
+    window.location.href = "/proposals/ithaca";
   </script>
 </head>
 <body>
   <div style="display: flex; justify-content: center; align-items: center; height: 100vh; font-family: 'Arial', sans-serif; color: #fff; background-color: #111;">
     <div style="text-align: center;">
-      <h1>Loading Ithaca Proposal...</h1>
-      <p>Please wait while we load the Rural Telehealth Expansion proposal for Ithaca, NY.</p>
+      <h1>Redirecting...</h1>
+      <p>Please wait while we redirect you to the Rural Telehealth Expansion proposal for Ithaca, NY.</p>
       <div style="width: 50px; height: 50px; border: 5px solid rgba(56, 182, 255, 0.2); border-radius: 50%; border-top-color: #38B6FF; animation: spin 1s linear infinite; margin: 20px auto;"></div>
-      <p>If you are not redirected, <a href="../proposals/index.html?slug=ithaca" style="color: #38B6FF; text-decoration: none;">click here</a>.</p>
+      <p>If you are not redirected, <a href="/proposals/ithaca" style="color: #38B6FF; text-decoration: none;">click here</a>.</p>
     </div>
   </div>
   

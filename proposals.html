@@ -372,6 +372,24 @@
       window.addEventListener('proposals-updated', function() {
         loadProposals();
       });
+      
+      // Find all proposal links and update them to use city-only URLs
+      document.querySelectorAll('a[href^="/proposals/"]').forEach(link => {
+        const href = link.getAttribute('href');
+        if (href.includes('-')) {
+          // Extract the city from city-state format
+          const parts = href.split('/').pop().split('-');
+          // Use only the city part for the URL
+          const citySlug = parts[0];
+          link.setAttribute('href', `/proposals/${citySlug}`);
+        }
+        
+        // Remove any .html extensions if present
+        if (link.getAttribute('href').endsWith('.html')) {
+          const cleanHref = link.getAttribute('href').replace('.html', '');
+          link.setAttribute('href', cleanHref);
+        }
+      });
     });
     
     // Function to load proposals from our data source
@@ -480,10 +498,8 @@
         // Get title from name or healthcareIssue for backward compatibility
         const title = proposal.name || proposal.healthcareIssue || 'Healthcare Proposal';
         
-        // Generate URL slug
+        // Generate URL slug - ONLY USE CITY NAME
         const citySlug = proposal.city ? proposal.city.toLowerCase().replace(/\s+/g,'-').replace(/[^\w-]/g, '') : '';
-        const stateSlug = proposal.state ? proposal.state.toLowerCase().replace(/\s+/g,'-').replace(/[^\w-]/g, '') : '';
-        const slug = citySlug + (stateSlug ? `-${stateSlug}` : '');
         
         // Get tags
         const tags = proposal.tags || [];
@@ -492,7 +508,7 @@
         const card = document.createElement('div');
         card.className = 'proposal-card';
         card.onclick = function() {
-          window.location.href = `/proposals/${slug}`;
+          window.location.href = `/proposals/${citySlug}`;
         };
         
         // Create tag elements

@@ -76,9 +76,8 @@ function setupProposalRouting() {
 
 // Generate a URL-friendly slug from city and state
 function generateSlug(city, state) {
-  const citySlug = city ? city.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, '') : '';
-  const stateSlug = state ? state.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, '') : '';
-  return citySlug + (stateSlug ? `-${stateSlug}` : '');
+  // Only use the city name for the URL slug
+  return city ? city.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, '') : '';
 }
 
 // Update proposal links to use the city-based URL format
@@ -116,23 +115,38 @@ async function updateProposalLinks() {
     // Find all links to proposals and update them
     document.querySelectorAll('a[href^="/proposals/"]').forEach(link => {
       const href = link.getAttribute('href');
-      const slug = href.split('/').pop().replace('.html', '');
+      const pathSegment = href.split('/').pop().replace('.html', '');
       
-      // Find the matching proposal
-      const proposal = proposals.find(p => {
-        // Generate the slug for comparison
-        return generateSlug(p.city, p.state) === slug;
+      // Check if the href contains a hyphen (might be city-state format)
+      if (pathSegment.includes('-')) {
+        // Extract the city part (first segment before the hyphen)
+        const citySlug = pathSegment.split('-')[0];
+        // Update to city-only URL format
+        link.setAttribute('href', `/proposals/${citySlug}`);
+      }
+      
+      // Remove any .html extensions if present
+      if (link.getAttribute('href').endsWith('.html')) {
+        const cleanHref = link.getAttribute('href').replace('.html', '');
+        link.setAttribute('href', cleanHref);
+      }
+      
+      // Find the matching proposal to update link text if needed
+      const matchingProposal = proposals.find(p => {
+        // Generate a city-only slug for comparison
+        const citySlug = p.city ? p.city.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, '') : '';
+        return citySlug === pathSegment || citySlug === pathSegment.split('-')[0];
       });
       
-      if (proposal) {
+      if (matchingProposal) {
         // Update the link text if needed
         if (link.textContent === 'Loading...' || !link.textContent) {
           // Use name or healthcareIssue for backward compatibility
-          link.textContent = proposal.name || proposal.healthcareIssue || 'Healthcare Proposal';
+          link.textContent = matchingProposal.name || matchingProposal.healthcareIssue || 'Healthcare Proposal';
         }
       } else {
         // Mark as pending
-        console.log(`Proposal not found for slug: ${slug}`);
+        console.log(`Proposal not found for slug: ${pathSegment}`);
       }
     });
   } catch (error) {
@@ -177,35 +191,15 @@ async function loadProposalBySlug(slug) {
       }
     }
     
-    // Special case for "ithaca" or "ithaca-ny" paths
-    if (slug === 'ithaca' || slug === 'ithaca-ny') {
-      const ithacaProposal = proposals.find(p => 
-        p.city && p.city.toLowerCase() === 'ithaca' && 
-        (p.state === 'NY' || p.state === 'New York' || p.state && p.state.toLowerCase() === 'new york')
-      );
-      if (ithacaProposal) return ithacaProposal;
-    }
+    // Find the matching proposal based on city-only slug
+    // First, handle case where the slug might contain a state part (legacy format)
+    const citySlugPart = slug.split('-')[0]; // Get city part if hyphenated
     
-    // Find the matching proposal
     return proposals.find(p => {
+      // Generate city slug for comparison
       const citySlug = p.city ? p.city.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, '') : '';
-      const stateSlug = p.state ? p.state.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, '') : '';
-      const proposalSlug = citySlug + (stateSlug ? `-${stateSlug}` : '');
-      
-      // Also try city name alone
-      if (slug === citySlug) {
-        return true;
-      }
-      
-      // Try with state abbreviation if full state name is available 
-      if (p.state) {
-        const stateAbbr = getStateAbbr(p.state);
-        if (stateAbbr && slug === `${citySlug}-${stateAbbr.toLowerCase()}`) {
-          return true;
-        }
-      }
-      
-      return proposalSlug === slug;
+      // Match exact slug or just the city part
+      return citySlug === slug || citySlug === citySlugPart;
     }) || null;
   } catch (error) {
     console.error('Error loading proposal by slug:', error);
@@ -294,7 +288,8 @@ document.addEventListener('DOMContentLoaded', function() {
 function generateProposalSlug(proposal) {
   if (!proposal || !proposal.city) return '';
   
-  return generateSlug(proposal.city, proposal.state);
+  // Use only the city name as the slug
+  return proposal.city.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, '');
 }
 
 // Make the function available globally
@@ -347,8 +342,8 @@ async function createLatestProposalLinks() {
           // Get title from name or healthcareIssue for backward compatibility
           const title = proposal.name || proposal.healthcareIssue || 'Healthcare Proposal';
           
-          // Generate URL slug
-          const slug = generateProposalSlug(proposal);
+          // Generate URL slug - ONLY use city name
+          const citySlug = proposal.city ? proposal.city.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, '') : 'detail';
           
           // Get tags
           const tags = proposal.tags || [];
@@ -365,7 +360,7 @@ async function createLatestProposalLinks() {
           
           // Create card content
           card.innerHTML = `
-            <a class="card post-item w-inline-block" href="/proposals/${slug}" tabindex="0">
+            <a class="card post-item w-inline-block" href="/proposals/${citySlug}" tabindex="0">
               <div style="margin-bottom: 20px;">
                 <div class="proposal-tag ${colorClass}">${tag}</div>
               </div>

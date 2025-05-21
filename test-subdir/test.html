@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8"/>
+  <title>Header/Footer Test | PolityxMap</title>
+  <meta content="Testing header and footer component loading" name="description"/>
+  <meta content="width=device-width, initial-scale=1" name="viewport"/>
+  
+  <!-- CSS from the main site -->
+  <link href="https://cdn.prod.website-files.com/61113c4e9f23df1e7f554117/css/darktemplate.webflow.eb6e6d95d.css" rel="stylesheet" type="text/css"/>
+  
+  <!-- Font -->
+  <link href="https://fonts.googleapis.com/css?family=DM+Sans:regular,500,700" media="all" rel="stylesheet"/>
+  
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml" href="/img/PolityxFavicon.svg">
+  
+  <!-- Scripts -->
+  <script src="/js/supabase-client.js"></script>
+  <script src="/features-navigation.js"></script>
+  <script src="/includes.js"></script>
+  
+  <style>
+    body {
+      background-color: #14111E;
+      color: #fff;
+      font-family: 'DM Sans', sans-serif;
+    }
+    
+    .test-content {
+      padding: 40px;
+      text-align: center;
+      margin-top: 80px;
+      min-height: 50vh;
+    }
+    
+    h1 {
+      color: #fff;
+      font-size: 32px;
+      margin-bottom: 20px;
+      background: linear-gradient(90deg, #38B6FF, #8A67FF);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+  </style>
+</head>
+<body>
+  <div class="page-wrapper">
+    <!-- Header will be inserted here by the includes.js script -->
+    <div id="site-header"></div>
+    
+    <div class="test-content">
+      <h1>Header &amp; Footer Component Test</h1>
+      <p>This page tests that the header and footer components are loading correctly from any directory.</p>
+      <p>If you can see both a header above and a footer below, the test is successful!</p>
+    </div>
+    
+    <!-- Footer will be inserted here by the includes.js script -->
+    <div id="site-footer"></div>
+  </div>
+  
+  <script>
+    // Add a console log to verify script executed
+    console.log('Test page loaded. Checking for header and footer...');
+    
+    // Check if header and footer were loaded (after a short delay)
+    setTimeout(function() {
+      const header = document.querySelector('#site-header > *');
+      const footer = document.querySelector('#site-footer > *');
+      
+      if (header) {
+        console.log('✅ Header loaded successfully');
+      } else {
+        console.error('❌ Header failed to load');
+      }
+      
+      if (footer) {
+        console.log('✅ Footer loaded successfully');
+      } else {
+        console.error('❌ Footer failed to load');
+      }
+    }, 1000);
+  </script>
+</body>
+</html> 

@@ -7,8 +7,16 @@ document.addEventListener('DOMContentLoaded', async function() {
   // Helper to include HTML fragments
   async function includeHTML(elementId, url) {
     try {
-      const response = await fetch(url);
-      if (!response.ok) throw new Error(`Failed to load ${url}`);
+      // Ensure the URL is fully absolute by including origin
+      const baseUrl = window.location.origin;
+      const fullUrl = url.startsWith('/') ? `${baseUrl}${url}` : `${baseUrl}/${url}`;
+      
+      const response = await fetch(fullUrl);
+      if (!response.ok) {
+        console.error(`Failed to load ${fullUrl} - Status: ${response.status}`);
+        throw new Error(`Failed to load ${fullUrl}`);
+      }
+      
       const html = await response.text();
       
       const element = document.getElementById(elementId);

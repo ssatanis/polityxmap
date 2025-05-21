@@ -112,12 +112,10 @@ async function loadProposalData(slug) {
       try {
         const previewProposal = JSON.parse(localStorage.getItem('previewProposal'));
         
-        // Generate the slug for the preview proposal to compare
+        // Generate the slug for the preview proposal to compare - city only
         const citySlug = previewProposal.city ? previewProposal.city.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, '') : '';
-        const stateSlug = previewProposal.state ? previewProposal.state.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, '') : '';
-        const proposalSlug = citySlug + (stateSlug ? `-${stateSlug}` : '');
         
-        if (proposalSlug === slug) {
+        if (citySlug === slug) {
           // We found a matching preview proposal, render it
           renderProposal(previewProposal);
           return;
@@ -152,13 +150,10 @@ async function loadProposalData(slug) {
       }
     }
     
-    // Find the proposal with matching slug
+    // Find the proposal with matching slug - city only
     const proposal = proposals.find(p => {
       const citySlug = p.city ? p.city.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, '') : '';
-      const stateSlug = p.state ? p.state.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, '') : '';
-      const proposalSlug = citySlug + (stateSlug ? `-${stateSlug}` : '');
-      
-      return proposalSlug === slug;
+      return citySlug === slug;
     });
     
     if (proposal) {
