@@ -243,8 +243,36 @@
           
           <!-- Typeform Embed Replacement -->
           <div style="max-width: 800px; margin: 0 auto; padding: 20px;">
-            <div data-tf-live="01JVSVJVVCZ5MW99AVQWNJ4H6N" style="width: 100%; height: 600px;"></div>
-            <script src="//embed.typeform.com/next/embed.js"></script>
+            <div data-tf-live="01JVSVJVVCZ5MW99AVQWNJ4H6N" style="min-height: 600px;"></div>
+            <script src="//embed.typeform.com/next/embed.js" onerror="document.querySelector('[data-tf-live]').innerHTML = '<div style=\'text-align: center; padding: 30px; color: white; background-color: rgba(255,0,0,0.1); border-radius: 10px;\'><h3>Error Loading Typeform</h3><p>Please check your internet connection and try again.</p><p>If the problem persists, ensure you\'re using HTTPS or a local development server.</p></div>';"></script>
+            
+            <!-- Form loading verification -->
+            <script>
+              // Check if Typeform embed is loaded correctly
+              setTimeout(function() {
+                const formContainer = document.querySelector('[data-tf-live="01JVSVJVVCZ5MW99AVQWNJ4H6N"]');
+                if (formContainer && formContainer.children.length === 0) {
+                  // Form hasn't loaded, show troubleshooting message
+                  formContainer.innerHTML = `
+                    <div style="border: 2px dashed #38B6FF; border-radius: 10px; padding: 30px; text-align: center; background-color: rgba(56, 182, 255, 0.05);">
+                      <h3 style="color: #fff; margin-top: 0;">Typeform Loading Issue</h3>
+                      <p style="color: rgba(255, 255, 255, 0.8);">
+                        The form should appear here. If you're not seeing it, please try:
+                      </p>
+                      <ul style="color: rgba(255, 255, 255, 0.8); text-align: left; margin: 20px auto; max-width: 400px;">
+                        <li>Refreshing the page</li>
+                        <li>Check for browser extensions blocking scripts</li>
+                        <li>Make sure you're on a secure connection (HTTPS)</li>
+                        <li>Verify that the form ID is correct</li>
+                      </ul>
+                      <button onclick="window.location.reload()" style="background: linear-gradient(90deg, #38B6FF, #8A67FF); border: none; color: white; padding: 10px 20px; border-radius: 30px; cursor: pointer; font-weight: 600;">
+                        Refresh Page
+                      </button>
+                    </div>
+                  `;
+                }
+              }, 3000); // Check after 3 seconds
+            </script>
             
             <div style="margin-top: 30px; padding: 20px; background-color: rgba(56, 182, 255, 0.1); border-radius: 10px; border-left: 4px solid #38B6FF;">
               <p style="color: #fff; font-size: 16px; margin: 0; line-height: 1.6;">
