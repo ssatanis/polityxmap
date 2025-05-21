@@ -350,36 +350,115 @@
       });
     });
     
-    function updateLatestProposals() {
+    async function updateLatestProposals() {
       const container = document.querySelector('.latest-proposals');
       if (!container) return;
       container.innerHTML = '';
-      if (window.ProposalsCMS) {
-        const latestProposals = window.ProposalsCMS.getLatest();
-        const palette = [
-          'color1', 'color2', 'color3', 'color4', 'color5', 'color6'
-        ];
-        if (latestProposals && latestProposals.length > 0) {
-          latestProposals.slice(0, 2).forEach((proposal, idx) => {
-            const tagColor = palette[idx % palette.length];
-            const card = document.createElement('div');
-            card.className = 'post-item';
-            card.setAttribute('role', 'listitem');
-            card.innerHTML = `
-              <a class="card post-item w-inline-block" href="/proposals/${proposal.city.toLowerCase().replace(/\s+/g,'-')}" tabindex="0">
-                <div style="margin-bottom: 20px;">
-                  <div class="proposal-tag ${tagColor}">${(proposal.tags && proposal.tags[0]) || 'Healthcare'}</div>
-                </div>
-                <h3 class="proposal-title">${proposal.healthcareIssue} in ${proposal.city}, ${proposal.country}</h3>
-                <p class="proposal-desc">${proposal.description ? proposal.description.substring(0, 120) + (proposal.description.length > 120 ? '...' : '') : ''}</p>
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 30px;">
-                </div>
-              </a>
-            `;
-            container.appendChild(card);
-          });
+      
+      // Get proposals from our new data source
+      let proposals = [];
+      
+      try {
+        // Try multiple sources in order of priority
+        if (window.ProposalsCMS && typeof window.ProposalsCMS.getLatest === 'function') {
+          // Use the ProposalsCMS if available
+          proposals = await window.ProposalsCMS.getLatest(3);
+        } else {
+          // Try to fetch directly from data file
+          try {
+            const response = await fetch('/data/proposals.json');
+            if (response.ok) {
+              const allProposals = await response.json();
+              proposals = allProposals.slice(0, 3);
+            } else {
+              // Try to import from JS module
+              import('/data/proposals.js')
+                .then(module => {
+                  proposals = module.proposals.slice(0, 3);
+                  renderProposals(proposals, container);
+                })
+                .catch(err => {
+                  console.error('Error importing proposals module:', err);
+                  // Show empty state
+                  renderEmptyState(container);
+                });
+              return; // Exit early since import will handle rendering
+            }
+          } catch (error) {
+            console.error('Error loading proposals data:', error);
+            // Show empty state
+            renderEmptyState(container);
+            return;
+          }
         }
+        
+        // Render the proposals
+        renderProposals(proposals, container);
+      } catch (error) {
+        console.error('Error updating latest proposals:', error);
+        renderEmptyState(container);
       }
+    }
+    
+    function renderProposals(proposals, container) {
+      const palette = [
+        'color1', 'color2', 'color3', 'color4', 'color5', 'color6'
+      ];
+      
+      if (proposals && proposals.length > 0) {
+        proposals.forEach((proposal, idx) => {
+          const tagColor = palette[idx % palette.length];
+          const tags = proposal.tags || [];
+          const tag = tags.length > 0 ? tags[0] : 'Healthcare';
+          
+          // Generate URL slug
+          const citySlug = proposal.city ? proposal.city.toLowerCase().replace(/\s+/g,'-').replace(/[^\w-]/g, '') : '';
+          const stateSlug = proposal.state ? proposal.state.toLowerCase().replace(/\s+/g,'-').replace(/[^\w-]/g, '') : '';
+          const slug = citySlug + (stateSlug ? `-${stateSlug}` : '');
+          
+          // Get title from name or healthcareIssue for backward compatibility
+          const title = proposal.name || proposal.healthcareIssue || 'Healthcare Proposal';
+          
+          const card = document.createElement('div');
+          card.className = 'post-item';
+          card.setAttribute('role', 'listitem');
+          card.innerHTML = `
+            <a class="card post-item w-inline-block" href="/proposals/${slug}" tabindex="0">
+              <div style="margin-bottom: 20px;">
+                <div class="proposal-tag ${tagColor}">${tag}</div>
+              </div>
+              <h3 class="proposal-title">${title}</h3>
+              <p class="proposal-desc">${proposal.description ? proposal.description.substring(0, 120) + (proposal.description.length > 120 ? '...' : '') : ''}</p>
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 30px;">
+                <span style="color: rgba(255,255,255,0.6); font-size: 14px;">${proposal.city}, ${proposal.state || ''}</span>
+              </div>
+              <div style="margin-top: 20px;">
+                <button class="proposal-btn">View Proposal</button>
+              </div>
+            </a>
+          `;
+          container.appendChild(card);
+        });
+      } else {
+        renderEmptyState(container);
+      }
+    }
+    
+    function renderEmptyState(container) {
+      const emptyState = document.createElement('div');
+      emptyState.className = 'empty-state';
+      emptyState.style.textAlign = 'center';
+      emptyState.style.padding = '40px 20px';
+      emptyState.style.backgroundColor = 'rgba(28, 26, 36, 0.5)';
+      emptyState.style.borderRadius = '20px';
+      emptyState.style.gridColumn = '1 / -1';
+      
+      emptyState.innerHTML = `
+        <div style="font-size: 24px; font-weight: bold; margin-bottom: 10px; color: #fff;">No proposals yet</div>
+        <p style="color: rgba(255,255,255,0.7); font-size: 16px;">Please check back soon or submit a proposal through the admin portal.</p>
+      `;
+      
+      container.appendChild(emptyState);
     }
   </script>
 </section>

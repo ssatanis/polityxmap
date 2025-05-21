@@ -241,119 +241,18 @@
             <i class="fas fa-plus-circle"></i> Add New Proposal
           </h2>
           
-          <form id="proposal-form">
-            <div class="admin-form-grid">
-              <div class="admin-form-field">
-                <label class="admin-form-label">Full Name *</label>
-                <input type="text" class="admin-form-input" id="author-name" name="author-name" required>
-              </div>
-              
-              <div class="admin-form-field">
-                <label class="admin-form-label">Email Address *</label>
-                <input type="email" class="admin-form-input" id="author-email" name="author-email" required>
-              </div>
-              
-              <div class="admin-form-field">
-                <label class="admin-form-label">University/Institution *</label>
-                <input type="text" class="admin-form-input" id="author-institution" name="author-institution" required>
-              </div>
-              
-              <div class="admin-form-field">
-                <label class="admin-form-label">Name of Healthcare Issue *</label>
-                <input type="text" class="admin-form-input" id="healthcare-issue" name="healthcare-issue" placeholder="e.g. Malaria in Lagos, Nigeria" required>
-              </div>
-            </div>
+          <!-- Typeform Embed Replacement -->
+          <div style="max-width: 800px; margin: 0 auto; padding: 20px;">
+            <div data-tf-live="01JVSVJVVCZ5MW99AVQWNJ4H6N" style="width: 100%; height: 600px;"></div>
+            <script src="//embed.typeform.com/next/embed.js"></script>
             
-            <div class="admin-form-grid">
-              <div class="admin-form-field">
-                <label class="admin-form-label">City *</label>
-                <input type="text" class="admin-form-input" id="city" name="city" required>
-              </div>
-              
-              <div class="admin-form-field">
-                <label class="admin-form-label">State/Province *</label>
-                <input type="text" class="admin-form-input" id="state" name="state" required>
-              </div>
-              
-              <div class="admin-form-field">
-                <label class="admin-form-label">Country *</label>
-                <input type="text" class="admin-form-input" id="country" name="country" value="United States" required>
-              </div>
+            <div style="margin-top: 30px; padding: 20px; background-color: rgba(56, 182, 255, 0.1); border-radius: 10px; border-left: 4px solid #38B6FF;">
+              <p style="color: #fff; font-size: 16px; margin: 0; line-height: 1.6;">
+                <strong><i class="fas fa-info-circle" style="margin-right: 10px; color: #38B6FF;"></i> Note:</strong> 
+                Once you submit this form, please copy the submitted data into the backend data file to make it live on the site.
+              </p>
             </div>
-            
-            <div class="admin-form-grid">
-              <div class="admin-form-field">
-                <label class="admin-form-label">Latitude *</label>
-                <input type="number" step="0.000001" class="admin-form-input" id="latitude" name="latitude" placeholder="(+ is north, - is south)" required>
-              </div>
-              
-              <div class="admin-form-field">
-                <label class="admin-form-label">Longitude *</label>
-                <input type="number" step="0.000001" class="admin-form-input" id="longitude" name="longitude" placeholder="(+ is east, - is west)" required>
-              </div>
-            </div>
-            
-            <div class="admin-form-field">
-              <label class="admin-form-label">Description (150 characters max) *</label>
-              <textarea class="admin-form-textarea" id="description" name="description" maxlength="150" required></textarea>
-            </div>
-            
-            <div class="admin-form-field">
-              <label class="admin-form-label">Background & Reason *</label>
-              <textarea class="admin-form-textarea" id="background" name="background" required></textarea>
-            </div>
-            
-            <div class="admin-form-field">
-              <label class="admin-form-label">Overview of Proposed Policy *</label>
-              <textarea class="admin-form-textarea" id="policy" name="policy" required></textarea>
-            </div>
-            
-            <div class="admin-form-field">
-              <label class="admin-form-label">Stakeholders *</label>
-              <textarea class="admin-form-textarea" id="stakeholders" name="stakeholders" required></textarea>
-            </div>
-            
-            <div class="admin-form-field">
-              <label class="admin-form-label">Costs & Resource Requirements *</label>
-              <textarea class="admin-form-textarea" id="costs" name="costs" required></textarea>
-            </div>
-            
-            <div class="admin-form-field">
-              <label class="admin-form-label">Success Metrics *</label>
-              <textarea class="admin-form-textarea" id="metrics" name="metrics" required></textarea>
-            </div>
-            
-            <div class="admin-form-field">
-              <label class="admin-form-label">Implementation Timeline *</label>
-              <textarea class="admin-form-textarea" id="timeline" name="timeline" required></textarea>
-            </div>
-
-            <div class="admin-form-field">
-              <label class="admin-form-label">Proposal Text (Full Text) *</label>
-              <textarea class="admin-form-textarea" id="proposal-text" name="proposal-text" required></textarea>
-            </div>
-            
-            <div class="admin-form-field">
-              <label class="admin-form-label">Image Link (Optional)</label>
-              <input type="url" class="admin-form-input" id="image-link" name="image-link" placeholder="https://example.com/image.jpg">
-            </div>
-            
-            <div class="admin-form-field">
-              <label class="admin-form-label">Tags *</label>
-              <div class="tag-container" id="proposal-tags">
-                <!-- Tags will be added here by user selection -->
-              </div>
-              <div style="margin-top: 10px;">
-                <input type="text" class="admin-form-input" id="new-tag" placeholder="Add Tag" style="width: auto; display: inline-block;">
-                <button type="button" class="admin-form-button secondary" id="add-tag-btn" style="margin-left: 10px;">Add Tag</button>
-              </div>
-            </div>
-            
-            <div class="admin-form-actions">
-              <button type="button" class="admin-form-button secondary" id="cancel-proposal-btn">Cancel</button>
-              <button type="submit" class="admin-form-button primary" id="proposal-form-submit-btn">Submit Proposal</button>
-            </div>
-          </form>
+          </div>
         </div>
       </div>
       
@@ -500,76 +399,14 @@
             section.style.display = 'none';
           });
           
-          // Show the target section
+          // Show target content section
           const targetId = this.getAttribute('data-target');
           document.getElementById(targetId).style.display = 'block';
+          
+          // Update last activity
+          lastActivity = Date.now();
         });
       });
-      
-      // Initialize table data
-      const proposalsTableBody = document.getElementById('proposals-table-body');
-      if (proposalsTableBody) {
-        // Sample data - in a real app, this would come from the server
-        const sampleProposals = [
-          {
-            title: 'Rural Healthcare Access Initiative',
-            location: 'Raleigh, United States',
-            tags: ['Healthcare Access', 'Rural Health', 'Telehealth']
-          },
-          {
-            title: 'Expanding Maternal Health Services',
-            location: 'Chicago, United States',
-            tags: ['Maternal Health', 'Health Equity', 'Urban Health']
-          },
-          {
-            title: 'Universal Vaccine Distribution Program',
-            location: 'New Delhi, India',
-            tags: ['Health Equity', 'Preventative Care', 'Rural Health']
-          }
-        ];
-        
-        // Populate table
-        sampleProposals.forEach(proposal => {
-          const row = document.createElement('tr');
-          
-          // Title cell
-          const titleCell = document.createElement('td');
-          titleCell.textContent = proposal.title;
-          row.appendChild(titleCell);
-          
-          // Location cell
-          const locationCell = document.createElement('td');
-          locationCell.textContent = proposal.location;
-          row.appendChild(locationCell);
-          
-          // Tags cell
-          const tagsCell = document.createElement('td');
-          const tagsContainer = document.createElement('div');
-          tagsContainer.className = 'tag-container';
-          proposal.tags.forEach(tag => {
-            const tagElement = document.createElement('div');
-            tagElement.className = 'tag';
-            tagElement.textContent = tag;
-            tagsContainer.appendChild(tagElement);
-          });
-          tagsCell.appendChild(tagsContainer);
-          row.appendChild(tagsCell);
-          
-          // Actions cell
-          const actionsCell = document.createElement('td');
-          actionsCell.innerHTML = `
-            <button class="admin-form-button secondary" style="padding: 5px 10px; margin-right: 5px;">
-              <i class="fas fa-edit"></i>
-            </button>
-            <button class="admin-form-button secondary" style="padding: 5px 10px;">
-              <i class="fas fa-trash"></i>
-            </button>
-          `;
-          row.appendChild(actionsCell);
-          
-          proposalsTableBody.appendChild(row);
-        });
-      }
     });
   </script>
   

@@ -19,34 +19,121 @@ function setupProposalRouting() {
   }
 }
 
+// Generate a URL-friendly slug from city and state
+function generateSlug(city, state) {
+  const citySlug = city ? city.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, '') : '';
+  const stateSlug = state ? state.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, '') : '';
+  return citySlug + (stateSlug ? `-${stateSlug}` : '');
+}
+
 // Update proposal links to use the city-based URL format
-function updateProposalLinks() {
-  // Get all proposals from the unified proposals system
-  const proposals = window.ProposalsCMS ? window.ProposalsCMS.getAll() : [];
+async function updateProposalLinks() {
+  // Get all proposals from our data source
+  let proposals = [];
   
-  // Find all links to proposals and update them
-  document.querySelectorAll('a[href^="/proposals/"]').forEach(link => {
-    const href = link.getAttribute('href');
-    const slug = href.split('/').pop().replace('.html', '');
+  try {
+    // Try multiple sources in order of priority
+    if (window.ProposalsCMS && typeof window.ProposalsCMS.getAll === 'function') {
+      // Use the ProposalsCMS if available
+      proposals = await window.ProposalsCMS.getAll();
+    } else {
+      // Try to fetch directly from data file
+      try {
+        const response = await fetch('/data/proposals.json');
+        if (response.ok) {
+          proposals = await response.json();
+        } else {
+          // Try to import from JS module
+          try {
+            const module = await import('/data/proposals.js');
+            proposals = module.proposals;
+          } catch (err) {
+            console.error('Error importing proposals module:', err);
+            return;
+          }
+        }
+      } catch (error) {
+        console.error('Error loading proposals data:', error);
+        return;
+      }
+    }
+    
+    // Find all links to proposals and update them
+    document.querySelectorAll('a[href^="/proposals/"]').forEach(link => {
+      const href = link.getAttribute('href');
+      const slug = href.split('/').pop().replace('.html', '');
+      
+      // Find the matching proposal
+      const proposal = proposals.find(p => {
+        // Generate the slug for comparison
+        return generateSlug(p.city, p.state) === slug;
+      });
+      
+      if (proposal) {
+        // Update the link text if needed
+        if (link.textContent === 'Loading...' || !link.textContent) {
+          // Use name or healthcareIssue for backward compatibility
+          link.textContent = proposal.name || proposal.healthcareIssue || 'Healthcare Proposal';
+        }
+      } else {
+        // Mark as pending
+        console.log(`Proposal not found for slug: ${slug}`);
+      }
+    });
+  } catch (error) {
+    console.error('Error updating proposal links:', error);
+  }
+}
+
+// Load a proposal by slug
+async function loadProposalBySlug(slug) {
+  // Get all proposals from our data source
+  let proposals = [];
+  
+  try {
+    // Try multiple sources in order of priority
+    if (window.ProposalsCMS && typeof window.ProposalsCMS.getBySlug === 'function') {
+      // Use the ProposalsCMS if available
+      return await window.ProposalsCMS.getBySlug(slug);
+    }
+    
+    if (window.ProposalsCMS && typeof window.ProposalsCMS.getAll === 'function') {
+      // Use the ProposalsCMS if available
+      proposals = await window.ProposalsCMS.getAll();
+    } else {
+      // Try to fetch directly from data file
+      try {
+        const response = await fetch('/data/proposals.json');
+        if (response.ok) {
+          proposals = await response.json();
+        } else {
+          // Try to import from JS module
+          try {
+            const module = await import('/data/proposals.js');
+            proposals = module.proposals;
+          } catch (err) {
+            console.error('Error importing proposals module:', err);
+            return null;
+          }
+        }
+      } catch (error) {
+        console.error('Error loading proposals data:', error);
+        return null;
+      }
+    }
     
     // Find the matching proposal
-    const proposal = proposals.find(p => {
-      // Generate the slug for comparison
-      const generatedSlug = p.city.toLowerCase().replace(/\s+/g, '-') + 
-                         (p.state ? '-' + p.state.toLowerCase().replace(/\s+/g, '-') : '');
-      return generatedSlug === slug;
-    });
-    
-    if (proposal) {
-      // Update the link text if needed
-      if (link.textContent === 'Loading...' || !link.textContent) {
-        link.textContent = proposal.healthcareIssue;
-      }
-    } else {
-      // Mark as pending
-      console.log(`Proposal not found for slug: ${slug}`);
-    }
-  });
+    return proposals.find(p => {
+      const citySlug = p.city ? p.city.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, '') : '';
+      const stateSlug = p.state ? p.state.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, '') : '';
+      const proposalSlug = citySlug + (stateSlug ? `-${stateSlug}` : '');
+      
+      return proposalSlug === slug;
+    }) || null;
+  } catch (error) {
+    console.error('Error loading proposal by slug:', error);
+    return null;
+  }
 }
 
 // Update the proposal template JS to work with query parameters
@@ -63,6 +150,29 @@ document.addEventListener('DOMContentLoaded', function() {
       if (window.history && window.history.replaceState) {
         window.history.replaceState({}, document.title, `/proposals/${slug}`);
       }
+      
+      // Load the proposal data
+      loadProposalBySlug(slug).then(proposal => {
+        if (proposal) {
+          // Update the page title
+          document.title = `${proposal.name || proposal.healthcareIssue} | PolityxMap`;
+          
+          // If we have a renderProposal function, call it
+          if (typeof window.renderProposal === 'function') {
+            window.renderProposal(proposal);
+          }
+        } else {
+          console.error(`Proposal not found for slug: ${slug}`);
+          // Show a not found message
+          document.body.innerHTML = `
+            <div style="text-align: center; padding: 60px 20px; color: white;">
+              <h1>Proposal Not Found</h1>
+              <p>The proposal you're looking for could not be found.</p>
+              <a href="/proposals.html" style="color: #38B6FF;">View All Proposals</a>
+            </div>
+          `;
+        }
+      });
     }
   } else {
     // On other pages, update proposal links
@@ -82,80 +192,101 @@ document.addEventListener('DOMContentLoaded', function() {
 function generateProposalSlug(proposal) {
   if (!proposal || !proposal.city) return '';
   
-  return proposal.city.toLowerCase().replace(/\s+/g, '-') + 
-         (proposal.state ? '-' + proposal.state.toLowerCase().replace(/\s+/g, '-') : '');
+  return generateSlug(proposal.city, proposal.state);
 }
 
 // Make the function available globally
 window.generateProposalSlug = generateProposalSlug;
+window.loadProposalBySlug = loadProposalBySlug;
 
 // Create latest proposal links on the home page
-function createLatestProposalLinks() {
+async function createLatestProposalLinks() {
   // Only run on the home page
   if (window.location.pathname === '/' || window.location.pathname.endsWith('index.html')) {
-    // Get latest proposals from the unified proposals system
-    const latestProposals = window.ProposalsCMS ? window.ProposalsCMS.getLatest(3) : [];
+    // Get latest proposals from our data source
+    let latestProposals = [];
     
-    // Get the proposals container
-    const proposalsContainer = document.querySelector('.home-blog-grid');
-    if (proposalsContainer && latestProposals.length > 0) {
-      // Clear existing content
-      proposalsContainer.innerHTML = '';
-      
-      // Create a card for each latest proposal
-      latestProposals.forEach(proposal => {
-        
-        // Create the proposal card
-        const card = document.createElement('a');
-        card.className = 'card post-item w-inline-block';
-        card.href = `/proposals/${generateProposalSlug(proposal)}`;
-        card.style.display = 'block';
-        card.style.backgroundColor = '#1C1A24';
-        card.style.borderRadius = '18px';
-        card.style.overflow = 'hidden';
-        card.style.textDecoration = 'none';
-        card.style.transition = 'transform 0.3s ease';
-        card.style.padding = '30px';
-        
-        // Add hover effect
-        card.addEventListener('mouseenter', () => {
-          card.style.transform = 'translateY(-5px)';
-          card.style.boxShadow = '0 20px 40px rgba(0, 0, 0, 0.3)';
-        });
-        
-        card.addEventListener('mouseleave', () => {
-          card.style.transform = 'translateY(0)';
-          card.style.boxShadow = 'none';
-        });
-        
-        // Determine tag class based on proposal tags
-        let tagClass = 'healthcare';
-        if (proposal.tags && proposal.tags.length > 0) {
-          const tag = proposal.tags[0].toLowerCase();
-          if (tag.includes('maternal')) tagClass = 'maternal';
-          else if (tag.includes('mental')) tagClass = 'mental';
-          else if (tag.includes('pediatric')) tagClass = 'pediatrics';
-          else if (tag.includes('rural')) tagClass = 'rural';
-          else if (tag.includes('urban')) tagClass = 'urban';
+    try {
+      // Try multiple sources in order of priority
+      if (window.ProposalsCMS && typeof window.ProposalsCMS.getLatest === 'function') {
+        // Use the ProposalsCMS if available
+        latestProposals = await window.ProposalsCMS.getLatest(3);
+      } else {
+        // Try to fetch directly from data file
+        try {
+          const response = await fetch('/data/proposals.json');
+          if (response.ok) {
+            const allProposals = await response.json();
+            latestProposals = allProposals.slice(0, 3);
+          } else {
+            // Try to import from JS module
+            try {
+              const module = await import('/data/proposals.js');
+              latestProposals = module.proposals.slice(0, 3);
+            } catch (err) {
+              console.error('Error importing proposals module:', err);
+              return;
+            }
+          }
+        } catch (error) {
+          console.error('Error loading proposals data:', error);
+          return;
         }
+      }
+      
+      // Get the proposals container
+      const proposalsContainer = document.querySelector('.latest-proposals');
+      if (proposalsContainer && latestProposals.length > 0) {
+        // Clear existing content
+        proposalsContainer.innerHTML = '';
         
-        // Create card content
-        card.innerHTML = `
-          <div class="proposal-tag ${tagClass}">${proposal.tags ? proposal.tags[0] : 'Healthcare'}</div>
-          <h3 class="proposal-title">${proposal.healthcareIssue}</h3>
-          <p class="proposal-description">${proposal.description.substring(0, 120)}${proposal.description.length > 120 ? '...' : ''}</p>
-          <div class="proposal-footer">
-            <div class="proposal-location">${proposal.city}, ${proposal.country}</div>
-            <div class="proposal-read-more">Read More <span>&rarr;</span></div>
-          </div>
-        `;
-        
-        // Add the card to the container
-        proposalsContainer.appendChild(card);
-      });
+        // Create a card for each latest proposal
+        latestProposals.forEach((proposal, index) => {
+          // Get title from name or healthcareIssue for backward compatibility
+          const title = proposal.name || proposal.healthcareIssue || 'Healthcare Proposal';
+          
+          // Generate URL slug
+          const slug = generateProposalSlug(proposal);
+          
+          // Get tags
+          const tags = proposal.tags || [];
+          const tag = tags.length > 0 ? tags[0] : 'Healthcare';
+          
+          // Card color classes
+          const colorClasses = ['color1', 'color2', 'color3', 'color4', 'color5', 'color6'];
+          const colorClass = colorClasses[index % colorClasses.length];
+          
+          // Create card element
+          const card = document.createElement('div');
+          card.className = 'post-item';
+          card.setAttribute('role', 'listitem');
+          
+          // Create card content
+          card.innerHTML = `
+            <a class="card post-item w-inline-block" href="/proposals/${slug}" tabindex="0">
+              <div style="margin-bottom: 20px;">
+                <div class="proposal-tag ${colorClass}">${tag}</div>
+              </div>
+              <h3 class="proposal-title">${title}</h3>
+              <p class="proposal-desc">${proposal.description ? proposal.description.substring(0, 120) + (proposal.description.length > 120 ? '...' : '') : ''}</p>
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 30px;">
+                <span style="color: rgba(255,255,255,0.6); font-size: 14px;">${proposal.city}, ${proposal.state || ''}</span>
+              </div>
+              <div style="margin-top: 20px;">
+                <button class="proposal-btn">View Proposal</button>
+              </div>
+            </a>
+          `;
+          
+          // Add the card to the container
+          proposalsContainer.appendChild(card);
+        });
+      }
+    } catch (error) {
+      console.error('Error creating latest proposal links:', error);
     }
   }
 }
 
-// Run the example proposal links creation after DOM is loaded
-document.addEventListener('DOMContentLoaded', createExampleProposalLinks);
+// Run the latest proposal links creation after DOM is loaded
+document.addEventListener('DOMContentLoaded', createLatestProposalLinks);

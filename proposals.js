@@ -1,99 +1,94 @@
 /**
  * PolityxMap Unified Proposals System
  * This module serves as the single source of truth for all proposal data
- * and handles synchronization across all components using Supabase.
+ * and handles synchronization across all components using the data/proposals.js file.
  */
 
-// Load Supabase client - will be available in browser via script tag
-let supabase;
+// Import proposals from data file
+let importedProposals = [];
 
-// Initialize Supabase client on browser if needed
-if (typeof window !== 'undefined' && !supabase) {
-  // For browser environments
-  if (window.supabase) {
-    supabase = window.supabase;
-  } else {
-    // Log warning if supabase is not available
-    console.warn('Supabase client not found. Make sure to include the Supabase script.');
+// Try to import the proposals data
+async function loadProposalsData() {
+  try {
+    // For browser environments, dynamically import
+    if (typeof window !== 'undefined') {
+      try {
+        // Try to fetch the JSON file first
+        const response = await fetch('/data/proposals.json');
+        if (response.ok) {
+          importedProposals = await response.json();
+          console.log('Loaded proposals from JSON file:', importedProposals.length);
+        } else {
+          // If JSON fails, try to import the JS module using dynamic import
+          import('/data/proposals.js')
+            .then(module => {
+              importedProposals = module.proposals;
+              console.log('Loaded proposals from JS module:', importedProposals.length);
+              // Dispatch event to notify components
+              window.dispatchEvent(new Event('proposals-updated'));
+            })
+            .catch(err => {
+              console.error('Error importing proposals module:', err);
+              // Try localStorage as fallback
+              const storedProposals = localStorage.getItem('polityxMapProposals');
+              if (storedProposals) {
+                importedProposals = JSON.parse(storedProposals);
+                console.log('Fallback to localStorage proposals:', importedProposals.length);
+              }
+            });
+        }
+      } catch (error) {
+        console.error('Error loading proposals data:', error);
+        // Try localStorage as fallback
+        const storedProposals = localStorage.getItem('polityxMapProposals');
+        if (storedProposals) {
+          importedProposals = JSON.parse(storedProposals);
+          console.log('Fallback to localStorage proposals:', importedProposals.length);
+        }
+      }
+    }
+  } catch (error) {
+    console.error('Error initializing proposal data:', error);
   }
 }
 
-// Table name in Supabase
+// Load the proposals immediately 
+loadProposalsData();
+
+// Table name in Supabase (kept for backward compatibility)
 const PROPOSALS_TABLE = 'proposals';
 
 /**
- * Get all proposals from Supabase
+ * Get all proposals from the data file
  * @returns {Promise<Array>} Promise resolving to array of proposal objects
  */
 async function getProposals() {
   try {
+    // If we have already loaded proposals from the data file, use those
+    if (importedProposals && importedProposals.length > 0) {
+      return importedProposals;
+    }
+    
+    // Otherwise, try to load them
+    await loadProposalsData();
+    
+    // If we now have proposals, return them
+    if (importedProposals && importedProposals.length > 0) {
+      return importedProposals;
+    }
+    
     // Check if we're in a browser (for server-side processing)
     const isBrowser = typeof window !== 'undefined';
     
-    // If we don't have supabase client loaded yet, try localStorage fallback
-    if ((!supabase || !window.supabase) && isBrowser) {
-      console.warn('Supabase client not detected, falling back to localStorage for proposals data');
+    // If we still don't have proposals, try localStorage fallback
+    if (isBrowser) {
+      console.warn('Data file not detected, falling back to localStorage for proposals data');
       const storedProposals = localStorage.getItem('polityxMapProposals');
       return storedProposals ? JSON.parse(storedProposals) : [];
     }
     
-    // Use the appropriate supabase client (global or module)
-    const client = window.supabase || supabase;
-    
-    if (!client) {
-      console.error('No Supabase client available');
-      return [];
-    }
-    
-    // Fetch proposals from Supabase with retry logic
-    let retries = 0;
-    const maxRetries = 3;
-    let data = [];
-    let error = null;
-    
-    while (retries < maxRetries) {
-      try {
-        const result = await client
-          .from(PROPOSALS_TABLE)
-          .select('*')
-          .order('created_at', { ascending: false });
-        
-        error = result.error;
-        data = result.data || [];
-        
-        if (!error) {
-          break; // Success, exit retry loop
-        }
-        
-        console.warn(`Fetch attempt ${retries + 1} failed, retrying...`);
-        retries++;
-        // Add exponential backoff
-        await new Promise(r => setTimeout(r, 500 * Math.pow(2, retries)));
-      } catch (e) {
-        console.error('Error during fetch attempt:', e);
-        retries++;
-        // Add exponential backoff
-        await new Promise(r => setTimeout(r, 500 * Math.pow(2, retries)));
-      }
-    }
-    
-    if (error) {
-      console.error('Error fetching proposals after retries:', error);
-      
-      // Fall back to localStorage if available
-      if (isBrowser) {
-        const storedProposals = localStorage.getItem('polityxMapProposals');
-        return storedProposals ? JSON.parse(storedProposals) : [];
-      }
-      return [];
-    }
-    
-    // Cache the data in localStorage for offline fallback
-    if (isBrowser && data && data.length > 0) {
-      localStorage.setItem('polityxMapProposals', JSON.stringify(data));
-    }
-    
-    return data;
+    // If all else fails, return an empty array
+    return [];
   } catch (error) {
     console.error('Error loading proposals:', error);
     
@@ -113,25 +108,9 @@ async function getProposals() {
  */
 async function getProposalById(id) {
   try {
-    // If we're in a browser without Supabase loaded yet, try localStorage fallback
-    if (!supabase && typeof localStorage !== 'undefined') {
-      const proposals = JSON.parse(localStorage.getItem('polityxMapProposals') || '[]');
-      return proposals.find(p => p.id === id) || null;
-    }
-    
-    // Fetch proposal from Supabase
-    const { data, error } = await supabase
-      .from(PROPOSALS_TABLE)
-      .select('*')
-      .eq('id', id)
-      .single();
-    
-    if (error) {
-      console.error('Error fetching proposal by ID:', error);
-      return null;
-    }
-    
-    return data || null;
+    // Get proposals from data file
+    const proposals = await getProposals();
+    return proposals.find(p => p.id === id) || null;
   } catch (error) {
     console.error('Error loading proposal by ID:', error);
     return null;
@@ -139,23 +118,22 @@ async function getProposalById(id) {
 }
 
 /**
- * Save proposals to Supabase and notify all components
+ * Save proposals to the data file and notify all components
  * @param {Array} proposals - Array of proposal objects to save (used only for localStorage fallback)
  * @returns {Promise<boolean>} Promise resolving to success status
  */
 async function saveProposals(proposals) {
   try {
-    // If we're in a browser without Supabase loaded yet, use localStorage fallback
-    if (!supabase && typeof localStorage !== 'undefined') {
+    // In this implementation, we don't actually save to the data file
+    // as that would require server-side operations.
+    // Instead, we just update localStorage as a cache and notify components
+    
+    if (typeof localStorage !== 'undefined') {
       localStorage.setItem('polityxMapProposals', JSON.stringify(proposals));
       // Dispatch event to notify all components that proposals have been updated
       window.dispatchEvent(new Event('proposals-updated'));
       return true;
     }
-    
-    // Note: With Supabase, we don't need this batch save function as we use individual CRUD operations
-    // This is kept for backward compatibility
-    console.warn('saveProposals with array is deprecated with Supabase integration. Use individual CRUD operations instead.');
     
     // Dispatch event to notify all components that proposals have been updated
     window.dispatchEvent(new Event('proposals-updated'));
@@ -185,7 +163,7 @@ function generateId() {
 }
 
 /**
- * Add a new proposal to Supabase
+ * Add a new proposal to the data file
  * @param {Object} proposal - The proposal object to add
  * @returns {Promise<Object>} Promise resolving to the added proposal
  */
@@ -198,43 +176,19 @@ async function addProposal(proposal) {
       created_at: new Date().toISOString()
     };
     
-    // If we're in a browser without Supabase loaded yet, use localStorage fallback
-    if ((!supabase && !window.supabase) && typeof localStorage !== 'undefined') {
-      const proposals = JSON.parse(localStorage.getItem('polityxMapProposals') || '[]');
-      // Generate id locally
-      newProposal.id = proposals.length > 0 ? Math.max(...proposals.map(p => p.id)) + 1 : 1;
-      newProposal.timestamp = Date.now();
-      
-      proposals.push(newProposal);
-      localStorage.setItem('polityxMapProposals', JSON.stringify(proposals));
-      window.dispatchEvent(new Event('proposals-updated'));
-      return newProposal;
-    }
+    // Get proposals from data file
+    const proposals = await getProposals();
     
-    // Use the appropriate supabase client (global or module)
-    const client = window.supabase || supabase;
+    // Generate id locally
+    newProposal.id = proposals.length > 0 ? Math.max(...proposals.map(p => p.id)) + 1 : 1;
+    newProposal.timestamp = Date.now();
     
-    if (!client) {
-      throw new Error('No Supabase client available');
-    }
-    
-    // Add to Supabase
-    const { data, error } = await client
-      .from(PROPOSALS_TABLE)
-      .insert([newProposal])
-      .select()
-      .single();
-    
-    if (error) {
-      console.error('Error adding proposal to Supabase:', error);
-      throw error;
-    }
+    // Add to data file
+    proposals.push(newProposal);
     
     // Update localStorage cache
     try {
-      const storedProposals = JSON.parse(localStorage.getItem('polityxMapProposals') || '[]');
-      storedProposals.push(data);
-      localStorage.setItem('polityxMapProposals', JSON.stringify(storedProposals));
+      localStorage.setItem('polityxMapProposals', JSON.stringify(proposals));
     } catch (e) {
       console.warn('Failed to update localStorage cache:', e);
     }
@@ -242,7 +196,7 @@ async function addProposal(proposal) {
     // Notify components of update
     window.dispatchEvent(new Event('proposals-updated'));
     
-    return data;
+    return newProposal;
   } catch (error) {
     console.error('Error adding proposal:', error);
     throw error;
@@ -250,61 +204,42 @@ async function addProposal(proposal) {
 }
 
 /**
- * Update an existing proposal in Supabase
+ * Update an existing proposal in the data file
  * @param {number} id - The ID of the proposal to update
  * @param {Object} updatedData - The updated proposal data
  * @returns {Promise<Object|null>} Promise resolving to the updated proposal or null if not found
  */
 async function updateProposal(id, updatedData) {
   try {
-    // If we're in a browser without Supabase loaded yet, use localStorage fallback
-    if (!supabase && typeof localStorage !== 'undefined') {
-      const proposals = JSON.parse(localStorage.getItem('polityxMapProposals') || '[]');
-      const index = proposals.findIndex(p => p.id === id);
-      
-      if (index === -1) return null;
-      
-      // Update the proposal
-      const updatedProposal = {
-        ...proposals[index],
-        ...updatedData,
-        // Regenerate slug if city changed
-        slug: updatedData.city ? generateSlug(updatedData.city) : proposals[index].slug,
-        timestamp: Date.now()
-      };
-      
-      proposals[index] = updatedProposal;
+    // Get proposals from data file
+    const proposals = await getProposals();
+    const index = proposals.findIndex(p => p.id === id);
+    
+    if (index === -1) return null;
+    
+    // Update the proposal
+    const updatedProposal = {
+      ...proposals[index],
+      ...updatedData,
+      // Regenerate slug if city changed
+      slug: updatedData.city ? generateSlug(updatedData.city) : proposals[index].slug,
+      timestamp: Date.now()
+    };
+    
+    // Update in data file
+    proposals[index] = updatedProposal;
+    
+    // Update localStorage cache
+    try {
       localStorage.setItem('polityxMapProposals', JSON.stringify(proposals));
-      window.dispatchEvent(new Event('proposals-updated'));
-      
-      return updatedProposal;
-    }
-    
-    // Prepare update data
-    const updateData = { ...updatedData };
-    
-    // Regenerate slug if city changed
-    if (updatedData.city) {
-      updateData.slug = generateSlug(updatedData.city);
-    }
-    
-    // Update in Supabase
-    const { data, error } = await supabase
-      .from(PROPOSALS_TABLE)
-      .update(updateData)
-      .eq('id', id)
-      .select()
-      .single();
-    
-    if (error) {
-      console.error('Error updating proposal in Supabase:', error);
-      return null;
+    } catch (e) {
+      console.warn('Failed to update localStorage cache:', e);
     }
     
     // Notify components of update
     window.dispatchEvent(new Event('proposals-updated'));
     
-    return data;
+    return updatedProposal;
   } catch (error) {
     console.error('Error updating proposal:', error);
     return null;
@@ -312,47 +247,25 @@ async function updateProposal(id, updatedData) {
 }
 
 /**
- * Delete a proposal by ID from Supabase
+ * Delete a proposal by ID from the data file
  * @param {number} id - The ID of the proposal to delete
  * @returns {Promise<boolean>} Promise resolving to true if deleted, false if not found
  */
 async function deleteProposal(id) {
   try {
-    // If we're in a browser without Supabase loaded yet, use localStorage fallback
-    if ((!supabase && !window.supabase) && typeof localStorage !== 'undefined') {
-      const proposals = JSON.parse(localStorage.getItem('polityxMapProposals') || '[]');
-      const filteredProposals = proposals.filter(p => p.id !== id);
-      
-      if (filteredProposals.length === proposals.length) return false;
-      
-      localStorage.setItem('polityxMapProposals', JSON.stringify(filteredProposals));
-      window.dispatchEvent(new Event('proposals-updated'));
-      return true;
-    }
+    // Get proposals from data file
+    const proposals = await getProposals();
+    const filteredProposals = proposals.filter(p => p.id !== id);
     
-    // Use the appropriate supabase client (global or module)
-    const client = window.supabase || supabase;
+    if (filteredProposals.length === proposals.length) return false;
     
-    if (!client) {
-      throw new Error('No Supabase client available');
-    }
-    
-    // Delete from Supabase
-    const { error } = await client
-      .from(PROPOSALS_TABLE)
-      .delete()
-      .eq('id', id);
-    
-    if (error) {
-      console.error('Error deleting proposal from Supabase:', error);
-      return false;
-    }
+    // Update in data file
+    proposals.length = 0;
+    proposals.push(...filteredProposals);
     
     // Update localStorage cache
     try {
-      const storedProposals = JSON.parse(localStorage.getItem('polityxMapProposals') || '[]');
-      const filteredProposals = storedProposals.filter(p => p.id !== id);
-      localStorage.setItem('polityxMapProposals', JSON.stringify(filteredProposals));
+      localStorage.setItem('polityxMapProposals', JSON.stringify(proposals));
     } catch (e) {
       console.warn('Failed to update localStorage cache:', e);
     }
@@ -368,36 +281,30 @@ async function deleteProposal(id) {
 }
 
 /**
- * Find a proposal by its slug in Supabase
- * @param {string} slug - The proposal slug
- * @returns {Promise<Object|null>} Promise resolving to proposal or null if not found
+ * Find a proposal by its slug (city-state) 
+ * @param {string} slug - The URL slug to search for
+ * @returns {Promise<Object|null>} Promise resolving to proposal object or null
  */
 async function findProposalBySlug(slug) {
-  if (!slug) return null;
-  
   try {
-    // Normalize the slug (remove any file extension, lowercase)
-    const normalizedSlug = slug.toLowerCase().replace('.html', '');
+    const proposals = await getProposals();
     
-    // If we're in a browser without Supabase loaded yet, use localStorage fallback
-    if (!supabase && typeof localStorage !== 'undefined') {
-      const proposals = JSON.parse(localStorage.getItem('polityxMapProposals') || '[]');
-      return proposals.find(p => p.slug === normalizedSlug) || null;
-    }
+    // Check for direct slug match first
+    const directMatch = proposals.find(p => p.slug === slug);
+    if (directMatch) return directMatch;
     
-    // Find in Supabase
-    const { data, error } = await supabase
-      .from(PROPOSALS_TABLE)
-      .select('*')
-      .eq('slug', normalizedSlug)
-      .single();
-    
-    if (error) {
-      console.error('Error finding proposal by slug in Supabase:', error);
-      return null;
-    }
-    
-    return data || null;
+    // Generate slug from city/state and check for matches
+    return proposals.find(p => {
+      // Normalize the city name for slug comparison
+      const cityName = p.city || '';
+      const stateName = p.state || '';
+      
+      // Try different slug formats
+      const citySlug = generateSlug(cityName);
+      const cityStateSlug = generateSlug(`${cityName}-${stateName}`);
+      
+      return citySlug === slug || cityStateSlug === slug;
+    }) || null;
   } catch (error) {
     console.error('Error finding proposal by slug:', error);
     return null;
@@ -405,34 +312,17 @@ async function findProposalBySlug(slug) {
 }
 
 /**
- * Get the latest proposals from Supabase
+ * Get the latest proposals
  * @param {number} count - Number of proposals to return
  * @returns {Promise<Array>} Promise resolving to array of the latest proposals
  */
 async function getLatestProposals(count = 3) {
   try {
-    // If we're in a browser without Supabase loaded yet, use localStorage fallback
-    if (!supabase && typeof localStorage !== 'undefined') {
-      const proposals = JSON.parse(localStorage.getItem('polityxMapProposals') || '[]');
-      // Sort by timestamp descending (newest first)
-      return proposals
-        .sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0))
-        .slice(0, count);
-    }
+    const proposals = await getProposals();
     
-    // Fetch from Supabase
-    const { data, error } = await supabase
-      .from(PROPOSALS_TABLE)
-      .select('*')
-      .order('created_at', { ascending: false })
-      .limit(count);
-    
-    if (error) {
-      console.error('Error fetching latest proposals from Supabase:', error);
-      return [];
-    }
-    
-    return data || [];
+    // Sort by date if available, otherwise return as is
+    // Slice to get the requested number
+    return proposals.slice(0, count);
   } catch (error) {
     console.error('Error getting latest proposals:', error);
     return [];
@@ -623,46 +513,45 @@ async function createSampleProposalsIfNeeded() {
 }
 
 /**
- * ProposalsCMS initialization function
- * Call this to ensure the system is ready and samples are loaded
+ * Initialize proposals CMS for global access
  */
 async function initializeProposalsCMS() {
-  // Wait for Supabase client to be ready if it's included
-  if (typeof window !== 'undefined' && window.getSupabaseClient) {
-    try {
-      await window.getSupabaseClient();
-    } catch (error) {
-      console.warn('Supabase client initialization failed, using localStorage fallback');
-    }
-  }
-  
-  // Load all proposals
-  await getProposals();
-  
-  // Create sample proposals if needed
-  await createSampleProposalsIfNeeded();
-  
-  // Dispatch event that proposals are ready
-  window.dispatchEvent(new Event('proposals-cms-ready'));
-}
-
-// Main initialization
-document.addEventListener('DOMContentLoaded', function() {
-  // Create global ProposalsCMS object
+  // Create a global ProposalsCMS object that serves as the interface to the proposals system
   window.ProposalsCMS = {
     getAll: getProposals,
-    get: getProposalById,
-    add: addProposal,
-    update: updateProposal,
-    delete: deleteProposal,
-    findBySlug: findProposalBySlug,
-    getLatest: getLatestProposals,
-    initialize: initializeProposalsCMS
+    getById: getProposalById,
+    getBySlug: findProposalBySlug,
+    getLatest: async function(count = 3) {
+      return await getLatestProposals(count);
+    },
+    add: async function(proposal) {
+      const result = await addProposal(proposal);
+      window.dispatchEvent(new Event('proposals-updated'));
+      return result;
+    },
+    update: async function(id, data) {
+      const result = await updateProposal(id, data);
+      window.dispatchEvent(new Event('proposals-updated'));
+      return result;
+    },
+    delete: async function(id) {
+      const result = await deleteProposal(id);
+      window.dispatchEvent(new Event('proposals-updated'));
+      return result;
+    }
   };
-  
-  // Initialize automatically
-  initializeProposalsCMS();
-  
-  // Set up event listeners for the map and other components
-  initProposalListeners();
-});
+
+  // Load proposals when the DOM is ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function() {
+      // Initialize listeners for components
+      initProposalListeners();
+    });
+  } else {
+    // If document is already loaded
+    initProposalListeners();
+  }
+}
+
+// Initialize the CMS on load
+initializeProposalsCMS();
