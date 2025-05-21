@@ -24,8 +24,8 @@ function InteractiveMap() {
 function initMap(container) {
   // Initialize the map with natural light colors
   const map = L.map(container.id, {
-    center: [20, 0],
-    zoom: 2,
+    center: [40, -95],
+    zoom: 3.5,
     minZoom: 2,
     maxZoom: 18,
         zoomControl: false,
