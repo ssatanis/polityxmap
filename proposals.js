@@ -413,23 +413,33 @@ async function updateLatestProposals() {
     proposalsContainer.innerHTML = '';
     
     // Add proposals to the grid
-    latestProposals.forEach(proposal => {
-      const proposalCard = document.createElement('div');
-      proposalCard.className = 'card post-item';
+    latestProposals.forEach((proposal, index) => {
+      // Get title from name or healthcareIssue for backward compatibility
+      const title = proposal.name || proposal.healthcareIssue || 'Healthcare Proposal';
       
-      // Get a random color class for the tag
-      const colorClass = `color${Math.floor(Math.random() * 6) + 1}`;
-      
-      // Create simple city slug for URL - just the city name
+      // Generate URL slug - ONLY use city name
       const citySlug = proposal.city ? proposal.city.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, '') : 'detail';
       
+      // Create URL without trailing slash to avoid redirect issues
+      const cityURL = `/proposals/${citySlug}`;
+      
+      // Get tags
+      const tags = proposal.tags || [];
+      const tag = tags.length > 0 ? tags[0] : 'Healthcare';
+      
+      // Card color classes
+      const colorClasses = ['color1', 'color2', 'color3', 'color4', 'color5', 'color6'];
+      const colorClass = colorClasses[index % colorClasses.length];
+      
       // Create card content with improved structure
+      const proposalCard = document.createElement('div');
+      proposalCard.className = `card post-item ${colorClass}`;
       proposalCard.innerHTML = `
-        <div class="proposal-tag ${colorClass}">${proposal.tags && proposal.tags.length > 0 ? proposal.tags[0] : 'Healthcare'}</div>
-        <h3 class="proposal-title">${proposal.healthcareIssue || proposal.name || 'Untitled Proposal'}</h3>
+        <div class="proposal-tag">${tag}</div>
+        <h3 class="proposal-title">${title}</h3>
         <p class="proposal-desc">${proposal.description || 'No description provided.'}</p>
         <p class="proposal-location"><i class="fas fa-map-marker-alt" style="margin-right: 5px;"></i>${proposal.city || ''}, ${proposal.state || ''}, ${proposal.country || ''}</p>
-        <a href="/proposals/${citySlug}" class="proposal-btn">View Policy Proposal</a>
+        <a href="${cityURL}" class="proposal-btn">View Policy Proposal</a>
       `;
       
       proposalsContainer.appendChild(proposalCard);
@@ -438,7 +448,7 @@ async function updateLatestProposals() {
       proposalCard.addEventListener('click', function(e) {
         // If the click is not on the button, navigate to the proposal page
         if (!e.target.classList.contains('proposal-btn')) {
-          window.location.href = `/proposals/${citySlug}`;
+          window.location.href = cityURL;
         }
       });
       

@@ -10,51 +10,27 @@ function setupProposalRouting() {
   const path = window.location.pathname;
   
   // If the path starts with /proposals/ and has more segments, it's a proposal detail page
-  if (path.startsWith('/proposals/') && path.split('/').length > 2) {
+  if (path.startsWith('/proposals/') && path.split('/').filter(p => p).length > 1) {
     console.log("Detected a proposal detail page:", path);
     
     // Fix path issues for assets when accessing proposal pages directly
     fixPathsForProposalPages();
     
-    // Get the city-state slug from the URL (remove .html if present)
-    // For paths like /proposals/ithaca/ or /proposals/ithaca/index.html
-    // Extract "ithaca" as the slug
-    let slug = path.split('/')[2];
+    // Get the city slug from the URL - handle both with and without trailing slash
+    // For paths like /proposals/ithaca/ or /proposals/ithaca or /proposals/ithaca/index.html
+    const pathSegments = path.split('/').filter(p => p);
+    let slug = pathSegments.length > 1 ? pathSegments[1] : '';
     
-    // Remove trailing slash if present
-    if (slug.endsWith('/')) {
-      slug = slug.slice(0, -1);
-    }
-    
-    // Handle case where slug might be empty (due to trailing slash)
-    // or might be "index.html" (when accessing directly)
-    if (!slug || slug === '') {
-      // If the slug is empty, try to get it from the previous segment
-      const segments = path.split('/').filter(s => s);
-      if (segments.length >= 2) {
-        slug = segments[1]; // "proposals" would be 0, city name would be 1
-      }
-    }
-    
-    // Remove file extension if present (e.g., "index.html")
-    slug = slug.replace(/\.html$/, '');
-    
-    // If the slug is "index", it means the URL is like /proposals/ithaca/index.html
-    // In this case, use the directory name instead
-    if (slug === 'index') {
-      const segments = path.split('/').filter(s => s);
-      if (segments.length >= 2) {
-        slug = segments[1];
-      }
-    }
-    
-    console.log("Extracted slug:", slug);
+    // Remove trailing slash, index.html, or any file extension if present
+    slug = slug.replace(/\/$/, '').replace(/\.html$/, '').replace(/\/index$/, '');
     
     // Special case for ithaca-ny
     if (slug === 'ithaca-ny') {
       console.log("Legacy slug ithaca-ny detected, redirecting to ithaca");
       slug = 'ithaca';
     }
+    
+    console.log("Extracted slug:", slug);
     
     // Check if we're in preview mode
     const urlParams = new URLSearchParams(window.location.search);
@@ -67,10 +43,8 @@ function setupProposalRouting() {
         
         // Generate the slug for the preview proposal to compare
         const citySlug = previewProposal.city ? previewProposal.city.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, '') : '';
-        const stateSlug = previewProposal.state ? previewProposal.state.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, '') : '';
-        const proposalSlug = citySlug + (stateSlug ? `-${stateSlug}` : '');
         
-        if (proposalSlug === slug) {
+        if (citySlug === slug) {
           // We have a matching preview proposal in localStorage
           if (typeof window.renderProposal === 'function') {
             window.renderProposal(previewProposal);
@@ -98,29 +72,26 @@ function setupProposalRouting() {
       } else {
         console.error(`❌ Proposal not found for slug: ${slug}`);
         
-        // If we're not at proposal.html or a redirect already happened, show a not found message
-        if (!window.location.pathname.endsWith('proposal.html')) {
-          // Show a not found message
-          const contentContainer = document.querySelector('.container-default') || document.body;
-          contentContainer.innerHTML = `
-            <div style="text-align: center; padding: 60px 20px; color: white; max-width: 800px; margin: 0 auto;">
-              <h1 style="font-size: 42px; margin-bottom: 20px;">Proposal Not Found</h1>
-              <p style="font-size: 18px; color: rgba(255, 255, 255, 0.7); max-width: 600px; margin: 0 auto 30px auto;">
-                The healthcare policy proposal you're looking for could not be found (slug: ${slug}). It may have been moved or removed.
-              </p>
-              <a href="/proposals.html" style="display: inline-block; padding: 12px 30px; background: linear-gradient(90deg, #38B6FF, #8A67FF); color: white; text-decoration: none; border-radius: 25px; font-weight: 500;">
-                View All Proposals
-              </a>
-              
-              <div style="margin-top: 30px; padding: 15px; background: rgba(255,255,255,0.1); border-radius: 10px; text-align: left;">
-                <h3>Debug Info:</h3>
-                <p>URL Path: ${window.location.pathname}</p>
-                <p>Slug Detected: ${slug}</p>
-                <p>Time: ${new Date().toLocaleTimeString()}</p>
-              </div>
+        // Show a not found message
+        const contentContainer = document.querySelector('.container-default') || document.body;
+        contentContainer.innerHTML = `
+          <div style="text-align: center; padding: 60px 20px; color: white; max-width: 800px; margin: 0 auto;">
+            <h1 style="font-size: 42px; margin-bottom: 20px;">Proposal Not Found</h1>
+            <p style="font-size: 18px; color: rgba(255, 255, 255, 0.7); max-width: 600px; margin: 0 auto 30px auto;">
+              The healthcare policy proposal you're looking for could not be found (slug: ${slug}). It may have been moved or removed.
+            </p>
+            <a href="/proposals.html" style="display: inline-block; padding: 12px 30px; background: linear-gradient(90deg, #38B6FF, #8A67FF); color: white; text-decoration: none; border-radius: 25px; font-weight: 500;">
+              View All Proposals
+            </a>
+            
+            <div style="margin-top: 30px; padding: 15px; background: rgba(255,255,255,0.1); border-radius: 10px; text-align: left;">
+              <h3>Debug Info:</h3>
+              <p>URL Path: ${window.location.pathname}</p>
+              <p>Slug Detected: ${slug}</p>
+              <p>Time: ${new Date().toLocaleTimeString()}</p>
             </div>
-          `;
-        }
+          </div>
+        `;
       }
     });
   }
@@ -167,7 +138,7 @@ async function updateProposalLinks() {
     // Find all links to proposals and update them
     document.querySelectorAll('a[href^="/proposals/"]').forEach(link => {
       const href = link.getAttribute('href');
-      const pathSegment = href.split('/').pop().replace('.html', '');
+      const pathSegment = href.split('/').filter(s => s.length > 0)[1] || '';
       
       // Check if the href contains a hyphen (might be city-state format)
       if (pathSegment.includes('-')) {
@@ -177,10 +148,17 @@ async function updateProposalLinks() {
         link.setAttribute('href', `/proposals/${citySlug}`);
       }
       
+      // Remove any trailing slashes to prevent redirect loops
+      let newHref = link.getAttribute('href');
+      if (newHref.endsWith('/') && newHref !== '/') {
+        newHref = newHref.slice(0, -1);
+        link.setAttribute('href', newHref);
+      }
+      
       // Remove any .html extensions if present
-      if (link.getAttribute('href').endsWith('.html')) {
-        const cleanHref = link.getAttribute('href').replace('.html', '');
-        link.setAttribute('href', cleanHref);
+      if (newHref.endsWith('.html')) {
+        newHref = newHref.replace('.html', '');
+        link.setAttribute('href', newHref);
       }
       
       // Find the matching proposal to update link text if needed
@@ -212,6 +190,9 @@ async function loadProposalBySlug(slug) {
   let proposals = [];
   
   try {
+    // Make sure slug is clean with no trailing slashes, etc.
+    slug = (slug || '').trim().replace(/\/$/, '').replace(/\.html$/, '');
+    
     // Check if slug ends with trailing slash and remove it for processing
     if (slug.endsWith('/')) {
       slug = slug.slice(0, -1);
