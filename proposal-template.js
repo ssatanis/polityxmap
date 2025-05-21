@@ -17,6 +17,21 @@ document.addEventListener('DOMContentLoaded', function() {
     proposalSlug = urlParams.get('slug');
   }
   
+  // Special handling for Ithaca proposal
+  if (proposalSlug === 'ithaca' || proposalSlug === 'ithaca-ny') {
+    // Check if we have the Ithaca proposal in localStorage from the static file
+    const ithacaProposal = localStorage.getItem('ithaca_proposal');
+    if (ithacaProposal) {
+      try {
+        const proposal = JSON.parse(ithacaProposal);
+        renderProposal(proposal);
+        return;
+      } catch (e) {
+        console.error('Error parsing Ithaca proposal from localStorage:', e);
+      }
+    }
+  }
+  
   // Load the proposal data if we have a slug
   if (proposalSlug) {
     if (window.loadProposalBySlug) {
@@ -88,7 +103,32 @@ async function initializeProposalsSystem() {
  */
 async function loadProposalData(slug) {
   try {
-    // Get all proposals from multiple sources
+    // Check if we're in preview mode
+    const urlParams = new URLSearchParams(window.location.search);
+    const isPreview = urlParams.get('preview') === 'true';
+    
+    // If in preview mode, try to get the preview proposal from localStorage
+    if (isPreview && localStorage.getItem('previewProposal')) {
+      try {
+        const previewProposal = JSON.parse(localStorage.getItem('previewProposal'));
+        
+        // Generate the slug for the preview proposal to compare
+        const citySlug = previewProposal.city ? previewProposal.city.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, '') : '';
+        const stateSlug = previewProposal.state ? previewProposal.state.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, '') : '';
+        const proposalSlug = citySlug + (stateSlug ? `-${stateSlug}` : '');
+        
+        if (proposalSlug === slug) {
+          // We found a matching preview proposal, render it
+          renderProposal(previewProposal);
+          return;
+        }
+      } catch (error) {
+        console.error('Error parsing preview proposal:', error);
+      }
+    }
+    
+    // If not in preview mode or no matching preview proposal found,
+    // get all proposals from multiple sources
     let proposals = [];
     
     if (window.ProposalsCMS && typeof window.ProposalsCMS.getAll === 'function') {
@@ -226,6 +266,17 @@ function renderProposal(proposal) {
     imageElement.src = proposal.image || proposal.imageLink;
     imageElement.alt = title;
     imageElement.style.display = 'block';
+    
+    // Add a nice loading animation
+    imageElement.style.opacity = '0';
+    imageElement.style.transform = 'scale(0.95)';
+    imageElement.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+    
+    // Show image when loaded
+    imageElement.onload = function() {
+      imageElement.style.opacity = '1';
+      imageElement.style.transform = 'scale(1)';
+    };
   } else if (imageElement) {
     imageElement.style.display = 'none';
   }
@@ -239,12 +290,13 @@ function renderProposal(proposal) {
     const tagsArray = Array.isArray(proposal.tags) ? proposal.tags : 
                      typeof proposal.tags === 'string' ? proposal.tags.split(',').map(t => t.trim()) : [];
     
-    tagsArray.forEach(tag => {
+    tagsArray.forEach((tag, index) => {
       if (!tag) return;
       
       const tagElement = document.createElement('span');
       tagElement.className = 'proposal-tag';
       tagElement.textContent = tag;
+      tagElement.style.animationDelay = `${0.1 * (index + 1)}s`;
       
       // Add appropriate class based on tag content
       let tagClass = 'healthcare';
@@ -278,6 +330,24 @@ function renderProposal(proposal) {
   
   if (lat && lng) {
     initializeProposalMap(proposal);
+  }
+  
+  // Refresh animations if AOS is available
+  if (typeof AOS !== 'undefined') {
+    setTimeout(() => {
+      AOS.refresh();
+    }, 500);
+  }
+  
+  // Hide loading screen
+  const loadingScreen = document.querySelector('.proposal-loading');
+  if (loadingScreen) {
+    setTimeout(() => {
+      loadingScreen.classList.add('hidden');
+      setTimeout(() => {
+        loadingScreen.style.display = 'none';
+      }, 500);
+    }, 800);
   }
 }
 

@@ -14,8 +14,63 @@ function setupProposalRouting() {
     // Get the city-state slug from the URL (remove .html if present)
     const slug = path.split('/').pop().replace('.html', '');
     
-    // Redirect to the proposal template with the city slug as a query parameter
-    window.location.href = `/proposal.html?slug=${encodeURIComponent(slug)}`;
+    // Check if we're in preview mode
+    const urlParams = new URLSearchParams(window.location.search);
+    const isPreview = urlParams.get('preview') === 'true';
+    
+    // If in preview mode, try to get the preview proposal from localStorage
+    if (isPreview && localStorage.getItem('previewProposal')) {
+      try {
+        const previewProposal = JSON.parse(localStorage.getItem('previewProposal'));
+        
+        // Generate the slug for the preview proposal to compare
+        const citySlug = previewProposal.city ? previewProposal.city.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, '') : '';
+        const stateSlug = previewProposal.state ? previewProposal.state.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, '') : '';
+        const proposalSlug = citySlug + (stateSlug ? `-${stateSlug}` : '');
+        
+        if (proposalSlug === slug) {
+          // We have a matching preview proposal in localStorage
+          if (typeof window.renderProposal === 'function') {
+            window.renderProposal(previewProposal);
+            return;
+          }
+        }
+      } catch (error) {
+        console.error('Error parsing preview proposal:', error);
+      }
+    }
+    
+    // Load the proposal using the unified system
+    loadProposalBySlug(slug).then(proposal => {
+      if (proposal) {
+        // Update the page title
+        document.title = `${proposal.name || proposal.healthcareIssue} | ${proposal.city}, ${proposal.state || ''} | PolityxMap`;
+        
+        // If we have a renderProposal function, call it
+        if (typeof window.renderProposal === 'function') {
+          window.renderProposal(proposal);
+        }
+      } else {
+        console.error(`Proposal not found for slug: ${slug}`);
+        
+        // If we're not at proposal.html or a redirect already happened, show a not found message
+        if (!window.location.pathname.endsWith('proposal.html')) {
+          // Show a not found message
+          const contentContainer = document.querySelector('.container-default') || document.body;
+          contentContainer.innerHTML = `
+            <div style="text-align: center; padding: 60px 20px; color: white; max-width: 800px; margin: 0 auto;">
+              <h1 style="font-size: 42px; margin-bottom: 20px;">Proposal Not Found</h1>
+              <p style="font-size: 18px; color: rgba(255, 255, 255, 0.7); max-width: 600px; margin: 0 auto 30px auto;">
+                The healthcare policy proposal you're looking for could not be found. It may have been moved or removed.
+              </p>
+              <a href="/proposals.html" style="display: inline-block; padding: 12px 30px; background: linear-gradient(90deg, #38B6FF, #8A67FF); color: white; text-decoration: none; border-radius: 25px; font-weight: 500;">
+                View All Proposals
+              </a>
+            </div>
+          `;
+        }
+      }
+    });
   }
 }
 
@@ -122,11 +177,33 @@ async function loadProposalBySlug(slug) {
       }
     }
     
+    // Special case for "ithaca" or "ithaca-ny" paths
+    if (slug === 'ithaca' || slug === 'ithaca-ny') {
+      const ithacaProposal = proposals.find(p => 
+        p.city && p.city.toLowerCase() === 'ithaca' && 
+        (p.state === 'NY' || p.state === 'New York' || p.state && p.state.toLowerCase() === 'new york')
+      );
+      if (ithacaProposal) return ithacaProposal;
+    }
+    
     // Find the matching proposal
     return proposals.find(p => {
       const citySlug = p.city ? p.city.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, '') : '';
       const stateSlug = p.state ? p.state.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, '') : '';
       const proposalSlug = citySlug + (stateSlug ? `-${stateSlug}` : '');
+      
+      // Also try city name alone
+      if (slug === citySlug) {
+        return true;
+      }
+      
+      // Try with state abbreviation if full state name is available 
+      if (p.state) {
+        const stateAbbr = getStateAbbr(p.state);
+        if (stateAbbr && slug === `${citySlug}-${stateAbbr.toLowerCase()}`) {
+          return true;
+        }
+      }
       
       return proposalSlug === slug;
     }) || null;
@@ -134,6 +211,31 @@ async function loadProposalBySlug(slug) {
     console.error('Error loading proposal by slug:', error);
     return null;
   }
+}
+
+// Helper function to get state abbreviation
+function getStateAbbr(stateName) {
+  if (!stateName) return '';
+  
+  // Check if it's already an abbreviation (2 letters)
+  if (stateName.length === 2 && stateName === stateName.toUpperCase()) {
+    return stateName;
+  }
+  
+  const stateMap = {
+    'alabama': 'AL', 'alaska': 'AK', 'arizona': 'AZ', 'arkansas': 'AR', 'california': 'CA',
+    'colorado': 'CO', 'connecticut': 'CT', 'delaware': 'DE', 'florida': 'FL', 'georgia': 'GA',
+    'hawaii': 'HI', 'idaho': 'ID', 'illinois': 'IL', 'indiana': 'IN', 'iowa': 'IA',
+    'kansas': 'KS', 'kentucky': 'KY', 'louisiana': 'LA', 'maine': 'ME', 'maryland': 'MD',
+    'massachusetts': 'MA', 'michigan': 'MI', 'minnesota': 'MN', 'mississippi': 'MS', 'missouri': 'MO',
+    'montana': 'MT', 'nebraska': 'NE', 'nevada': 'NV', 'new hampshire': 'NH', 'new jersey': 'NJ',
+    'new mexico': 'NM', 'new york': 'NY', 'north carolina': 'NC', 'north dakota': 'ND', 'ohio': 'OH',
+    'oklahoma': 'OK', 'oregon': 'OR', 'pennsylvania': 'PA', 'rhode island': 'RI', 'south carolina': 'SC',
+    'south dakota': 'SD', 'tennessee': 'TN', 'texas': 'TX', 'utah': 'UT', 'vermont': 'VT',
+    'virginia': 'VA', 'washington': 'WA', 'west virginia': 'WV', 'wisconsin': 'WI', 'wyoming': 'WY'
+  };
+  
+  return stateMap[stateName.toLowerCase()] || '';
 }
 
 // Update the proposal template JS to work with query parameters

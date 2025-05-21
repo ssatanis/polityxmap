@@ -10,32 +10,24 @@ let importedProposals = [];
 // Try to import the proposals data
 async function loadProposalsData() {
   try {
-    // For browser environments, dynamically import
+    // For browser environments, use a single source of truth: proposals.json
     if (typeof window !== 'undefined') {
       try {
-        // Try to fetch the JSON file first
+        // Load from JSON file only (single source of truth)
         const response = await fetch('/data/proposals.json');
         if (response.ok) {
           importedProposals = await response.json();
           console.log('Loaded proposals from JSON file:', importedProposals.length);
+          // Dispatch event to notify components
+          window.dispatchEvent(new Event('proposals-updated'));
         } else {
-          // If JSON fails, try to import the JS module using dynamic import
-          import('/data/proposals.js')
-            .then(module => {
-              importedProposals = module.proposals;
-              console.log('Loaded proposals from JS module:', importedProposals.length);
-              // Dispatch event to notify components
-              window.dispatchEvent(new Event('proposals-updated'));
-            })
-            .catch(err => {
-              console.error('Error importing proposals module:', err);
-              // Try localStorage as fallback
-              const storedProposals = localStorage.getItem('polityxMapProposals');
-              if (storedProposals) {
-                importedProposals = JSON.parse(storedProposals);
-                console.log('Fallback to localStorage proposals:', importedProposals.length);
-              }
-            });
+          console.error('Error loading proposals.json file. Make sure it exists and is valid JSON.');
+          // Try localStorage as fallback
+          const storedProposals = localStorage.getItem('polityxMapProposals');
+          if (storedProposals) {
+            importedProposals = JSON.parse(storedProposals);
+            console.log('Fallback to localStorage proposals:', importedProposals.length);
+          }
         }
       } catch (error) {
         console.error('Error loading proposals data:', error);
@@ -150,6 +142,14 @@ async function saveProposals(proposals) {
  * @returns {string} URL-safe slug
  */
 function generateSlug(city) {
+  if (!city) return '';
+  
+  // Handle if city contains both city and state
+  if (city.includes(',')) {
+    const parts = city.split(',').map(part => part.trim());
+    return parts[0].toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, '');
+  }
+  
   return city.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, '');
 }
 
@@ -303,12 +303,45 @@ async function findProposalBySlug(slug) {
       const citySlug = generateSlug(cityName);
       const cityStateSlug = generateSlug(`${cityName}-${stateName}`);
       
-      return citySlug === slug || cityStateSlug === slug;
+      // Try with abbreviation if full state name is available
+      const stateAbbr = getStateAbbreviation(stateName);
+      const cityStateAbbrSlug = stateAbbr ? generateSlug(`${cityName}-${stateAbbr}`) : '';
+      
+      // Check city slug alone or with various state formats
+      return citySlug === slug || 
+             cityStateSlug === slug || 
+             cityStateAbbrSlug === slug || 
+             slug === generateSlug(`${cityName}`) || // Just city name
+             (p.state && p.state.toLowerCase() === 'new york' && slug === 'ithaca-ny'); // Special case for Ithaca, NY
     }) || null;
   } catch (error) {
     console.error('Error finding proposal by slug:', error);
     return null;
   }
+}
+
+/**
+ * Get state abbreviation from full state name
+ * @param {string} stateName - Full state name
+ * @returns {string} Two-letter state abbreviation or empty string if not found
+ */
+function getStateAbbreviation(stateName) {
+  if (!stateName) return '';
+  
+  const stateMap = {
+    'alabama': 'AL', 'alaska': 'AK', 'arizona': 'AZ', 'arkansas': 'AR', 'california': 'CA',
+    'colorado': 'CO', 'connecticut': 'CT', 'delaware': 'DE', 'florida': 'FL', 'georgia': 'GA',
+    'hawaii': 'HI', 'idaho': 'ID', 'illinois': 'IL', 'indiana': 'IN', 'iowa': 'IA',
+    'kansas': 'KS', 'kentucky': 'KY', 'louisiana': 'LA', 'maine': 'ME', 'maryland': 'MD',
+    'massachusetts': 'MA', 'michigan': 'MI', 'minnesota': 'MN', 'mississippi': 'MS', 'missouri': 'MO',
+    'montana': 'MT', 'nebraska': 'NE', 'nevada': 'NV', 'new hampshire': 'NH', 'new jersey': 'NJ',
+    'new mexico': 'NM', 'new york': 'NY', 'north carolina': 'NC', 'north dakota': 'ND', 'ohio': 'OH',
+    'oklahoma': 'OK', 'oregon': 'OR', 'pennsylvania': 'PA', 'rhode island': 'RI', 'south carolina': 'SC',
+    'south dakota': 'SD', 'tennessee': 'TN', 'texas': 'TX', 'utah': 'UT', 'vermont': 'VT',
+    'virginia': 'VA', 'washington': 'WA', 'west virginia': 'WV', 'wisconsin': 'WI', 'wyoming': 'WY'
+  };
+  
+  return stateMap[stateName.toLowerCase()] || '';
 }
 
 /**
@@ -406,13 +439,16 @@ async function updateLatestProposals() {
       // Get a random color class for the tag
       const colorClass = `color${Math.floor(Math.random() * 6) + 1}`;
       
+      // Create simple city slug for URL
+      const citySlug = proposal.city ? proposal.city.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, '') : 'detail';
+      
       // Create card content with improved structure
       proposalCard.innerHTML = `
         <div class="proposal-tag ${colorClass}">${proposal.tags && proposal.tags.length > 0 ? proposal.tags[0] : 'Healthcare'}</div>
         <h3 class="proposal-title">${proposal.healthcareIssue || 'Untitled Proposal'}</h3>
         <p class="proposal-desc">${proposal.description || 'No description provided.'}</p>
         <p class="proposal-location"><i class="fas fa-map-marker-alt" style="margin-right: 5px;"></i>${proposal.city || ''}, ${proposal.state || ''}, ${proposal.country || ''}</p>
-        <a href="/proposals/${proposal.slug || 'detail'}" class="proposal-btn">View Policy Proposal</a>
+        <a href="/proposals/${citySlug}" class="proposal-btn">View Policy Proposal</a>
       `;
       
       proposalsContainer.appendChild(proposalCard);
@@ -421,8 +457,8 @@ async function updateLatestProposals() {
       proposalCard.addEventListener('click', function(e) {
         // If the click is not on the button, navigate to the proposal page
         if (!e.target.classList.contains('proposal-btn')) {
-          window.location.href = `/proposals/${proposal.slug}`;
-      // Make sure the URL works with the _template.html file
+          window.location.href = `/proposals/${citySlug}`;
+          // Make sure the URL works with the _template.html file
         }
       });
       
