@@ -4,6 +4,18 @@
  * and integrates with the unified proposals system
  */
 
+// IMPORTANT: Special case for the Ithaca proposal to avoid redirect loops
+(function() {
+  // Only handle the special case if we're on the /proposals/ithaca path
+  const path = window.location.pathname;
+  if (path === '/proposals/ithaca' || path === '/proposals/ithaca/' || path === '/proposals/ithaca-ny' || path === '/proposals/ithaca-ny/') {
+    console.log('🚨 Special handling for Ithaca proposal detected');
+    // Immediately redirect to the standalone file to avoid routing issues
+    window.location.replace('/proposals-ithaca.html');
+    return; // Stop executing the rest of the script
+  }
+})();
+
 // Detect if we're on a page with a trailing slash and normalize if needed
 (function() {
   // Only run on production site, not localhost

@@ -383,17 +383,52 @@ async function updateProposalsList() {
     
     // Add proposals to the grid
     proposals.forEach(proposal => {
-      // Create simple city slug for URL - just the city name
+      // Get title from name or healthcareIssue for backward compatibility
+      const title = proposal.name || proposal.healthcareIssue || 'Healthcare Proposal';
+      
+      // Generate URL slug - ONLY use city name
       const citySlug = proposal.city ? proposal.city.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, '') : 'detail';
       
-      const proposalCard = document.createElement('div');
-      proposalCard.className = 'proposal-card';
-      proposalCard.innerHTML = `
-        <h3>${proposal.city}, ${proposal.state}</h3>
-        <p>${proposal.healthcareIssue}</p>
-        <a href="/proposals/${citySlug}" class="read-more">Read More</a>
+      // Special case for Ithaca - use direct file
+      let cityURL = `/proposals/${citySlug}`;
+      if (citySlug === 'ithaca') {
+        cityURL = '/proposals-ithaca.html';
+      }
+      
+      // Get tags
+      const tags = proposal.tags || [];
+      const tag = tags.length > 0 ? tags[0] : 'Healthcare';
+      
+      // Card color classes
+      const colorClasses = ['color1', 'color2', 'color3', 'color4', 'color5', 'color6'];
+      const colorClass = colorClasses[index % colorClasses.length];
+      
+      // Create card element
+      const card = document.createElement('div');
+      card.className = `card post-item ${colorClass}`;
+      
+      // Create card content
+      card.innerHTML = `
+        <div class="proposal-tag">${tag}</div>
+        <h3 class="proposal-title">${title}</h3>
+        <p class="proposal-desc">${proposal.description || 'No description provided.'}</p>
+        <p class="proposal-location"><i class="fas fa-map-marker-alt" style="margin-right: 5px;"></i>${proposal.city || ''}, ${proposal.state || ''}, ${proposal.country || ''}</p>
+        <a href="${cityURL}" class="proposal-btn">View Policy Proposal</a>
       `;
-      proposalsContainer.appendChild(proposalCard);
+      
+      // Add the card to the container
+      proposalsContainer.appendChild(card);
+      
+      // Add click event to the entire card (except the button)
+      card.addEventListener('click', function(e) {
+        // If the click is not on the button, navigate to the proposal page
+        if (!e.target.classList.contains('proposal-btn')) {
+          window.location.href = cityURL;
+        }
+      });
+      
+      // Make the card look clickable
+      card.style.cursor = 'pointer';
     });
   }
 }
@@ -420,8 +455,11 @@ async function updateLatestProposals() {
       // Generate URL slug - ONLY use city name
       const citySlug = proposal.city ? proposal.city.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, '') : 'detail';
       
-      // Create URL without trailing slash to avoid redirect issues
-      const cityURL = `/proposals/${citySlug}`;
+      // Special case for Ithaca - use direct file
+      let cityURL = `/proposals/${citySlug}`;
+      if (citySlug === 'ithaca') {
+        cityURL = '/proposals-ithaca.html';
+      }
       
       // Get tags
       const tags = proposal.tags || [];
