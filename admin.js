@@ -19,8 +19,10 @@ document.addEventListener('DOMContentLoaded', function() {
   // Initialize admin dashboard
   loadDashboardMetrics();
   
-  // Load proposals for management
-  loadProposalsForManagement();
+  // Load proposals for management (only for admins)
+  if (isAdmin()) {
+    loadProposalsForManagement();
+  }
   
   // Initialize history log
   loadHistoryLog();
@@ -44,6 +46,15 @@ document.addEventListener('DOMContentLoaded', function() {
   // Initialize form handlers
   initializeFormHandlers();
 });
+
+/**
+ * Check if the current user has admin privileges
+ * @returns {boolean} True if user has admin privileges
+ */
+function isAdmin() {
+  const session = JSON.parse(localStorage.getItem('polityxMapSession') || '{}');
+  return session.isAdmin === true;
+}
 
 /**
  * Check if user is logged in, redirect to login page if not
@@ -661,20 +672,14 @@ function loadHistoryLog() {
 function getHistoryLog() {
   const storedHistory = localStorage.getItem('polityxMapHistory');
   if (storedHistory) {
-    return JSON.parse(storedHistory);
-  }
-  
-  // Create initial history log if none exists
-  const initialLog = [
-    {
-      action: 'System',
-      timestamp: Date.now(),
-      details: 'History log initialized'
+    try {
+      return JSON.parse(storedHistory);
+    } catch (e) {
+      console.error('Error parsing history log:', e);
+      return [];
     }
-  ];
-  
-  localStorage.setItem('polityxMapHistory', JSON.stringify(initialLog));
-  return initialLog;
+  }
+  return [];
 }
 
 /**
@@ -1067,9 +1072,15 @@ function saveProposals(proposals) {
 }
 
 /**
- * Add new proposal from form data
+ * Add a new proposal
  */
 function addNewProposal() {
+  // Check if user is admin
+  if (!isAdmin()) {
+    showErrorMessage("You don't have permission to add proposals. Administrator privileges required.");
+    return;
+  }
+
   const form = document.getElementById('proposal-form');
   if (!form) return;
 
@@ -1121,9 +1132,15 @@ function addNewProposal() {
 }
 
 /**
- * Update existing proposal from form data
+ * Update an existing proposal
  */
 function updateProposal() {
+  // Check if user is admin
+  if (!isAdmin()) {
+    showErrorMessage("You don't have permission to update proposals. Administrator privileges required.");
+    return;
+  }
+
   if (!currentProposal) return;
   
   const form = document.getElementById('proposal-form');
@@ -1343,6 +1360,12 @@ function handleDeleteConfirmation(e) {
  * Delete a proposal
  */
 function deleteProposal(proposalId) {
+  // Check if user is admin
+  if (!isAdmin()) {
+    showErrorMessage("You don't have permission to delete proposals. Administrator privileges required.");
+    return;
+  }
+
   let proposals = getProposals();
   const proposalToDelete = proposals.find(p => p.id === proposalId);
   
@@ -1508,102 +1531,31 @@ function cancelProposalForm() {
 }
 
 /**
- * Initialize history log
+ * Show error message
  */
-function loadHistoryLog() {
-  const historyLog = getHistoryLog();
-  const historyContainer = document.getElementById('history-container');
+function showErrorMessage(message) {
+  const messageElement = document.createElement('div');
+  messageElement.className = 'admin-message error';
+  messageElement.innerHTML = `
+    <i class="fas fa-exclamation-circle"></i>
+    <span>${message}</span>
+    <button class="admin-message-close"><i class="fas fa-times"></i></button>
+  `;
   
-  if (!historyContainer) return;
+  // Add to page
+  document.body.appendChild(messageElement);
   
-  // Clear existing entries
-  historyContainer.innerHTML = '';
-  
-  // Add items for each history entry
-  historyLog.forEach((entry, index) => {
-    const historyItem = document.createElement('div');
-    historyItem.className = 'history-item';
-    
-    // Create icon based on action type
-    const historyIcon = document.createElement('div');
-    historyIcon.className = 'history-icon';
-    
-    let iconClass = '';
-    switch(entry.action) {
-      case 'Login':
-        iconClass = 'fa-sign-in-alt';
-        break;
-      case 'Logout':
-        iconClass = 'fa-sign-out-alt';
-        break;
-      case 'View Section':
-        iconClass = 'fa-eye';
-        break;
-      case 'Add Proposal':
-        iconClass = 'fa-plus-circle';
-        break;
-      case 'Edit Proposal':
-        iconClass = 'fa-edit';
-        break;
-      case 'Delete Proposal':
-        iconClass = 'fa-trash-alt';
-        break;
-      case 'Undo Delete':
-        iconClass = 'fa-undo';
-        break;
-      default:
-        iconClass = 'fa-info-circle';
-    }
-    
-    historyIcon.innerHTML = `<i class="fas ${iconClass}"></i>`;
-    
-    // Create content
-    const historyContent = document.createElement('div');
-    historyContent.className = 'history-content';
-    
-    const historyAction = document.createElement('div');
-    historyAction.className = 'history-action';
-    historyAction.textContent = entry.action;
-    
-    const historyDetails = document.createElement('div');
-    historyDetails.className = 'history-details';
-    historyDetails.textContent = entry.details;
-    
-    const historyTime = document.createElement('div');
-    historyTime.className = 'history-time';
-    const date = new Date(entry.timestamp);
-    historyTime.textContent = date.toLocaleString();
-    
-    historyContent.appendChild(historyAction);
-    historyContent.appendChild(historyDetails);
-    historyContent.appendChild(historyTime);
-    
-    // Create undo button for delete actions
-    if (entry.action === 'Delete Proposal' && entry.proposalData) {
-      const undoButton = document.createElement('button');
-      undoButton.className = 'admin-action-btn undo-btn';
-      undoButton.innerHTML = '<i class="fas fa-undo"></i> Undo';
-      undoButton.style.marginTop = '10px';
-      undoButton.addEventListener('click', () => undoDeleteProposal(entry.proposalData, index));
-      historyContent.appendChild(undoButton);
-    }
-    
-    historyItem.appendChild(historyIcon);
-    historyItem.appendChild(historyContent);
-    
-    historyLogContainer.appendChild(historyItem);
+  // Add close button event
+  messageElement.querySelector('.admin-message-close').addEventListener('click', function() {
+    messageElement.remove();
   });
-}
-
-/**
- * Get history log from localStorage
- */
-function getHistoryLog() {
-  const storedHistory = localStorage.getItem('polityxMapHistory');
-  if (storedHistory) {
-    return JSON.parse(storedHistory);
-  }
-  return [];
+  
+  // Auto remove after 5 seconds
+  setTimeout(() => {
+    if (messageElement.parentNode) {
+      messageElement.remove();
+    }
+  }, 5000);
 }
 
 /**
@@ -1699,7 +1651,3 @@ window.closeModal = closeModal;
 window.continueSession = continueSession;
 window.logoutUser = logoutUser;
 window.clearHistoryWithCode = clearHistoryWithCode;
-
-</script>
-  <!-- Footer placeholder - will be filled by includes.js -->
-  <div id="site-footer"></div>

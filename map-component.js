@@ -28,14 +28,14 @@ function initMap(container) {
     zoom: 3.5,
     minZoom: 2,
     maxZoom: 18,
-        zoomControl: false,
+    zoomControl: false,
     attributionControl: false // Remove attribution control (watermark)
   });
 
   // Use a better map tileset with light blue water
   L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
     subdomains: 'abcd',
-    attribution: '',
+    attribution: '', // Empty attribution string
     maxZoom: 20
   }).addTo(map);
 
@@ -115,7 +115,13 @@ async function loadProposals(map, proposalsData) {
   // Get proposals - either from passed data or fetch from storage
   let proposals = [];
   try {
-    if (proposalsData) {
+    // First check if we have generated data from the build process
+    if (typeof window !== 'undefined' && window.GENERATED_MAP_DATA && window.GENERATED_MAP_DATA.length > 0) {
+      console.log('Using generated map data from build process:', window.GENERATED_MAP_DATA.length);
+      proposals = window.GENERATED_MAP_DATA;
+    }
+    // Check if data was passed directly to the function
+    else if (proposalsData) {
       // Use data passed directly to the function (preferred approach)
       proposals = proposalsData;
     } else if (window.ProposalsCMS && typeof window.ProposalsCMS.getAll === 'function') {
@@ -266,34 +272,39 @@ function syncMapWithProposals() {
   }
 }
 
-// Add styles for custom markers
-const style = document.createElement('style');
-style.textContent = `
-  @keyframes pulse {
-    0% {
-      box-shadow: 0 0 0 0 rgba(138, 103, 255, 0.7);
+// Add CSS for the pulsing effect
+function addPulseStyles() {
+  const style = document.createElement('style');
+  style.textContent = `
+    @keyframes pulse {
+      0% {
+        box-shadow: 0 0 0 0 rgba(138, 103, 255, 0.7);
+      }
+      70% {
+        box-shadow: 0 0 0 15px rgba(138, 103, 255, 0);
+      }
+      100% {
+        box-shadow: 0 0 0 0 rgba(138, 103, 255, 0);
+      }
     }
-    70% {
-      box-shadow: 0 0 0 15px rgba(138, 103, 255, 0);
+    
+    .custom-map-marker {
+      position: relative;
     }
-    100% {
-      box-shadow: 0 0 0 0 rgba(138, 103, 255, 0);
+    
+    .marker-pulse {
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      background-color: #8A67FF;
+      border-radius: 50%;
+      box-shadow: 0 0 0 rgba(138, 103, 255, 0.4);
+      animation: pulse 2s infinite;
+      z-index: 1;
     }
-  }
-  
-  .custom-map-marker {
-    position: relative;
-  }
-  
-  .marker-pulse {
-    position: absolute;
-    width: 20px;
-    height: 20px;
-    background-color: #8A67FF;
-    border-radius: 50%;
-    box-shadow: 0 0 0 rgba(138, 103, 255, 0.4);
-    animation: pulse 2s infinite;
-    z-index: 1;
-  }
-`;
-document.head.appendChild(style);
+  `;
+  document.head.appendChild(style);
+}
+
+// Call the function to add styles
+addPulseStyles();

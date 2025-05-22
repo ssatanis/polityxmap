@@ -3,8 +3,13 @@
 <head>
   <style>.wf-force-outline-none[tabindex="-1"]:focus{outline:none;}</style>
   <meta charset="utf-8"/>
-  <title>Rural Telehealth Expansion | Ithaca, NY | PolityxMap</title>
-  <meta content="View detailed healthcare policy proposal information with PolityxMap. Explore background, implementation details, and expected impact." name="description"/>
+  <title>Rural Telehealth Expansion | Ithaca, NY USA | PolityxMap</title>
+  <meta property="og:title" content="Rural Telehealth Expansion | Ithaca, NY USA | PolityxMap" />
+  <meta property="og:description" content="Expanding high‑bandwidth telehealth services to six Cayuga County towns." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="/proposals/ithaca" />
+  
+  <meta content="Expanding high‑bandwidth telehealth services to six Cayuga County towns." name="description"/>
   <meta content="Policy Proposal | PolityxMap" property="og:title"/>
   <meta content="View detailed healthcare policy proposal information with PolityxMap. Explore background, implementation details, and expected impact." property="og:description"/>
   <meta content="https://cdn.prod.website-files.com/61113c4e9f23df1e7f554117/6116f87a2ba0ad7e5947b25e_featured-image-dark-template.png" property="og:image"/>
@@ -15,31 +20,27 @@
   <meta content="summary_large_image" name="twitter:card"/>
   <meta content="width=device-width, initial-scale=1" name="viewport"/>
   <meta content="Webflow" name="generator"/>
-  <!-- Canonical URL to prevent redirect loops -->
-  <link rel="canonical" href="https://polityxmap.org/proposals/ithaca">
-  <link href="https://cdn.prod.website-files.com/61113c4e9f23df1e7f554117/css/darktemplate.webflow.eb6e6d95d.css" rel="stylesheet" type="text/css"/>
-  <link href="https://fonts.googleapis.com" rel="preconnect"/>
-  <link href="https://fonts.gstatic.com" rel="preconnect"/>
-  <script src="https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js" type="text/javascript"></script>
-  <link href="https://fonts.googleapis.com/css?family=DM+Sans:regular,500,700" media="all" rel="stylesheet"/>
+  <link href="/https://cdn.prod.website-files.com/61113c4e9f23df1e7f554117/css/darktemplate.webflow.eb6e6d95d.css" rel="stylesheet" type="text/css"/>
+  <link href="/https://fonts.googleapis.com" rel="preconnect"/>
+  <link href="/https://fonts.gstatic.com" rel="preconnect"/>
+  <script src="/https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js" type="text/javascript"></script>
+  <link href="/https://fonts.googleapis.com/css?family=DM+Sans:regular,500,700" media="all" rel="stylesheet"/>
   <script type="text/javascript">WebFont.load({  google: {    families: ["DM Sans:regular,500,700"]  }});</script>
   <script type="text/javascript">!function(o,c){var n=c.documentElement,t=" w-mod-";n.className+=t+"js","ontouchstart"in o||o.DocumentTouch&&c instanceof DocumentTouch&&(n.className+=t+"touch")}(window,document);</script>
     <!-- Favicon implementation -->
-  <link rel="icon" type="image/svg+xml" href="/img/PolityxFavicon.svg">
-  <link rel="icon" type="image/png" href="/img/PolityxFavicon.png">
-  <link rel="apple-touch-icon" href="/img/PolityxFavicon.png">
-  <link rel="shortcut icon" type="image/x-icon" href="/img/PolityxFavicon.png">
+  <link href="/img/PolityxFavicon.svg">
+  <link href="/img/PolityxFavicon.png">
+  <link href="/img/PolityxFavicon.png">
+  <link href="/img/PolityxFavicon.png">
   <!-- Leaflet CSS -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link href="/https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <!-- Leaflet JS -->
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="/https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <!-- AOS Animation Library -->
-  <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
-  <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+  <link href="/https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+  <script src="/https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
   <!-- Font Awesome -->
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet"/>
-  <!-- Base path for handling relative URLs properly -->
-  <base href="/">
+  <link href="/https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"/>
   <!-- Includes script for header and footer -->
   <script src="/includes.js"></script>
   <!-- Unified Proposals System -->
@@ -559,46 +560,47 @@
   </div>
 
   <div class="page-wrapper">
-    <script src="/features-navigation.js"></script>
-    <script>
-    document.addEventListener('DOMContentLoaded', function() {
-      var menuButton = document.querySelector('.menu-button.w-nav-button');
-      var navMenu = document.querySelector('.nav-menu.w-nav-menu');
-      var navOverlay = document.querySelector('.w-nav-overlay');
-      var body = document.querySelector('body');
-      
-      if(menuButton && navMenu) {
-        // Toggle mobile menu
-        menuButton.addEventListener('click', function(e) {
-          e.stopPropagation();
-          body.classList.toggle('mobile-menu-open');
-          navMenu.classList.toggle('w--open');
-          menuButton.classList.toggle('w--open');
-          if(navOverlay) navOverlay.classList.toggle('w--open');
-        });
-        
-        // Close menu when clicking outside
-        document.addEventListener('click', function(e) {
-          if(!navMenu.contains(e.target) && !menuButton.contains(e.target)) {
-            body.classList.remove('mobile-menu-open');
-            navMenu.classList.remove('w--open');
-            menuButton.classList.remove('w--open');
-            if(navOverlay) navOverlay.classList.remove('w--open');
-          }
-        });
-        
-        // Close menu when clicking nav items
-        document.querySelectorAll('.nav-link').forEach(link => {
-          link.addEventListener('click', function() {
-            body.classList.remove('mobile-menu-open');
-            navMenu.classList.remove('w--open');
-            menuButton.classList.remove('w--open');
-            if(navOverlay) navOverlay.classList.remove('w--open');
-          });
-        });
+    <!-- Features Navigation Script -->
+<script src="/features-navigation.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  var menuButton = document.querySelector('.menu-button.w-nav-button');
+  var navMenu = document.querySelector('.nav-menu.w-nav-menu');
+  var navOverlay = document.querySelector('.w-nav-overlay');
+  var body = document.querySelector('body');
+  
+  if(menuButton && navMenu) {
+    // Toggle mobile menu
+    menuButton.addEventListener('click', function(e) {
+      e.stopPropagation();
+      body.classList.toggle('mobile-menu-open');
+      navMenu.classList.toggle('w--open');
+      menuButton.classList.toggle('w--open');
+      if(navOverlay) navOverlay.classList.toggle('w--open');
+    });
+    
+    // Close menu when clicking outside
+    document.addEventListener('click', function(e) {
+      if(!navMenu.contains(e.target) && !menuButton.contains(e.target)) {
+        body.classList.remove('mobile-menu-open');
+        navMenu.classList.remove('w--open');
+        menuButton.classList.remove('w--open');
+        if(navOverlay) navOverlay.classList.remove('w--open');
       }
     });
-    </script>
+    
+    // Close menu when clicking nav items
+    document.querySelectorAll('.nav-link').forEach(link => {
+      link.addEventListener('click', function() {
+        body.classList.remove('mobile-menu-open');
+        navMenu.classList.remove('w--open');
+        menuButton.classList.remove('w--open');
+        if(navOverlay) navOverlay.classList.remove('w--open');
+      });
+    });
+  }
+});
+</script>
 
 <div class="header w-nav" data-animation="over-left" data-collapse="medium" data-duration="400" data-easing="ease" data-easing2="ease" role="banner" data-w-id="58db7844-5919-d71b-dd74-2323ed8dffe9" style="opacity: 1;">
   <div class="container-default w-container">
@@ -639,6 +641,7 @@
   </div>
   <div class="w-nav-overlay" data-wf-ignore="" id="w-nav-overlay-0"></div>
 </div>
+    <div id="site-header" class="site-header"></div>
     
     <!-- Main Content -->
     <section class="section" style="padding-top: 120px; position: relative;">
@@ -746,6 +749,7 @@
       </div>
     </section>
     
+    
     <div id="site-footer" class="site-footer"></div>
   </div>
   
@@ -834,7 +838,7 @@
             
             // Create the card element
             const card = document.createElement('a');
-            card.href = `/proposals/${citySlug}`;
+            card.href = `/proposals/${citySlug}/`;
             card.className = 'similar-proposal-card';
             card.setAttribute('data-aos', 'fade-up');
             card.setAttribute('data-aos-delay', (100 * (index + 1)).toString());
@@ -880,5 +884,51 @@
       };
     }
   </script>
+
+<script>
+  // Preloaded proposal data
+  window.PRELOADED_PROPOSAL = {
+  "name": "Rural Telehealth Expansion",
+  "city": "Ithaca",
+  "state": "NY",
+  "country": "USA",
+  "lat": 42.443,
+  "lng": -76.5019,
+  "description": "Expanding high‑bandwidth telehealth services to six Cayuga County towns.",
+  "full_name": "Sahaj Satani",
+  "email": "sahaj@example.com",
+  "university": "Cornell University",
+  "background": "Despite high health literacy, rural residents in Tompkins County have limited access to specialists.",
+  "overview": "Deploying mobile telehealth vans equipped with satellite uplink for instant access to remote providers.",
+  "stakeholders": "Cayuga Health System, local clinics, internet providers, state government.",
+  "costs": "$500,000 infrastructure; $250,000 annual staffing",
+  "metrics": "40% increase in telehealth usage within 1 year",
+  "timeline": "Rollout begins Q1 2026 with completion by Q4 2026",
+  "proposal_text": "In partnership with Cornell University and the NY State Dept of Health, this project will deploy mobile telehealth vans...",
+  "image": "https://example.com/telehealth.jpg",
+  "tags": [
+    "Telehealth",
+    "Rural Health",
+    "Access"
+  ]
+};
+</script>
+
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Initialize AOS with custom settings
+      if (typeof AOS !== 'undefined') {
+        AOS.init({
+          duration: 800,
+          easing: 'ease-in-out',
+          once: false,
+          mirror: true,
+          offset: 50
+        });
+      }
+    });
+  </script>
+  
 </body>
 </html>

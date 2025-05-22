@@ -4,6 +4,24 @@
  */
 
 document.addEventListener('DOMContentLoaded', function() {
+  console.log('Proposal template loaded, checking for proposal data...');
+  
+  // First check if we have preloaded proposal data from static generation
+  if (window.PRELOADED_PROPOSAL) {
+    console.log('Using preloaded proposal data');
+    // Use the preloaded data
+    renderProposal(window.PRELOADED_PROPOSAL);
+    
+    // Initialize animations if needed
+    if (typeof AOS !== 'undefined') {
+      setTimeout(() => {
+        AOS.refresh();
+      }, 200);
+    }
+    return;
+  }
+  
+  // If no preloaded data, fall back to dynamic loading
   // Get the proposal slug from the URL - either from path or query parameter
   let proposalSlug;
   
@@ -41,6 +59,8 @@ document.addEventListener('DOMContentLoaded', function() {
   
   // Load the proposal data if we have a slug
   if (proposalSlug) {
+    console.log('Loading proposal data for slug:', proposalSlug);
+    
     if (window.loadProposalBySlug) {
       // Use the loadProposalBySlug function from proposals-router.js if available
       window.loadProposalBySlug(proposalSlug).then(proposal => {
@@ -49,11 +69,17 @@ document.addEventListener('DOMContentLoaded', function() {
         } else {
           showProposalNotFound();
         }
+      }).catch(error => {
+        console.error('Error loading proposal by slug:', error);
+        showProposalNotFound();
       });
     } else {
       // Fall back to the old way
       initializeProposalsSystem().then(() => {
         loadProposalData(proposalSlug);
+      }).catch(error => {
+        console.error('Error initializing proposals system:', error);
+        showProposalNotFound();
       });
     }
   } else {
@@ -65,6 +91,9 @@ document.addEventListener('DOMContentLoaded', function() {
   
   // Listen for proposal updates
   window.addEventListener('proposals-updated', function() {
+    // If we have preloaded data, no need to reload
+    if (window.PRELOADED_PROPOSAL) return;
+    
     if (proposalSlug) {
       if (window.loadProposalBySlug) {
         window.loadProposalBySlug(proposalSlug).then(proposal => {
@@ -85,19 +114,21 @@ document.addEventListener('DOMContentLoaded', function() {
 async function initializeProposalsSystem() {
   // Wait for the proposals system to be available
   if (!window.ProposalsCMS) {
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
       // Check every 100ms if the system is loaded
       const checkInterval = setInterval(() => {
         if (window.ProposalsCMS) {
           clearInterval(checkInterval);
+          clearTimeout(timeoutId);
           resolve();
         }
       }, 100);
       
       // Timeout after 5 seconds
-      setTimeout(() => {
+      const timeoutId = setTimeout(() => {
         clearInterval(checkInterval);
         console.error('ProposalsCMS not available after timeout');
+        // Still resolve to try loading proposals
         resolve();
       }, 5000);
     });
@@ -136,26 +167,52 @@ async function loadProposalData(slug) {
     // get all proposals from multiple sources
     let proposals = [];
     
-    if (window.ProposalsCMS && typeof window.ProposalsCMS.getAll === 'function') {
+    // Try to check if we have the preloaded window.GENERATED_PROPOSALS_DATA
+    if (window.GENERATED_PROPOSALS_DATA && Array.isArray(window.GENERATED_PROPOSALS_DATA)) {
+      proposals = window.GENERATED_PROPOSALS_DATA;
+    }
+    // If no preloaded data, try other sources
+    else if (window.ProposalsCMS && typeof window.ProposalsCMS.getAll === 'function') {
       proposals = await window.ProposalsCMS.getAll();
     } else {
       // Try to fetch from data file
       try {
+        // First try the JSON file
         const response = await fetch('/data/proposals.json');
         if (response.ok) {
           proposals = await response.json();
         } else {
+          // If JSON fails, try the JS module
           try {
             const module = await import('/data/proposals.js');
             proposals = module.proposals;
           } catch (err) {
             console.error('Error importing proposals module:', err);
+            
+            // Last resort: try to fetch as a direct JS file
+            try {
+              const jsResponse = await fetch('/data/proposals.js');
+              if (jsResponse.ok) {
+                const jsText = await jsResponse.text();
+                const match = jsText.match(/proposals\s*=\s*(\[[\s\S]*?\]);/);
+                if (match && match[1]) {
+                  const proposalsArray = eval(`(${match[1]})`); // Safe in this context
+                  if (Array.isArray(proposalsArray)) {
+                    proposals = proposalsArray;
+                  }
+                }
+              }
+            } catch (jsErr) {
+              console.error('Error fetching proposals.js as text:', jsErr);
+            }
           }
         }
       } catch (error) {
         console.error('Error fetching proposals from data file:', error);
       }
     }
+    
+    console.log(`Loaded ${proposals.length} total proposals, looking for slug: ${slug}`);
     
     // Find the proposal with matching slug - city only
     const proposal = proposals.find(p => {
@@ -168,6 +225,7 @@ async function loadProposalData(slug) {
       renderProposal(proposal);
     } else {
       // Handle case where proposal is not found
+      console.warn(`No proposal found with slug: ${slug}`);
       showProposalNotFound();
     }
   } catch (error) {
@@ -180,6 +238,8 @@ async function loadProposalData(slug) {
  * Render the proposal on the page
  */
 function renderProposal(proposal) {
+  console.log('Rendering proposal:', proposal.name || proposal.healthcareIssue);
+  
   // Set page title - use name or healthcareIssue for backward compatibility
   const title = proposal.name || proposal.healthcareIssue || 'Healthcare Proposal';
   document.title = `${title} | ${proposal.city}, ${proposal.state || ''} | PolityxMap`;
@@ -193,73 +253,108 @@ function renderProposal(proposal) {
   // Set proposal title
   const titleElement = document.getElementById('proposal-title');
   if (titleElement) {
-    titleElement.innerHTML = `${title} <span class="proposal-accent">Proposal</span>`;
+    titleElement.innerHTML = title.includes('Proposal') ? title : `${title} <span class="proposal-accent">Proposal</span>`;
+    titleElement.setAttribute('data-aos', 'fade-up');
   }
   
   // Set proposal location
   const locationElement = document.getElementById('proposal-location');
   if (locationElement) {
     locationElement.textContent = `${proposal.city}, ${proposal.state || ''} ${proposal.country || ''}`;
+    locationElement.setAttribute('data-aos', 'fade-up');
+    locationElement.setAttribute('data-aos-delay', '100');
   }
   
   // Set proposal description
   const descriptionElement = document.getElementById('proposal-description');
   if (descriptionElement) {
     descriptionElement.textContent = proposal.description || '';
+    descriptionElement.setAttribute('data-aos', 'fade-up');
+    descriptionElement.setAttribute('data-aos-delay', '200');
   }
   
   // Set proposal background
   const backgroundElement = document.getElementById('proposal-background');
   if (backgroundElement) {
     backgroundElement.textContent = proposal.background || '';
+    backgroundElement.setAttribute('data-aos', 'fade-up');
+    backgroundElement.setAttribute('data-aos-delay', '100');
   }
   
   // Set proposal policy/overview
   const policyElement = document.getElementById('proposal-policy');
   if (policyElement) {
     policyElement.textContent = proposal.overview || proposal.policy || '';
+    policyElement.setAttribute('data-aos', 'fade-up');
+    policyElement.setAttribute('data-aos-delay', '150');
   }
   
   // Set proposal stakeholders
   const stakeholdersElement = document.getElementById('proposal-stakeholders');
   if (stakeholdersElement) {
     stakeholdersElement.textContent = proposal.stakeholders || '';
+    stakeholdersElement.setAttribute('data-aos', 'fade-up');
+    stakeholdersElement.setAttribute('data-aos-delay', '200');
   }
   
   // Set proposal costs
   const costsElement = document.getElementById('proposal-costs');
   if (costsElement) {
     costsElement.textContent = proposal.costs || '';
+    costsElement.setAttribute('data-aos', 'fade-up');
+    costsElement.setAttribute('data-aos-delay', '250');
   }
   
   // Set proposal metrics
   const metricsElement = document.getElementById('proposal-metrics');
   if (metricsElement) {
     metricsElement.textContent = proposal.metrics || proposal.successMetrics || '';
+    metricsElement.setAttribute('data-aos', 'fade-up');
+    metricsElement.setAttribute('data-aos-delay', '300');
   }
   
   // Set proposal timeline
   const timelineElement = document.getElementById('proposal-timeline');
   if (timelineElement) {
     timelineElement.textContent = proposal.timeline || '';
+    timelineElement.setAttribute('data-aos', 'fade-up');
+    timelineElement.setAttribute('data-aos-delay', '350');
   }
   
   // Set full proposal text if available
   const fullTextElement = document.getElementById('proposal-full-text');
   if (fullTextElement) {
-    fullTextElement.textContent = proposal.proposal_text || proposal.proposalText || proposal.fullText || '';
+    // Support HTML in full text if available
+    if (proposal.proposal_text) {
+      if (proposal.proposal_text.includes('<') && proposal.proposal_text.includes('>')) {
+        // Likely contains HTML, use innerHTML
+        fullTextElement.innerHTML = proposal.proposal_text;
+      } else {
+        // Plain text, convert linebreaks to <br>
+        fullTextElement.innerHTML = proposal.proposal_text.replace(/\n/g, '<br>');
+      }
+    } else {
+      fullTextElement.textContent = proposal.proposalText || proposal.fullText || '';
+    }
+    
+    fullTextElement.setAttribute('data-aos', 'fade-up');
+    fullTextElement.setAttribute('data-aos-delay', '400');
   }
   
   // Set proposal author
   const authorElement = document.getElementById('proposal-author');
   if (authorElement) {
     authorElement.textContent = proposal.full_name || proposal.fullName || proposal.authorName || '';
+    authorElement.setAttribute('data-aos', 'fade-up');
+    authorElement.setAttribute('data-aos-delay', '100');
   }
   
   // Set proposal institution
   const institutionElement = document.getElementById('proposal-institution');
   if (institutionElement) {
     institutionElement.textContent = proposal.university || proposal.institution || proposal.authorInstitution || '';
+    institutionElement.setAttribute('data-aos', 'fade-up');
+    institutionElement.setAttribute('data-aos-delay', '150');
   }
   
   // Set proposal tags
@@ -277,7 +372,8 @@ function renderProposal(proposal) {
       const tagElement = document.createElement('span');
       tagElement.className = 'proposal-tag';
       tagElement.textContent = tag;
-      tagElement.style.animationDelay = `${0.1 * (index + 1)}s`;
+      tagElement.setAttribute('data-aos', 'fade-up');
+      tagElement.setAttribute('data-aos-delay', `${150 + (index * 50)}`);
       
       // Add appropriate class based on tag content
       let tagClass = 'healthcare';
@@ -303,6 +399,10 @@ function renderProposal(proposal) {
       tagElement.classList.add(tagClass);
       tagsContainer.appendChild(tagElement);
     });
+    
+    // Set data-aos for the container too
+    tagsContainer.setAttribute('data-aos', 'fade-up');
+    tagsContainer.setAttribute('data-aos-delay', '100');
   }
   
   // Initialize map if available
@@ -312,6 +412,12 @@ function renderProposal(proposal) {
   if (lat && lng) {
     initializeProposalMap(proposal);
   }
+  
+  // Ensure all section containers are visible
+  const sectionContainers = document.querySelectorAll('.proposal-section');
+  sectionContainers.forEach(container => {
+    container.style.display = 'block';
+  });
   
   // Refresh animations if AOS is available
   if (typeof AOS !== 'undefined') {
@@ -349,20 +455,41 @@ function initializeProposalMap(proposal) {
   
   // Check if Leaflet is available
   if (typeof L !== 'undefined' && latNum && lngNum && !isNaN(latNum) && !isNaN(lngNum)) {
+    console.log('Initializing map for coordinates:', latNum, lngNum);
+    
+    // If there's already a map instance, destroy it
+    if (window.proposalMapInstance) {
+      window.proposalMapInstance.remove();
+      window.proposalMapInstance = null;
+    }
+    
     // Create map centered on proposal location with attribution disabled
     const map = L.map(mapContainer, {
-      attributionControl: false  // Disable attribution control to remove Leaflet watermark
+      attributionControl: false,  // Disable attribution control to remove Leaflet watermark
+      zoomControl: true,          // Enable zoom controls
+      scrollWheelZoom: false      // Disable scroll wheel zoom for better UX
     }).setView([latNum, lngNum], 10);
+    
+    // Store the map instance globally
+    window.proposalMapInstance = map;
     
     // Add tile layer with improved styling
     L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
       subdomains: 'abcd',
       maxZoom: 19,
-      attribution: ''
+      attribution: ''  // Empty attribution to remove credits
     }).addTo(map);
     
+    // Create a custom marker icon with purple color
+    const customIcon = L.divIcon({
+      className: 'custom-marker',
+      html: `<div style="background-color: #8A67FF; width: 18px; height: 18px; border-radius: 50%; border: 3px solid white; box-shadow: 0 0 10px rgba(0,0,0,0.3);"></div>`,
+      iconSize: [24, 24],
+      iconAnchor: [12, 12]
+    });
+    
     // Add a marker at the proposal location
-    const marker = L.marker([latNum, lngNum]).addTo(map);
+    const marker = L.marker([latNum, lngNum], { icon: customIcon }).addTo(map);
     
     // Bind a popup to the marker
     marker.bindPopup(`
@@ -371,6 +498,53 @@ function initializeProposalMap(proposal) {
         <p style="margin: 0; font-size: 14px; color: #666;">${proposal.city}, ${proposal.state || ''}</p>
       </div>
     `);
+    
+    // Add pulse animation effect around the marker
+    const pulseDiv = document.createElement('div');
+    pulseDiv.className = 'map-marker-pulse';
+    pulseDiv.style.position = 'absolute';
+    pulseDiv.style.width = '50px';
+    pulseDiv.style.height = '50px';
+    pulseDiv.style.borderRadius = '50%';
+    pulseDiv.style.backgroundColor = 'rgba(138, 103, 255, 0.3)';
+    pulseDiv.style.animation = 'pulse-animation 2s infinite';
+    
+    // Add the CSS animation
+    const style = document.createElement('style');
+    style.textContent = `
+      @keyframes pulse-animation {
+        0% {
+          transform: scale(0.3);
+          opacity: 1;
+        }
+        100% {
+          transform: scale(1.5);
+          opacity: 0;
+        }
+      }
+      
+      .custom-marker {
+        z-index: 1000 !important;
+      }
+      
+      .map-marker-pulse {
+        z-index: 999;
+      }
+    `;
+    document.head.appendChild(style);
+    
+    // Position the pulse element - not adding to map because it's tricky with Leaflet
+    // Instead using CSS animations on the marker itself
+    
+    // Make sure map container is visible
+    mapContainer.style.opacity = '1';
+    
+    // Fix map display issues by triggering a resize event
+    setTimeout(() => {
+      map.invalidateSize();
+    }, 100);
+  } else {
+    console.warn('Leaflet not available or invalid coordinates:', latNum, lngNum);
   }
 }
 
@@ -385,7 +559,7 @@ function showProposalNotFound() {
   const contentContainer = document.querySelector('.container-default');
   if (contentContainer) {
     contentContainer.innerHTML = `
-      <div style="text-align: center; padding: 60px 20px;">
+      <div style="text-align: center; padding: 60px 20px;" data-aos="fade-up">
         <h1 style="font-size: 42px; margin-bottom: 20px; color: #fff;">Proposal Not Found</h1>
         <p style="font-size: 18px; color: rgba(255, 255, 255, 0.7); max-width: 600px; margin: 0 auto 30px auto;">
           The healthcare policy proposal you're looking for could not be found. It may have been moved or removed.
@@ -395,6 +569,12 @@ function showProposalNotFound() {
         </a>
       </div>
     `;
+  }
+  
+  // Hide loading screen if present
+  const loadingScreen = document.querySelector('.proposal-loading');
+  if (loadingScreen) {
+    loadingScreen.style.display = 'none';
   }
 }
 

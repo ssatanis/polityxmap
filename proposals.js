@@ -56,6 +56,12 @@ const PROPOSALS_TABLE = 'proposals';
  */
 async function getProposals() {
   try {
+    // First check if we have generated data from the build process
+    if (typeof window !== 'undefined' && window.GENERATED_PROPOSALS_DATA && window.GENERATED_PROPOSALS_DATA.length > 0) {
+      console.log('Using generated proposals data from build process:', window.GENERATED_PROPOSALS_DATA.length);
+      return window.GENERATED_PROPOSALS_DATA;
+    }
+    
     // If we have already loaded proposals from the data file, use those
     if (importedProposals && importedProposals.length > 0) {
       return importedProposals;
