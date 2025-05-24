@@ -40,36 +40,75 @@
   <script src="admin-proposals-integration.js"></script>
   <script src="admin.js"></script>
   
+  <!-- Additional Security Layer -->
+  <style>
+    /* Hide content until authentication is verified */
+    body.auth-pending {
+      opacity: 0;
+      visibility: hidden;
+    }
+    
+    body.auth-verified {
+      opacity: 1;
+      visibility: visible;
+      transition: opacity 0.3s ease;
+    }
+  </style>
+  
   <!-- Authentication Check -->
   <script>
     ;(function(){
-      // Always set adminAuthenticated to true to ensure access
-      localStorage.setItem('adminAuthenticated', 'true');
-      localStorage.setItem('lastActivity', Date.now().toString());
+      // Initially hide content
+      document.body.className = 'bg-neutral-800 auth-pending';
       
-      // Original authentication check code - now bypassed
-      /*
+      // Check authentication status
       const auth = localStorage.getItem('adminAuthenticated') === 'true';
       const last = parseInt(localStorage.getItem('lastActivity')||'0', 10);
       const now  = Date.now();
 
+      console.log('🔐 Authentication Check:', { auth, lastActivity: last, now, sessionValid: auth && (now - last <= 10*60*1000) });
+
       // not logged in → quick redirect with clear state
       if (!auth) {
+        console.log('❌ Not authenticated - redirecting to login');
         localStorage.removeItem('adminAuthenticated');
         localStorage.removeItem('lastActivity');
         return window.location.replace('login.html?session=expired');
       }
 
-      // expired → clear and redirect
+      // expired → clear and redirect (10 minute session timeout)
       if (now - last > 10*60*1000) {
+        console.log('⏰ Session expired - redirecting to login');
         localStorage.removeItem('adminAuthenticated');
         localStorage.removeItem('lastActivity');
         return window.location.replace('login.html?session=expired');
       }
 
-      // still valid → bump lastActivity
+      // still valid → bump lastActivity and show content
+      console.log('✅ Authentication verified - access granted');
       localStorage.setItem('lastActivity', now.toString());
-      */
+      document.body.className = 'bg-neutral-800 auth-verified';
+      
+      // Set up activity updater to extend session on user interaction
+      let activityTimer;
+      function updateActivity() {
+        localStorage.setItem('lastActivity', Date.now().toString());
+        clearTimeout(activityTimer);
+        // Auto-logout after 10 minutes of inactivity
+        activityTimer = setTimeout(() => {
+          localStorage.removeItem('adminAuthenticated');
+          localStorage.removeItem('lastActivity');
+          window.location.replace('login.html?session=expired');
+        }, 10*60*1000);
+      }
+      
+      // Update activity on user interactions
+      ['click', 'keypress', 'scroll', 'mousemove'].forEach(event => {
+        document.addEventListener(event, updateActivity, { passive: true });
+      });
+      
+      // Start the activity timer
+      updateActivity();
     })();
   </script>
 </head>
