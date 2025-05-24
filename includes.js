@@ -81,7 +81,7 @@ document.addEventListener('DOMContentLoaded', async function() {
     }
   }
   
-  // Load header and footer
-  await includeHTML('site-header', '/components/header.html');
-  await includeHTML('site-footer', '/components/footer.html');
+  // Load header and footer from the root directory
+  await includeHTML('site-header', '/header.html');
+  await includeHTML('site-footer', '/footer.html');
 });
