@@ -215,9 +215,16 @@ function fixResourcePaths(html) {
     .replace(/href="contact.html"/g, 'href="/contact.html"')
     .replace(/href="admin.html"/g, 'href="/admin.html"')
     
-    // Ensure all script sources have absolute paths
-    .replace(/<script src="(?!\/)([^"]+)"/g, '<script src="/$1"')
-    .replace(/<link [^>]*href="(?!\/)([^"]+)"/g, '<link href="/$1"')
+    // Ensure all LOCAL script sources have absolute paths (exclude external URLs)
+    .replace(/<script src="(?!\/|https?:\/\/)([^"]+)"/g, '<script src="/$1"')
+    .replace(/<link [^>]*href="(?!\/|https?:\/\/)([^"]+)"/g, function(match, p1) {
+      // Extract the href value more carefully
+      const hrefMatch = match.match(/href="([^"]+)"/);
+      if (hrefMatch && !hrefMatch[1].startsWith('/') && !hrefMatch[1].match(/^https?:\/\//)) {
+        return match.replace(`href="${hrefMatch[1]}"`, `href="/${hrefMatch[1]}"`);
+      }
+      return match;
+    })
     
     // Fix relative paths in the page
     .replace('id="site-header"', 'id="site-header" class="site-header"')
