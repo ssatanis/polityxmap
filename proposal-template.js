@@ -4,11 +4,25 @@
  */
 
 document.addEventListener('DOMContentLoaded', function() {
-  console.log('Proposal template loaded, checking for proposal data...');
+  console.log('🚀 Proposal template loaded, checking for proposal data...');
+  console.log('📊 Available data sources:', {
+    preloaded: !!window.PRELOADED_PROPOSAL,
+    generated: !!window.GENERATED_PROPOSALS_DATA,
+    cms: !!window.ProposalsCMS
+  });
   
   // First check if we have preloaded proposal data from static generation
   if (window.PRELOADED_PROPOSAL) {
-    console.log('Using preloaded proposal data');
+    console.log('✅ Using preloaded proposal data:', window.PRELOADED_PROPOSAL.name || window.PRELOADED_PROPOSAL.healthcareIssue);
+    console.log('📄 Proposal data preview:', {
+      name: window.PRELOADED_PROPOSAL.name,
+      city: window.PRELOADED_PROPOSAL.city,
+      description: window.PRELOADED_PROPOSAL.description?.substring(0, 100) + '...',
+      hasBackground: !!window.PRELOADED_PROPOSAL.background,
+      hasOverview: !!window.PRELOADED_PROPOSAL.overview,
+      hasStakeholders: !!window.PRELOADED_PROPOSAL.stakeholders
+    });
+    
     // Use the preloaded data
     renderProposal(window.PRELOADED_PROPOSAL);
     
@@ -238,11 +252,25 @@ async function loadProposalData(slug) {
  * Render the proposal on the page
  */
 function renderProposal(proposal) {
-  console.log('Rendering proposal:', proposal.name || proposal.healthcareIssue);
+  console.log('🎨 Rendering proposal:', proposal.name || proposal.healthcareIssue);
+  console.log('📋 Proposal data fields:', {
+    name: proposal.name,
+    city: proposal.city,
+    description: proposal.description?.substring(0, 50) + '...',
+    background: proposal.background ? 'Present' : 'Missing',
+    overview: proposal.overview ? 'Present' : 'Missing',
+    stakeholders: proposal.stakeholders ? 'Present' : 'Missing',
+    costs: proposal.costs ? 'Present' : 'Missing',
+    metrics: proposal.metrics ? 'Present' : 'Missing',
+    timeline: proposal.timeline ? 'Present' : 'Missing',
+    proposal_text: proposal.proposal_text ? 'Present' : 'Missing',
+    tags: proposal.tags?.length || 0
+  });
   
   // Set page title - use name or healthcareIssue for backward compatibility
   const title = proposal.name || proposal.healthcareIssue || 'Healthcare Proposal';
   document.title = `${title} | ${proposal.city}, ${proposal.state || ''} | PolityxMap`;
+  console.log('📱 Updated page title to:', document.title);
   
   // Update meta description
   const metaDescription = document.querySelector('meta[name="description"]');
