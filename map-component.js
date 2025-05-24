@@ -230,8 +230,8 @@ function addProposalMarker(map, proposal) {
     <div style="width: 250px; padding: 5px;">
       <h3 style="margin-top: 0; margin-bottom: 10px; color: #8A67FF; font-size: 18px;">${title}</h3>
       <p style="margin-top: 0; margin-bottom: 10px; font-size: 14px;">${description}</p>
-      <p style="margin: 0; font-size: 14px; color: #666;">
-        <strong>Location:</strong> ${proposal.city}, ${proposal.state || ''} ${proposal.country || ''}
+      <p style="margin: 0; font-size: 14px; color: #000000;">
+        <strong style="color: #000000;">Location:</strong> ${proposal.city}, ${proposal.state || ''} ${proposal.country || ''}
       </p>
       <div style="margin-top: 15px; text-align: center;">
         <a href="${proposalUrl}" style="
