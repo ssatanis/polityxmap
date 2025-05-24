@@ -145,12 +145,6 @@
         <div class="admin-nav-divider"></div>
         
         <li class="admin-nav-item">
-          <a href="#" class="admin-nav-link" data-target="history-section">
-            <i class="fas fa-history"></i>
-            <span>History</span>
-          </a>
-        </li>
-        <li class="admin-nav-item">
           <a href="javascript:void(0);" class="admin-nav-link" id="logout-button" onclick=" 
               // clear exactly what the guard checks 
               localStorage.removeItem('adminAuthenticated'); 
@@ -216,6 +210,9 @@
             <div style="margin-top: 15px;">
               <button class="admin-header-btn" style="width: 100%; justify-content: center; margin-bottom: 15px;" onclick="document.querySelector('.admin-nav-link[data-target=\'add-proposal-section\']').click()">
                 <i class="fas fa-plus"></i> Add New Proposal
+              </button>
+              <button class="admin-header-btn" style="width: 100%; justify-content: center; background: linear-gradient(90deg, #8A67FF, #38B6FF);" onclick="window.refreshMetrics()">
+                <i class="fas fa-sync-alt"></i> Refresh Metrics
               </button>
             </div>
           </div>
@@ -330,49 +327,11 @@
         </div>
       </div>
       
-      <!-- History Section -->
-      <div id="history-section" class="admin-content-section" style="display: none;">
-        <div class="admin-header">
-          <h1 class="admin-header-title">Activity History</h1>
-          <div class="admin-header-actions">
-            <button class="admin-header-btn" id="clear-history-btn">
-              <i class="fas fa-trash"></i> Clear History
-            </button>
-          </div>
-        </div>
-        
-        <div class="admin-card">
-          <h3 class="admin-card-title">
-            <i class="fas fa-history"></i> Admin Activity Log
-          </h3>
-          
-          <div class="history-log" id="history-log">
-            <!-- History items will be loaded here -->
-          </div>
-        </div>
-      </div>
     </div>
   </div>
   
   <!-- Footer placeholder -->
   <div id="site-footer"></div>
-  
-  <!-- Clear History Modal -->
-  <div id="clear-history-modal" class="modal-overlay">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h3 class="modal-title"><i class="fas fa-shield-alt"></i> Security Verification</h3>
-      </div>
-      <div class="modal-body">
-        <p>Please enter the security code to clear history:</p>
-        <input type="password" id="clear-history-code" class="admin-form-input" placeholder="Enter security code">
-      </div>
-      <div class="modal-footer">
-        <button id="cancel-clear-history-btn" class="admin-form-button secondary">Cancel</button>
-        <button id="confirm-clear-history-btn" class="admin-form-button">Confirm</button>
-      </div>
-    </div>
-  </div>
   
   <!-- Authentication Modal -->
   <div id="auth-modal" class="modal-overlay">
@@ -410,7 +369,7 @@
   
   <script>
     document.addEventListener('DOMContentLoaded', function() {
-      // Initialize admin functionality
+      // Initialize admin functionality and load real metrics
       let lastActivity = Date.now();
       const SESSION_TIMEOUT = 10 * 60 * 1000; // 10 minutes in milliseconds
       
@@ -426,6 +385,104 @@
         dateElement.textContent = new Date().toLocaleDateString('en-US', options);
       }
       
+      // Load and calculate real metrics from proposals data
+      async function loadRealMetrics() {
+        try {
+          console.log('🔍 Loading real metrics from proposals data...');
+          
+          let proposalsData = [];
+          
+          // Try to load from proposals.js first (if it exists)
+          if (window.ProposalsCMS && typeof window.ProposalsCMS.getAll === 'function') {
+            try {
+              proposalsData = await window.ProposalsCMS.getAll();
+              console.log('✅ Loaded proposals from ProposalsCMS:', proposalsData.length);
+            } catch (e) {
+              console.log('📝 ProposalsCMS not available, trying JSON fetch...');
+            }
+          }
+          
+          // Fallback to fetching JSON file
+          if (proposalsData.length === 0) {
+            try {
+              const response = await fetch('/data/proposals.json');
+              if (response.ok) {
+                proposalsData = await response.json();
+                console.log('✅ Loaded proposals from JSON:', proposalsData.length);
+              }
+            } catch (e) {
+              console.log('❌ Could not load proposals.json:', e);
+            }
+          }
+          
+          // Calculate metrics
+          const totalProposals = proposalsData.length;
+          const uniqueStates = new Set(proposalsData.map(p => p.state).filter(s => s));
+          const uniqueCountries = new Set(proposalsData.map(p => p.country).filter(c => c));
+          
+          const statesCount = uniqueStates.size;
+          const countriesCount = uniqueCountries.size;
+          
+          console.log('📊 Calculated Metrics:', {
+            totalProposals,
+            statesCount,
+            countriesCount,
+            states: Array.from(uniqueStates),
+            countries: Array.from(uniqueCountries)
+          });
+          
+          // Update the display with animations
+          animateCounter('total-proposals-count', totalProposals);
+          animateCounter(document.querySelector('.metric-counter[data-metric="statesRepresented"]'), statesCount);
+          animateCounter(document.querySelector('.metric-counter[data-metric="countriesRepresented"]'), countriesCount);
+          
+        } catch (error) {
+          console.error('❌ Error loading metrics:', error);
+          
+          // Set fallback values
+          document.getElementById('total-proposals-count').textContent = 'Error';
+          const statesCounter = document.querySelector('.metric-counter[data-metric="statesRepresented"]');
+          const countriesCounter = document.querySelector('.metric-counter[data-metric="countriesRepresented"]');
+          
+          if (statesCounter) statesCounter.textContent = 'Error';
+          if (countriesCounter) countriesCounter.textContent = 'Error';
+        }
+      }
+      
+      // Animate counter function
+      function animateCounter(element, targetValue) {
+        if (!element) return;
+        
+        const elementRef = typeof element === 'string' ? document.getElementById(element) : element;
+        if (!elementRef) return;
+        
+        const startValue = 0;
+        const duration = 1500; // 1.5 seconds
+        const startTime = Date.now();
+        
+        function updateCounter() {
+          const elapsed = Date.now() - startTime;
+          const progress = Math.min(elapsed / duration, 1);
+          
+          // Easing function for smooth animation
+          const easeOut = 1 - Math.pow(1 - progress, 3);
+          const currentValue = Math.floor(startValue + (targetValue - startValue) * easeOut);
+          
+          elementRef.textContent = currentValue;
+          
+          if (progress < 1) {
+            requestAnimationFrame(updateCounter);
+          } else {
+            elementRef.textContent = targetValue; // Ensure exact final value
+          }
+        }
+        
+        updateCounter();
+      }
+      
+      // Load metrics on page load
+      loadRealMetrics();
+      
       // Update session timer
       const sessionTimerElement = document.getElementById('session-timer');
       if (sessionTimerElement) {
@@ -433,7 +490,9 @@
           const timeLeft = SESSION_TIMEOUT - (Date.now() - lastActivity);
           if (timeLeft <= 0) {
             // Session expired, redirect to login
-            window.location.href = '/api/auth/logout';
+            localStorage.removeItem('adminAuthenticated');
+            localStorage.removeItem('lastActivity');
+            window.location.replace('login.html?session=expired');
             return;
           }
           
@@ -481,6 +540,12 @@
           lastActivity = Date.now();
         });
       });
+      
+      // Add refresh metrics button functionality
+      window.refreshMetrics = function() {
+        console.log('🔄 Manually refreshing metrics...');
+        loadRealMetrics();
+      };
     });
   </script>
   
@@ -496,19 +561,6 @@
           localStorage.removeItem('isLoggedIn');
           sessionStorage.clear();
           
-          // Add logout to history
-          try {
-            const historyLog = JSON.parse(localStorage.getItem('polityxMapHistory') || '[]');
-            historyLog.unshift({
-              action: 'Logout',
-              timestamp: Date.now(),
-              details: 'Admin logged out'
-            });
-            localStorage.setItem('polityxMapHistory', JSON.stringify(historyLog));
-          } catch (e) {
-            console.error("Error updating history log:", e);
-          }
-          
           // Let the form submission continue
           console.log("Logging out and redirecting to login page...");
           // Form will continue submission to login.html?logout=true
@@ -516,7 +568,5 @@
       }
     });
   </script>
-  <!-- Footer placeholder - will be filled by includes.js -->
-  <div id="site-footer"></div>
 </body>
 </html>
