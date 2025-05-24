@@ -44,58 +44,59 @@ async function generateProposalPages() {
     const headerTemplate = fs.readFileSync(HEADER_TEMPLATE_PATH, 'utf8');
     const footerTemplate = fs.readFileSync(FOOTER_TEMPLATE_PATH, 'utf8');
     
-    // Get all proposals from the data file
-    let proposals;
-    try {
-      const proposalsData = fs.readFileSync(PROPOSALS_DATA_PATH, 'utf8');
-      proposals = JSON.parse(proposalsData);
-      
-      if (!Array.isArray(proposals)) {
-        throw new Error('Proposals data is not an array');
-      }
-      
-      if (proposals.length === 0) {
-        console.warn('Warning: No proposals found in data file');
-      }
-
-      // Also check if proposals.js exists and merge data if needed
-      const proposalsJsPath = path.join(__dirname, 'data', 'proposals.js');
-      if (fs.existsSync(proposalsJsPath)) {
-        try {
-          const proposalsJsContent = fs.readFileSync(proposalsJsPath, 'utf8');
-          // Extract the array by looking for the 'proposals = [' pattern
-          const match = proposalsJsContent.match(/proposals\s*=\s*(\[[\s\S]*?\]);/);
-          if (match && match[1]) {
-            const jsProposals = eval(match[1]); // Safe in this context
-            if (Array.isArray(jsProposals) && jsProposals.length > 0) {
-              console.log(`Found ${jsProposals.length} proposals in proposals.js`);
-              // Merge and deduplicate based on unique identifiers (city+name)
-              const existingIds = new Set(proposals.map(p => `${p.city}-${p.name || p.healthcareIssue}`));
-              for (const jp of jsProposals) {
-                const id = `${jp.city}-${jp.name || jp.healthcareIssue}`;
-                if (!existingIds.has(id)) {
-                  proposals.push(jp);
-                  existingIds.add(id);
-                }
-              }
-              console.log(`Total proposals after merge: ${proposals.length}`);
-            }
+    // Get all proposals from CURRENT data (no merging)
+    let proposals = [];
+    
+    // Priority 1: Try proposals.js first (most authoritative)
+    const proposalsJsPath = path.join(__dirname, 'data', 'proposals.js');
+    if (fs.existsSync(proposalsJsPath)) {
+      try {
+        console.log('📄 Loading proposals from proposals.js...');
+        const proposalsJsContent = fs.readFileSync(proposalsJsPath, 'utf8');
+        const match = proposalsJsContent.match(/proposals\s*=\s*(\[[\s\S]*?\]);/);
+        
+        if (match && match[1]) {
+          const jsProposals = eval(match[1]); // Safe in this context
+          if (Array.isArray(jsProposals) && jsProposals.length > 0) {
+            proposals = jsProposals;
+            console.log(`✅ Found ${proposals.length} proposals in proposals.js`);
           }
-        } catch (error) {
-          console.warn(`Warning: Error processing proposals.js: ${error.message}`);
         }
+      } catch (error) {
+        console.warn(`⚠️  Error processing proposals.js: ${error.message}`);
       }
-    } catch (error) {
-      throw new Error(`Error parsing proposals data: ${error.message}`);
     }
     
-    console.log(`Found ${proposals.length} proposals to process`);
+    // Priority 2: Fallback to proposals.json only if no JS data
+    if (proposals.length === 0 && fs.existsSync(PROPOSALS_DATA_PATH)) {
+      try {
+        console.log('📄 Loading proposals from proposals.json (fallback)...');
+        const proposalsData = fs.readFileSync(PROPOSALS_DATA_PATH, 'utf8');
+        const jsonProposals = JSON.parse(proposalsData);
+        
+        if (Array.isArray(jsonProposals)) {
+          proposals = jsonProposals;
+          console.log(`✅ Found ${proposals.length} proposals in proposals.json`);
+        } else {
+          throw new Error('Proposals data is not an array');
+        }
+      } catch (error) {
+        throw new Error(`Error parsing proposals data: ${error.message}`);
+      }
+    }
+    
+    if (proposals.length === 0) {
+      console.warn('⚠️  Warning: No proposals found in any data file');
+      return { success: true, count: 0 };
+    }
+    
+    console.log(`🎯 Processing ${proposals.length} proposals (NO MERGING)`);
     
     // Create proposals directory if it doesn't exist
     if (!fs.existsSync(OUTPUT_DIR)) {
       try {
         fs.mkdirSync(OUTPUT_DIR);
-        console.log('Created proposals directory');
+        console.log('📁 Created proposals directory');
       } catch (error) {
         throw new Error(`Error creating proposals directory: ${error.message}`);
       }
@@ -104,7 +105,7 @@ async function generateProposalPages() {
     // Process each proposal
     for (const proposal of proposals) {
       if (!proposal.city) {
-        console.warn(`Warning: Skipping proposal with missing city: ${JSON.stringify(proposal)}`);
+        console.warn(`⚠️  Warning: Skipping proposal with missing city: ${JSON.stringify(proposal)}`);
         continue;
       }
       
@@ -116,9 +117,9 @@ async function generateProposalPages() {
       if (!fs.existsSync(proposalDir)) {
         try {
           fs.mkdirSync(proposalDir);
-          console.log(`Created directory for ${slug}`);
+          console.log(`📁 Created directory for ${slug}`);
         } catch (error) {
-          console.error(`Error creating directory for ${slug}: ${error.message}`);
+          console.error(`❌ Error creating directory for ${slug}: ${error.message}`);
           continue;
         }
       }
@@ -143,14 +144,14 @@ async function generateProposalPages() {
         
         // Write the file
         fs.writeFileSync(path.join(proposalDir, 'index.html'), proposalHtml);
-        console.log(`Generated page for ${proposal.city}, ${proposal.state || ''}`);
+        console.log(`✅ Generated page for ${proposal.city}, ${proposal.state || ''}`);
       } catch (error) {
-        console.error(`Error generating page for ${slug}: ${error.message}`);
+        console.error(`❌ Error generating page for ${slug}: ${error.message}`);
       }
     }
     
-    console.log('All proposal pages generated successfully!');
-    console.log(`Generated ${proposals.length} proposal pages`);
+    console.log('🎉 All proposal pages generated successfully!');
+    console.log(`📊 Generated ${proposals.length} proposal pages`);
     
     // Update proposals.html to include all the new proposals
     try {

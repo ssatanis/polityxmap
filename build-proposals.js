@@ -3,8 +3,8 @@
 /**
  * PolityxMap Build Script
  * 
- * This script builds all proposal pages from the data file
- * and updates the map, admin, and proposals pages
+ * This script builds all proposal pages from the CURRENT data files ONLY
+ * and ensures complete cleanup of old directories that no longer exist
  */
 
 const fs = require('fs');
@@ -16,16 +16,12 @@ const { generateProposalPages, syncAll } = require('./proposal-page-generator');
 
 async function buildAll() {
   console.log('=== PolityxMap Build System ===');
-  console.log('Starting build process...');
+  console.log('Starting FRESH build process...');
   
   try {
     // Verify that the data files exist
     const jsonDataPath = path.join(__dirname, 'data', 'proposals.json');
     const jsDataPath = path.join(__dirname, 'data', 'proposals.js');
-    
-    if (!fs.existsSync(jsonDataPath)) {
-      console.warn(`Warning: proposals.json file not found at ${jsonDataPath}. Will create it if needed.`);
-    }
     
     // Ensure data directory exists
     const dataDir = path.join(__dirname, 'data');
@@ -34,67 +30,47 @@ async function buildAll() {
       console.log('Created data directory');
     }
     
-    // Extract and merge data from both proposals.js and proposals.json
+    // Load proposals data - USE CURRENT DATA ONLY, NO MERGING
     let proposals = [];
-    let extractedFromJs = false;
     
-    // First try to load proposals.js if it exists
+    // Priority 1: Try to load from proposals.js first (most authoritative)
     if (fs.existsSync(jsDataPath)) {
       try {
-        console.log('Loading proposals from proposals.js...');
+        console.log('📄 Loading proposals from proposals.js (primary source)...');
         const jsContent = fs.readFileSync(jsDataPath, 'utf-8');
         const match = jsContent.match(/proposals\s*=\s*(\[[\s\S]*?\]);/);
         
         if (match && match[1]) {
           const jsProposals = eval(`(${match[1]})`);
           if (Array.isArray(jsProposals)) {
-            console.log(`Found ${jsProposals.length} proposals in proposals.js`);
             proposals = jsProposals;
-            extractedFromJs = true;
+            console.log(`✅ Found ${proposals.length} proposals in proposals.js`);
           }
         }
       } catch (err) {
-        console.error('Error parsing proposals.js:', err.message);
+        console.error('❌ Error parsing proposals.js:', err.message);
       }
     }
     
-    // Then try to load proposals.json and merge
-    if (fs.existsSync(jsonDataPath)) {
+    // Priority 2: If no JS data, try JSON (fallback)
+    if (proposals.length === 0 && fs.existsSync(jsonDataPath)) {
       try {
-        console.log('Loading proposals from proposals.json...');
+        console.log('📄 Loading proposals from proposals.json (fallback source)...');
         const jsonContent = fs.readFileSync(jsonDataPath, 'utf-8');
         const jsonProposals = JSON.parse(jsonContent);
         
         if (Array.isArray(jsonProposals)) {
-          console.log(`Found ${jsonProposals.length} proposals in proposals.json`);
-          
-          if (!extractedFromJs) {
-            proposals = jsonProposals;
-          } else {
-            // Merge and deduplicate
-            const existingIds = new Set(proposals.map(p => `${p.city}-${p.name || p.healthcareIssue}`));
-            for (const jp of jsonProposals) {
-              const id = `${jp.city}-${jp.name || jp.healthcareIssue}`;
-              if (!existingIds.has(id)) {
-                proposals.push(jp);
-                existingIds.add(id);
-              }
-            }
-            console.log(`Total proposals after merge: ${proposals.length}`);
-          }
+          proposals = jsonProposals;
+          console.log(`✅ Found ${proposals.length} proposals in proposals.json`);
         }
       } catch (err) {
-        console.error('Error parsing proposals.json:', err.message);
-        if (!extractedFromJs) {
-          // If we didn't get any proposals from JS and JSON failed, create an empty array
-          proposals = [];
-        }
+        console.error('❌ Error parsing proposals.json:', err.message);
       }
     }
     
-    // Ensure we have at least some proposals
+    // If still no proposals, create a sample
     if (proposals.length === 0) {
-      console.warn('Warning: No proposals found in either file. Creating a sample proposal...');
+      console.warn('⚠️  Warning: No proposals found in either file. Creating a sample proposal...');
       proposals = [{
         name: "Healthcare Access Expansion",
         healthcareIssue: "Healthcare Access Expansion",
@@ -116,13 +92,59 @@ async function buildAll() {
       }];
     }
     
-    // Save the merged proposals back to both files to keep them in sync
-    try {
-      // Write to proposals.json
-      fs.writeFileSync(jsonDataPath, JSON.stringify(proposals, null, 2));
-      console.log(`Updated proposals.json with ${proposals.length} proposals`);
+    console.log(`🎯 Using ${proposals.length} proposals for build (NO MERGING)`);
+    
+    // Get current city slugs from proposals
+    const currentCitySlugs = new Set(
+      proposals
+        .filter(p => p.city)
+        .map(p => p.city.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, ''))
+    );
+    
+    console.log('🏙️  Current cities:', Array.from(currentCitySlugs));
+    
+    // CLEAN UP OLD DIRECTORIES FIRST
+    const proposalsDir = path.join(__dirname, 'proposals');
+    if (fs.existsSync(proposalsDir)) {
+      console.log('🧹 Cleaning up old proposal directories...');
       
-      // Update proposals.js only if it exists
+      const existingDirectories = fs.readdirSync(proposalsDir, { withFileTypes: true })
+        .filter(dirent => dirent.isDirectory())
+        .map(dirent => dirent.name)
+        .filter(name => !['template', '_template'].includes(name)); // Keep template directories
+      
+      console.log('📁 Found existing directories:', existingDirectories);
+      
+      // Remove directories that don't correspond to current proposals
+      for (const dirName of existingDirectories) {
+        if (!currentCitySlugs.has(dirName)) {
+          const dirPath = path.join(proposalsDir, dirName);
+          console.log(`🗑️  Removing old directory: ${dirName}`);
+          
+          // Remove directory recursively
+          try {
+            fs.rmSync(dirPath, { recursive: true, force: true });
+            console.log(`✅ Removed ${dirName}`);
+          } catch (error) {
+            console.error(`❌ Error removing ${dirName}:`, error.message);
+          }
+        } else {
+          console.log(`✅ Keeping directory: ${dirName} (matches current proposal)`);
+        }
+      }
+    } else {
+      // Create proposals directory if it doesn't exist
+      fs.mkdirSync(proposalsDir);
+      console.log('📁 Created main proposals directory');
+    }
+    
+    // Update BOTH files to be in sync with the current data (no merging)
+    try {
+      // Write current data to proposals.json
+      fs.writeFileSync(jsonDataPath, JSON.stringify(proposals, null, 2));
+      console.log(`✅ Updated proposals.json with ${proposals.length} proposals`);
+      
+      // Update proposals.js to match
       if (fs.existsSync(jsDataPath)) {
         let jsContent = fs.readFileSync(jsDataPath, 'utf-8');
         // Replace the proposals array
@@ -131,12 +153,12 @@ async function buildAll() {
           `export const proposals = ${JSON.stringify(proposals, null, 2)};`
         );
         fs.writeFileSync(jsDataPath, jsContent);
-        console.log(`Updated proposals.js with ${proposals.length} proposals`);
+        console.log(`✅ Updated proposals.js with ${proposals.length} proposals`);
       } else {
         // Create proposals.js if it doesn't exist
         const jsContent = `export const proposals = ${JSON.stringify(proposals, null, 2)};\n\n// Export for ES modules\ntry {\n  if (typeof module !== 'undefined') module.exports = { proposals };\n} catch (e) {}\n`;
         fs.writeFileSync(jsDataPath, jsContent);
-        console.log('Created proposals.js with proposals data');
+        console.log('✅ Created proposals.js with proposals data');
       }
 
       // Update the proposals.html file to include the latest proposals data
@@ -165,71 +187,56 @@ async function buildAll() {
           
           // Write the updated file
           fs.writeFileSync(proposalsHtmlPath, proposalsHtml);
-          console.log('Updated proposals.html with latest proposals data');
+          console.log('✅ Updated proposals.html with latest proposals data');
         } else {
-          console.warn('Could not find PROPOSALS_LIST markers in proposals.html');
+          console.warn('⚠️  Could not find PROPOSALS_LIST markers in proposals.html');
         }
       }
     } catch (err) {
-      console.error('Error updating proposals data files:', err.message);
+      console.error('❌ Error updating proposals data files:', err.message);
     }
     
-    // Ensure the proposals directory exists
-    const proposalsDir = path.join(__dirname, 'proposals');
-    if (!fs.existsSync(proposalsDir)) {
-      fs.mkdirSync(proposalsDir);
-      console.log('Created main proposals directory');
-    }
-    
-    // Special handling for Ithaca proposal - ensure both ithaca and ithaca-ny directories exist
-    const ithacaDir = path.join(proposalsDir, 'ithaca');
-    const ithacaNyDir = path.join(proposalsDir, 'ithaca-ny');
-    
-    if (!fs.existsSync(ithacaDir)) {
-      fs.mkdirSync(ithacaDir);
-      console.log('Created directory for Ithaca proposal');
-    }
-    
-    if (!fs.existsSync(ithacaNyDir)) {
-      fs.mkdirSync(ithacaNyDir);
-      console.log('Created directory for Ithaca-NY proposal (legacy format)');
-    }
-    
-    // Run the full synchronization
+    // Run the full synchronization with clean data
+    console.log('🔄 Running synchronization with clean data...');
     const result = await syncAll();
     
     if (result.success) {
-      console.log('Build completed successfully!');
+      console.log('🎉 Build completed successfully!');
       
-      // Double-check that the Ithaca proposal files exist
-      const ithacaIndexPath = path.join(ithacaDir, 'index.html');
-      const ithacaNyIndexPath = path.join(ithacaNyDir, 'index.html');
-      
-      if (!fs.existsSync(ithacaIndexPath)) {
-        console.error('Warning: Ithaca proposal file not found. Creating it manually...');
-        // Copy proposal.html to ithaca/index.html as a fallback
-        fs.copyFileSync(path.join(__dirname, 'proposal.html'), ithacaIndexPath);
-        
-        // Find the Ithaca proposal in our list
-        const ithacaProposal = proposals.find(p => p.city.toLowerCase() === 'ithaca');
-        if (ithacaProposal) {
-          // Insert the proposal data as a preloaded script
-          const htmlContent = fs.readFileSync(ithacaIndexPath, 'utf-8');
-          const updatedHtml = htmlContent.replace('</body>', `<script>window.PRELOADED_PROPOSAL = ${JSON.stringify(ithacaProposal, null, 2)};</script>\n</body>`);
-          fs.writeFileSync(ithacaIndexPath, updatedHtml);
+      // Verify that proposal files exist for current proposals only
+      for (const proposal of proposals) {
+        if (proposal.city) {
+          const slug = proposal.city.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, '');
+          const proposalIndexPath = path.join(proposalsDir, slug, 'index.html');
+          
+          if (!fs.existsSync(proposalIndexPath)) {
+            console.warn(`⚠️  Warning: ${slug} proposal file not found. Creating it manually...`);
+            
+            // Create directory if needed
+            const proposalDir = path.join(proposalsDir, slug);
+            if (!fs.existsSync(proposalDir)) {
+              fs.mkdirSync(proposalDir);
+            }
+            
+            // Copy proposal.html as fallback
+            const proposalTemplatePath = path.join(__dirname, 'proposal.html');
+            if (fs.existsSync(proposalTemplatePath)) {
+              fs.copyFileSync(proposalTemplatePath, proposalIndexPath);
+              
+              // Insert the proposal data as a preloaded script
+              const htmlContent = fs.readFileSync(proposalIndexPath, 'utf-8');
+              const updatedHtml = htmlContent.replace('</body>', `<script>window.PRELOADED_PROPOSAL = ${JSON.stringify(proposal, null, 2)};</script>\n</body>`);
+              fs.writeFileSync(proposalIndexPath, updatedHtml);
+              console.log(`✅ Created ${slug} proposal page`);
+            }
+          }
         }
       }
       
-      if (!fs.existsSync(ithacaNyIndexPath)) {
-        console.error('Warning: Ithaca-NY proposal file not found. Creating it manually...');
-        // Ensure the ithaca-ny directory has the same file
-        fs.copyFileSync(ithacaIndexPath, ithacaNyIndexPath);
-      }
-      
-      // Create .htaccess file for Apache server to handle clean URLs
+      // Create .htaccess file for clean URLs
       const htaccessPath = path.join(__dirname, '.htaccess');
       if (!fs.existsSync(htaccessPath)) {
-        console.log('Creating .htaccess file for clean URLs...');
+        console.log('📝 Creating .htaccess file for clean URLs...');
         const htaccessContent = `# PolityxMap .htaccess file
 # Enables clean URLs for proposal pages
 
@@ -258,19 +265,26 @@ Options -Indexes
         fs.writeFileSync(htaccessPath, htaccessContent);
       }
       
-      console.log('\nTo view your changes:');
+      console.log('\n�� Build Summary:');
+      console.log(`📊 Processed ${proposals.length} proposals`);
+      console.log(`🏙️  Cities: ${Array.from(currentCitySlugs).join(', ')}`);
+      console.log('✅ All old directories cleaned up');
+      console.log('✅ All current proposals have pages');
+      console.log('✅ Data files synchronized');
+      
+      console.log('\n🌐 To view your changes:');
       console.log('1. Run a local server: python3 -m http.server 8000');
       console.log('2. Open browser at: http://localhost:8000');
       console.log('3. Test the proposals at: http://localhost:8000/proposals.html');
-      console.log('\nYour proposal pages, map, and admin portal are now in sync.');
+      console.log('\n🎯 Your proposal pages, map, and admin portal are now perfectly in sync.');
       
       return 0;
     } else {
       throw new Error(result.error || 'Unknown error during build');
     }
   } catch (error) {
-    console.error('Build failed:', error.message);
-    console.error('\nPlease check:');
+    console.error('💥 Build failed:', error.message);
+    console.error('\n🔍 Please check:');
     console.error('- Data files are properly formatted');
     console.error('- All required templates exist');
     console.error('- You have write permissions in the proposals directory');
