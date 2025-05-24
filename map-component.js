@@ -213,11 +213,8 @@ function addProposalMarker(map, proposal) {
   // Generate URL-friendly slug for links - ONLY USE CITY NAME
   const citySlug = proposal.city ? proposal.city.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, '') : '';
   
-  // Special case for Ithaca proposal
-  let proposalUrl = `/proposals/${citySlug}`;
-  if (citySlug === 'ithaca') {
-    proposalUrl = '/proposals-ithaca.html';
-  }
+  // Generate proposal URL using city name only
+  const proposalUrl = `/proposals/${citySlug}/`;
   
   // Get proposal title - use name if available, otherwise use healthcareIssue (for backward compatibility)
   const title = proposal.name || proposal.healthcareIssue || 'Healthcare Proposal';

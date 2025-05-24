@@ -9,15 +9,27 @@ RewriteRule ^admin/(.*)$ admin-react.html [L]
 RewriteRule ^login$ login-react.html [L]
 RewriteRule ^auth/login$ login-react.html [L]
 
-# IMPORTANT: Direct rules for the Ithaca proposal (with or without trailing slash)
-# These take precedence over other rules and serve the standalone file
-RewriteRule ^proposals/ithaca/?$ proposals-ithaca.html [L]
-RewriteRule ^proposals/ithaca-ny/?$ proposals-ithaca.html [L]
-
-# More general rule for other proposal pages
+# Handle proposal pages with clean URLs - serve from /proposals/[city]/index.html
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule ^proposals/([^/]+)/?$ /proposals/$1/index.html [L,NC]
+
+# Cache Control - Prevent stale proposal data
+<LocationMatch "^/proposals/">
+  Header set Cache-Control "no-cache, no-store, must-revalidate"
+  Header set Pragma "no-cache" 
+  Header set Expires "0"
+</LocationMatch>
+
+# Cache JavaScript files for a short time but allow updates
+<FilesMatch "\\.(js)$">
+  Header set Cache-Control "max-age=300, must-revalidate"
+</FilesMatch>
+
+# Cache JSON data files for minimal time
+<FilesMatch "\\.json$">
+  Header set Cache-Control "max-age=60, must-revalidate"
+</FilesMatch>
 
 # If request is for a real file or directory, serve it
 RewriteCond %{REQUEST_FILENAME} -f [OR]

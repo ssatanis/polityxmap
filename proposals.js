@@ -394,11 +394,8 @@ async function updateProposalsList() {
       // Generate URL slug - ONLY use city name
       const citySlug = proposal.city ? proposal.city.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, '') : 'detail';
       
-      // Special case for Ithaca - use direct file
-      let cityURL = `/proposals/${citySlug}`;
-      if (citySlug === 'ithaca') {
-        cityURL = '/proposals-ithaca.html';
-      }
+      // Generate proposal URL using city name only
+      const cityURL = `/proposals/${citySlug}/`;
       
       // Get tags
       const tags = proposal.tags || [];

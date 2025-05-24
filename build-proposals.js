@@ -238,7 +238,7 @@ async function buildAll() {
       if (!fs.existsSync(htaccessPath)) {
         console.log('📝 Creating .htaccess file for clean URLs...');
         const htaccessContent = `# PolityxMap .htaccess file
-# Enables clean URLs for proposal pages
+# Enables clean URLs for proposal pages and prevents caching issues
 
 <IfModule mod_rewrite.c>
   RewriteEngine On
@@ -256,16 +256,37 @@ async function buildAll() {
   RewriteRule ^proposals/([^/]+)-([^/]+)/?$ /proposals/$1/ [R=301,L]
 </IfModule>
 
+# Cache Control - Prevent stale proposal data
+<LocationMatch "^/proposals/">
+  Header set Cache-Control "no-cache, no-store, must-revalidate"
+  Header set Pragma "no-cache" 
+  Header set Expires "0"
+</LocationMatch>
+
+# Cache JavaScript files for a short time but allow updates
+<FilesMatch "\\.(js)$">
+  Header set Cache-Control "max-age=300, must-revalidate"
+</FilesMatch>
+
+# Cache JSON data files for minimal time
+<FilesMatch "\\.json$">
+  Header set Cache-Control "max-age=60, must-revalidate"
+</FilesMatch>
+
 # Set default charset
 AddDefaultCharset UTF-8
 
 # Disable directory listings
 Options -Indexes
+
+# Security headers
+Header always set X-Frame-Options DENY
+Header always set X-Content-Type-Options nosniff
 `;
         fs.writeFileSync(htaccessPath, htaccessContent);
       }
       
-      console.log('\n�� Build Summary:');
+      console.log('\n🔍 Build Summary:');
       console.log(`📊 Processed ${proposals.length} proposals`);
       console.log(`🏙️  Cities: ${Array.from(currentCitySlugs).join(', ')}`);
       console.log('✅ All old directories cleaned up');
