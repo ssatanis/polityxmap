@@ -32,6 +32,306 @@
     display:none !important;
   }
   
+  /* Enhanced card animations matching Home page */
+  .home-features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 30px;
+    padding: 20px 0;
+  }
+
+  .card.home-feature {
+    background: linear-gradient(135deg, rgba(28, 26, 36, 0.8) 0%, rgba(35, 32, 70, 0.8) 100%);
+    border-radius: 24px;
+    padding: 40px 32px;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    transform: translateY(0);
+    opacity: 0;
+    animation: cardFadeIn 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  }
+
+  .card.home-feature:nth-child(1) { animation-delay: 0.1s; }
+  .card.home-feature:nth-child(2) { animation-delay: 0.2s; }
+  .card.home-feature:nth-child(3) { animation-delay: 0.3s; }
+
+  @keyframes cardFadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .card.home-feature::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(56, 182, 255, 0.1) 0%, rgba(138, 103, 255, 0.1) 100%);
+    opacity: 0;
+    transition: opacity 0.4s ease;
+    z-index: 0;
+  }
+
+  .card.home-feature:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3),
+                0 0 20px rgba(56, 182, 255, 0.2);
+    border-color: rgba(56, 182, 255, 0.3);
+  }
+
+  .card.home-feature:hover::before {
+    opacity: 1;
+  }
+
+  .image.card-home-feature {
+    width: 64px;
+    height: 64px;
+    margin-bottom: 24px;
+    transition: transform 0.4s ease;
+    position: relative;
+    z-index: 1;
+  }
+
+  .card.home-feature:hover .image.card-home-feature {
+    transform: scale(1.1) rotate(5deg);
+  }
+
+  .card-home-feature-content {
+    position: relative;
+    z-index: 1;
+  }
+
+  .title.card-home-feature {
+    font-size: 24px;
+    font-weight: 700;
+    color: #ffffff;
+    margin-bottom: 16px;
+    transition: color 0.3s ease;
+  }
+
+  .card.home-feature:hover .title.card-home-feature {
+    background: linear-gradient(90deg, #38B6FF, #8A67FF);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .paragraph.card-home-feature {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 16px;
+    line-height: 1.6;
+    margin-bottom: 0;
+    transition: color 0.3s ease;
+  }
+
+  .card.home-feature:hover .paragraph.card-home-feature {
+    color: rgba(255, 255, 255, 0.95);
+  }
+
+  /* Add a subtle glow effect on hover */
+  .card.home-feature::after {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    background: linear-gradient(135deg, #38B6FF, #8A67FF);
+    border-radius: 26px;
+    z-index: -1;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+  }
+
+  .card.home-feature:hover::after {
+    opacity: 0.15;
+  }
+
+  /* Testimonial card styling */
+  .testimonial-card {
+    background: linear-gradient(135deg, rgba(28, 26, 36, 0.95) 0%, rgba(35, 32, 70, 0.95) 100%);
+    border-radius: 32px;
+    padding: 50px 40px;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 2px solid rgba(138, 103, 255, 0.2);
+    backdrop-filter: blur(20px);
+    transform: translateY(0);
+    margin: 80px auto;
+    max-width: 700px;
+    text-align: center;
+    opacity: 0;
+    animation: testimonialFadeIn 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    animation-delay: 0.3s;
+  }
+
+  @keyframes testimonialFadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(50px) scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  .testimonial-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(56, 182, 255, 0.08) 0%, rgba(138, 103, 255, 0.08) 100%);
+    opacity: 0;
+    transition: opacity 0.5s ease;
+    z-index: 0;
+  }
+
+  .testimonial-card:hover {
+    transform: translateY(-12px) scale(1.02);
+    box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4),
+                0 0 40px rgba(138, 103, 255, 0.3);
+    border-color: rgba(138, 103, 255, 0.5);
+  }
+
+  .testimonial-card:hover::before {
+    opacity: 1;
+  }
+
+  .testimonial-image {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    margin: 0 auto 30px;
+    overflow: hidden;
+    position: relative;
+    z-index: 1;
+    border: 3px solid rgba(138, 103, 255, 0.3);
+    transition: all 0.5s ease;
+  }
+
+  .testimonial-card:hover .testimonial-image {
+    border-color: rgba(138, 103, 255, 0.8);
+    transform: scale(1.1);
+    box-shadow: 0 0 30px rgba(138, 103, 255, 0.4);
+  }
+
+  .testimonial-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s ease;
+  }
+
+  .testimonial-card:hover .testimonial-image img {
+    transform: scale(1.1);
+  }
+
+  .testimonial-quote {
+    font-size: 22px;
+    font-style: italic;
+    color: rgba(255, 255, 255, 0.95);
+    line-height: 1.6;
+    margin-bottom: 30px;
+    position: relative;
+    z-index: 1;
+    transition: color 0.3s ease;
+  }
+
+  .testimonial-card:hover .testimonial-quote {
+    color: #ffffff;
+  }
+
+  .testimonial-quote::before {
+    content: '"';
+    font-size: 60px;
+    color: rgba(138, 103, 255, 0.3);
+    position: absolute;
+    top: -20px;
+    left: -10px;
+    font-family: serif;
+  }
+
+  .testimonial-quote::after {
+    content: '"';
+    font-size: 60px;
+    color: rgba(138, 103, 255, 0.3);
+    position: absolute;
+    bottom: -40px;
+    right: -10px;
+    font-family: serif;
+  }
+
+  .testimonial-name {
+    font-size: 28px;
+    font-weight: 700;
+    color: #ffffff;
+    margin-bottom: 8px;
+    position: relative;
+    z-index: 1;
+    transition: all 0.3s ease;
+  }
+
+  .testimonial-card:hover .testimonial-name {
+    background: linear-gradient(90deg, #38B6FF, #8A67FF);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    transform: scale(1.05);
+  }
+
+  .testimonial-title {
+    font-size: 18px;
+    color: rgba(255, 255, 255, 0.8);
+    margin-bottom: 5px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .testimonial-institution {
+    font-size: 16px;
+    color: rgba(138, 103, 255, 0.9);
+    font-weight: 500;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Additional sparkle effect */
+  .testimonial-card::after {
+    content: '';
+    position: absolute;
+    top: -3px;
+    left: -3px;
+    right: -3px;
+    bottom: -3px;
+    background: linear-gradient(45deg, #38B6FF, #8A67FF, #38B6FF);
+    border-radius: 35px;
+    z-index: -1;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+    animation: gradientShift 3s ease-in-out infinite;
+  }
+
+  @keyframes gradientShift {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+
+  .testimonial-card:hover::after {
+    opacity: 0.2;
+  }
+  
   .profile-image-circle {
     width: 300px;
     height: 300px;
@@ -235,8 +535,23 @@
       </div>
     </div>
     
+    <!-- Dr. Colleen L. Barry Testimonial -->
+    <div class="container-default w-container">
+      <div class="testimonial-card">
+        <div class="testimonial-image">
+          <img src="img/BrooksDean.jpg" alt="Dr. Colleen L. Barry" loading="eager">
+        </div>
+        <div class="testimonial-quote">
+          PolityxMap helped us identify a critical gap in youth mental health services across Cayuga County. The data directly informed our 2024 rural telehealth expansion, bringing psychiatric care to three underserved townships that previously had no access.
+        </div>
+        <div class="testimonial-name">Dr. Colleen L. Barry</div>
+        <div class="testimonial-title">Dean</div>
+        <div class="testimonial-institution">Cornell University Jeb E. Brooks School of Public Policy</div>
+      </div>
+    </div>
+    
     <!-- Founder Profile (in same section) -->
-    <div class="container-default w-container founder-profile">
+    <div class="container-default w-container founder-profile" style="display: none;">
       <div class="bg-gradient-blur-wrapper founder-left" style="transform: translate3d(0px, 0px, 0px) scale3d(1, 1, 1) rotateX(0deg) rotateY(0deg) rotateZ(150deg) skew(0deg, 0deg); transform-style: preserve-3d; will-change: transform;">
         <div class="bg-gradient-blur-circle-3"></div>
         <div class="bg-gradient-blur-circle-2 blue"></div>
@@ -279,6 +594,46 @@
         }
       });
     });
+    
+    // Enhanced hover animations for cards
+    const featureCards = document.querySelectorAll('.card.home-feature');
+    featureCards.forEach(card => {
+      card.addEventListener('mouseenter', function() {
+        this.style.transform = 'translateY(-8px)';
+        const image = this.querySelector('.image.card-home-feature');
+        if (image) {
+          image.style.transform = 'scale(1.1) rotate(5deg)';
+        }
+      });
+      
+      card.addEventListener('mouseleave', function() {
+        this.style.transform = 'translateY(0)';
+        const image = this.querySelector('.image.card-home-feature');
+        if (image) {
+          image.style.transform = 'scale(1) rotate(0deg)';
+        }
+      });
+    });
+    
+    // Enhanced hover animations for testimonial card
+    const testimonialCard = document.querySelector('.testimonial-card');
+    if (testimonialCard) {
+      testimonialCard.addEventListener('mouseenter', function() {
+        this.style.transform = 'translateY(-12px) scale(1.02)';
+        const image = this.querySelector('.testimonial-image');
+        if (image) {
+          image.style.transform = 'scale(1.1)';
+        }
+      });
+      
+      testimonialCard.addEventListener('mouseleave', function() {
+        this.style.transform = 'translateY(0) scale(1)';
+        const image = this.querySelector('.testimonial-image');
+        if (image) {
+          image.style.transform = 'scale(1)';
+        }
+      });
+    }
     
     // Add hover animations for profile image
     const profileImage = document.querySelector('.profile-image-circle');
