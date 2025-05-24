@@ -463,19 +463,19 @@ async function createLatestProposalLinks() {
       // Try multiple sources in order of priority
       if (window.ProposalsCMS && typeof window.ProposalsCMS.getLatest === 'function') {
         // Use the ProposalsCMS if available
-        latestProposals = await window.ProposalsCMS.getLatest(3);
+        latestProposals = await window.ProposalsCMS.getLatest(2);
       } else {
         // Try to fetch directly from data file
         try {
           const response = await fetch('/data/proposals.json');
           if (response.ok) {
             const allProposals = await response.json();
-            latestProposals = allProposals.slice(0, 3);
+            latestProposals = allProposals.slice(0, 2);
           } else {
             // Try to import from JS module
             try {
               const module = await import('/data/proposals.js');
-              latestProposals = module.proposals.slice(0, 3);
+              latestProposals = module.proposals.slice(0, 2);
             } catch (err) {
               console.error('Error importing proposals module:', err);
               return;
@@ -546,7 +546,7 @@ async function createLatestProposalLinks() {
 }
 
 // Run the latest proposal links creation after DOM is loaded
-document.addEventListener('DOMContentLoaded', createLatestProposalLinks);
+// document.addEventListener('DOMContentLoaded', createLatestProposalLinks);
 
 /**
  * Fix paths for assets when accessing proposal pages directly
