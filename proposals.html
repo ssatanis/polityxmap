@@ -513,10 +513,20 @@
     
     // Function to load proposals from our data source
     async function loadProposals() {
-      const container = document.getElementById('proposals-container');
-      if (!container) return;
+      // Prevent multiple simultaneous calls
+      if (window.proposalsLoading) {
+        console.log('Proposals already loading, skipping duplicate call');
+        return;
+      }
+      window.proposalsLoading = true;
       
-      // Clear the container
+      const container = document.getElementById('proposals-container');
+      if (!container) {
+        window.proposalsLoading = false;
+        return;
+      }
+      
+      // Clear the container immediately to prevent duplicates
       container.innerHTML = '';
       
       // Get proposals from our data source
@@ -608,12 +618,30 @@
       } catch (error) {
         console.error('Error loading proposals:', error);
         renderEmptyState(container);
+      } finally {
+        window.proposalsLoading = false;
       }
     }
     
     // Function to render proposals
     function renderProposals(proposals, container) {
-      proposals.forEach(proposal => {
+      // Clear the container first to prevent duplicates
+      container.innerHTML = '';
+      
+      // Track rendered proposal IDs to prevent duplicates
+      const renderedProposals = new Set();
+      
+      proposals.forEach((proposal, index) => {
+        // Create unique identifier for this proposal
+        const proposalId = `${proposal.city}-${proposal.state || ''}-${proposal.name || proposal.healthcareIssue || ''}`.toLowerCase().replace(/[^a-z0-9-]/g, '-');
+        
+        // Skip if already rendered
+        if (renderedProposals.has(proposalId)) {
+          console.warn(`Duplicate proposal prevented: ${proposalId}`);
+          return;
+        }
+        renderedProposals.add(proposalId);
+        
         // Get title from name or healthcareIssue for backward compatibility
         const title = proposal.name || proposal.healthcareIssue || 'Healthcare Proposal';
         
@@ -623,8 +651,9 @@
         // Get tags
         const tags = proposal.tags || [];
         
-        // Create card element
+        // Create card element with unique ID
         const card = document.createElement('div');
+        card.id = `proposal-${proposalId}`;
         card.className = 'proposal-card';
         card.onclick = function() {
           window.location.href = `/proposals/${citySlug}/`;
@@ -658,6 +687,8 @@
         // Add to container
         container.appendChild(card);
       });
+      
+      console.log(`✅ Rendered ${renderedProposals.size} unique proposals (duplicates prevented: ${proposals.length - renderedProposals.size})`);
     }
     
     // Function to render empty state

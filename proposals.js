@@ -350,12 +350,29 @@ async function getLatestProposals(count = 3) {
  * Initialize event listeners for proposal updates
  */
 function initProposalListeners() {
-  // Listen for proposalsUpdated events
-  window.addEventListener('proposals-updated', function() {
+  // Remove any existing listeners to prevent duplicates
+  window.removeEventListener('proposals-updated', handleProposalsUpdate);
+  
+  // Add single listener for proposals updated events
+  window.addEventListener('proposals-updated', handleProposalsUpdate);
+}
+
+/**
+ * Handle proposals update events (separate function for easier management)
+ */
+function handleProposalsUpdate() {
+  console.log('📢 Proposals updated event received');
+  
+  // Debounce multiple rapid updates
+  if (window.proposalsUpdateTimeout) {
+    clearTimeout(window.proposalsUpdateTimeout);
+  }
+  
+  window.proposalsUpdateTimeout = setTimeout(() => {
     // Update UI components that display proposals
     updateMapMarkers();
     updateProposalsList();
-  });
+  }, 100); // 100ms debounce
 }
 
 /**
@@ -378,60 +395,89 @@ async function updateMapMarkers() {
 async function updateProposalsList() {
   // Only update if we're on the proposals listing page
   if (window.location.pathname.endsWith('proposals.html')) {
+    // Check if the main loadProposals function is handling this page
+    if (typeof loadProposals === 'function' && document.getElementById('proposals-container')) {
+      console.log('Main proposals page handler detected, skipping updateProposalsList to prevent duplicates');
+      return;
+    }
+    
     const proposalsContainer = document.querySelector('.proposals-grid');
     if (!proposalsContainer) return;
     
-    const proposals = await getProposals();
+    // Prevent duplicate rendering if already in progress
+    if (window.proposalsListUpdating) {
+      console.log('Proposals list already updating, skipping to prevent duplicates');
+      return;
+    }
+    window.proposalsListUpdating = true;
     
-    // Clear existing content
-    proposalsContainer.innerHTML = '';
-    
-    // Add proposals to the grid
-    proposals.forEach(proposal => {
-      // Get title from name or healthcareIssue for backward compatibility
-      const title = proposal.name || proposal.healthcareIssue || 'Healthcare Proposal';
+    try {
+      const proposals = await getProposals();
       
-      // Generate URL slug - ONLY use city name
-      const citySlug = proposal.city ? proposal.city.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, '') : 'detail';
+      // Clear existing content to prevent duplicates
+      proposalsContainer.innerHTML = '';
       
-      // Generate proposal URL using city name only
-      const cityURL = `/proposals/${citySlug}/`;
-      
-      // Get tags
-      const tags = proposal.tags || [];
-      const tag = tags.length > 0 ? tags[0] : 'Healthcare';
-      
-      // Card color classes
-      const colorClasses = ['color1', 'color2', 'color3', 'color4', 'color5', 'color6'];
-      const colorClass = colorClasses[index % colorClasses.length];
-      
-      // Create card element
-      const card = document.createElement('div');
-      card.className = `card post-item ${colorClass}`;
-      
-      // Create card content
-      card.innerHTML = `
-        <div class="proposal-tag">${tag}</div>
-        <h3 class="proposal-title">${title}</h3>
-        <p class="proposal-desc">${proposal.description || 'No description provided.'}</p>
-        <p class="proposal-location"><i class="fas fa-map-marker-alt" style="margin-right: 5px;"></i>${proposal.city || ''}, ${proposal.state || ''}, ${proposal.country || ''}</p>
-        <a href="${cityURL}" class="proposal-btn">View Policy Proposal</a>
-      `;
-      
-      // Add the card to the container
-      proposalsContainer.appendChild(card);
-      
-      // Add click event to the entire card (except the button)
-      card.addEventListener('click', function(e) {
-        // If the click is not on the button, navigate to the proposal page
-        if (!e.target.classList.contains('proposal-btn')) {
-          window.location.href = cityURL;
+      // Add proposals to the grid - FIX: Added index parameter
+      proposals.forEach((proposal, index) => {
+        // Get title from name or healthcareIssue for backward compatibility
+        const title = proposal.name || proposal.healthcareIssue || 'Healthcare Proposal';
+        
+        // Generate URL slug - ONLY use city name
+        const citySlug = proposal.city ? proposal.city.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, '') : 'detail';
+        
+        // Generate proposal URL using city name only
+        const cityURL = `/proposals/${citySlug}/`;
+        
+        // Get tags
+        const tags = proposal.tags || [];
+        const tag = tags.length > 0 ? tags[0] : 'Healthcare';
+        
+        // Card color classes
+        const colorClasses = ['color1', 'color2', 'color3', 'color4', 'color5', 'color6'];
+        const colorClass = colorClasses[index % colorClasses.length];
+        
+        // Create unique ID to prevent duplicates
+        const cardId = `proposal-card-${proposal.id || index}`;
+        
+        // Check if card already exists to prevent duplicates
+        if (document.getElementById(cardId)) {
+          console.warn(`Duplicate proposal card prevented for: ${title}`);
+          return;
         }
+        
+        // Create card element
+        const card = document.createElement('div');
+        card.id = cardId;
+        card.className = `card post-item ${colorClass}`;
+        
+        // Create card content
+        card.innerHTML = `
+          <div class="proposal-tag">${tag}</div>
+          <h3 class="proposal-title">${title}</h3>
+          <p class="proposal-desc">${proposal.description || 'No description provided.'}</p>
+          <p class="proposal-location"><i class="fas fa-map-marker-alt" style="margin-right: 5px;"></i>${proposal.city || ''}, ${proposal.state || ''}, ${proposal.country || ''}</p>
+          <a href="${cityURL}" class="proposal-btn">View Policy Proposal</a>
+        `;
+        
+        // Add the card to the container
+        proposalsContainer.appendChild(card);
+        
+        // Add click event to the entire card (except the button)
+        card.addEventListener('click', function(e) {
+          // If the click is not on the button, navigate to the proposal page
+          if (!e.target.classList.contains('proposal-btn')) {
+            window.location.href = cityURL;
+          }
+        });
+        
+        // Make the card look clickable
+        card.style.cursor = 'pointer';
       });
       
-      // Make the card look clickable
-      card.style.cursor = 'pointer';
-    });
+      console.log(`✅ Rendered ${proposals.length} unique proposals (no duplicates)`);
+    } finally {
+      window.proposalsListUpdating = false;
+    }
   }
 }
 
