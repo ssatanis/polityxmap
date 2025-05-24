@@ -13,6 +13,15 @@ yarn.lock
 .env.test.local
 .env.production.local
 
+# Security-related files (DO NOT COMMIT)
+config.production.js
+credentials.json
+auth-keys/
+*.pem
+*.key
+*.crt
+session-store/
+
 # OS files
 .DS_Store
 Thumbs.db
@@ -35,3 +44,8 @@ pids
 *.pid
 *.seed
 *.pid.lock
+
+# Security logs and temporary files
+auth-attempts.log
+session-data/
+temp-security/

@@ -40,9 +40,9 @@
   <script src="admin-proposals-integration.js"></script>
   <script src="admin.js"></script>
   
-  <!-- Additional Security Layer -->
+  <!-- SECURE AUTHENTICATION CHECK -->
   <style>
-    /* Hide content until authentication is verified */
+    /* Hide all content until authentication is verified */
     body.auth-pending {
       opacity: 0;
       visibility: hidden;
@@ -53,66 +53,140 @@
       visibility: visible;
       transition: opacity 0.3s ease;
     }
+    
+    .security-error {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      background-color: #13111A;
+      color: white;
+      text-align: center;
+      font-family: 'DM Sans', sans-serif;
+    }
+    
+    .security-error h1 {
+      font-size: 48px;
+      margin-bottom: 20px;
+      color: #ff6b6b;
+    }
+    
+    .security-error p {
+      font-size: 18px;
+      margin-bottom: 30px;
+      color: rgba(255, 255, 255, 0.8);
+    }
+    
+    .security-error a {
+      background: linear-gradient(-45deg, #9B59B6, #8A67FF);
+      color: white;
+      text-decoration: none;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-weight: 600;
+      transition: transform 0.3s ease;
+    }
+    
+    .security-error a:hover {
+      transform: translateY(-2px);
+    }
   </style>
   
-  <!-- Authentication Check -->
+  <!-- CRITICAL SECURITY CHECK -->
   <script>
-    ;(function(){
-      // Initially hide content
+    (function() {
+      'use strict';
+      
+      // Initially hide all content
+      document.body = document.body || document.createElement('body');
       document.body.className = 'bg-neutral-800 auth-pending';
       
-      // Check authentication status
-      const auth = localStorage.getItem('adminAuthenticated') === 'true';
-      const last = parseInt(localStorage.getItem('lastActivity')||'0', 10);
-      const now  = Date.now();
-
-      console.log('🔐 Authentication Check:', { auth, lastActivity: last, now, sessionValid: auth && (now - last <= 10*60*1000) });
-
-      // not logged in → quick redirect with clear state
-      if (!auth) {
-        console.log('❌ Not authenticated - redirecting to login');
-        localStorage.removeItem('adminAuthenticated');
-        localStorage.removeItem('lastActivity');
-        return window.location.replace('login.html?session=expired');
-      }
-
-      // expired → clear and redirect (10 minute session timeout)
-      if (now - last > 10*60*1000) {
-        console.log('⏰ Session expired - redirecting to login');
-        localStorage.removeItem('adminAuthenticated');
-        localStorage.removeItem('lastActivity');
-        return window.location.replace('login.html?session=expired');
-      }
-
-      // still valid → bump lastActivity and show content
-      console.log('✅ Authentication verified - access granted');
-      localStorage.setItem('lastActivity', now.toString());
-      document.body.className = 'bg-neutral-800 auth-verified';
-      
-      // Set up activity updater to extend session on user interaction
-      let activityTimer;
-      function updateActivity() {
-        localStorage.setItem('lastActivity', Date.now().toString());
-        clearTimeout(activityTimer);
-        // Auto-logout after 10 minutes of inactivity
-        activityTimer = setTimeout(() => {
-          localStorage.removeItem('adminAuthenticated');
-          localStorage.removeItem('lastActivity');
-          window.location.replace('login.html?session=expired');
-        }, 10*60*1000);
+      // Function to show security error
+      function showSecurityError(message) {
+        document.body.innerHTML = `
+          <div class="security-error">
+            <h1><i class="fas fa-shield-alt"></i> Access Denied</h1>
+            <p>${message}</p>
+            <a href="/login">Go to Login</a>
+          </div>
+        `;
+        document.body.className = 'auth-verified';
       }
       
-      // Update activity on user interactions
-      ['click', 'keypress', 'scroll', 'mousemove'].forEach(event => {
-        document.addEventListener(event, updateActivity, { passive: true });
+      // Function to verify server-side authentication
+      async function verifyServerAuth() {
+        try {
+          const response = await fetch('/api/auth/status', {
+            method: 'GET',
+            credentials: 'include', // Include session cookies
+            cache: 'no-cache'
+          });
+          
+          if (!response.ok) {
+            throw new Error('Authentication service unavailable');
+          }
+          
+          const authData = await response.json();
+          
+          if (!authData.isLoggedIn) {
+            console.log('❌ Server authentication failed - redirecting to login');
+            showSecurityError('You must be logged in to access the admin portal.');
+            return false;
+          }
+          
+          console.log('✅ Server authentication verified - access granted');
+          return true;
+        } catch (error) {
+          console.error('🚨 Authentication verification failed:', error);
+          showSecurityError('Authentication system unavailable. Please try again later.');
+          return false;
+        }
+      }
+      
+      // Run authentication check when DOM is ready
+      document.addEventListener('DOMContentLoaded', async function() {
+        const isAuthenticated = await verifyServerAuth();
+        
+        if (isAuthenticated) {
+          // Show the admin content
+          document.body.className = 'bg-neutral-800 auth-verified';
+          
+          // Set up automatic session checking every 30 seconds
+          setInterval(async () => {
+            const stillAuthenticated = await verifyServerAuth();
+            if (!stillAuthenticated) {
+              console.log('🔄 Session expired - redirecting to login');
+              window.location.replace('/login?session=expired');
+            }
+          }, 30000);
+          
+          // Set up logout function for the UI
+          window.adminLogout = async function() {
+            try {
+              await fetch('/api/auth/logout', {
+                method: 'POST',
+                credentials: 'include'
+              });
+            } catch (error) {
+              console.error('Logout error:', error);
+            } finally {
+              window.location.replace('/login?logout=true');
+            }
+          };
+        }
       });
       
-      // Start the activity timer
-      updateActivity();
+      // Block access if JavaScript is disabled
+      setTimeout(() => {
+        if (document.body.className.includes('auth-pending')) {
+          showSecurityError('JavaScript is required to access the admin portal.');
+        }
+      }, 5000);
     })();
   </script>
 </head>
-<body class="bg-neutral-800">
+<body class="bg-neutral-800 auth-pending">
   <!-- Header placeholder -->
   <div id="site-header"></div>
   
@@ -145,13 +219,7 @@
         <div class="admin-nav-divider"></div>
         
         <li class="admin-nav-item">
-          <a href="javascript:void(0);" class="admin-nav-link" id="logout-button" onclick=" 
-              // clear exactly what the guard checks 
-              localStorage.removeItem('adminAuthenticated'); 
-              localStorage.removeItem('lastActivity'); 
-              sessionStorage.clear(); 
-              return window.location.replace('login.html?logout=true'); 
-           ">
+          <a href="javascript:void(0);" class="admin-nav-link" id="logout-button" onclick="window.adminLogout && window.adminLogout()">
             <i class="fas fa-sign-out-alt"></i>
             <span>Logout</span>
           </a>
@@ -198,6 +266,13 @@
               <i class="fas fa-globe-americas"></i> Countries Represented
             </h3>
             <div class="metric-counter" data-metric="countriesRepresented">0</div>
+          </div>
+          
+          <div class="admin-card">
+            <h3 class="admin-card-title">
+              <i class="fas fa-clock"></i> Last Updated
+            </h3>
+            <div class="metric-counter" id="last-updated-time">Loading...</div>
           </div>
         </div>
         

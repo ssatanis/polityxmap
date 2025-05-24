@@ -767,7 +767,7 @@
       }
       
       // Handle form submission
-      loginForm.addEventListener('submit', function(e) {
+      loginForm.addEventListener('submit', async function(e) {
         e.preventDefault();
         
         if (isLocked) {
@@ -775,50 +775,92 @@
         }
         
         const password = passwordInput.value.trim();
+        const username = 'admin'; // Default username
+        
         loginButton.disabled = true;
         loginButton.textContent = 'Signing in...';
         
-        // Client-side authentication for demo purposes
-        // In a real application, this would be handled server-side
-        if (password === 'Polityx76092') {
-          // clear any old state
-          localStorage.removeItem('polityxMapSession');
-          localStorage.removeItem('isLoggedIn');
+        try {
+          // Send authentication request to server
+          const response = await fetch('/api/auth/login', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            credentials: 'include', // Include session cookies
+            body: JSON.stringify({
+              username: username,
+              password: password
+            })
+          });
           
-          // set the new keys your admin.html guard is looking for
-          localStorage.setItem('adminAuthenticated', 'true');
-          localStorage.setItem('lastActivity', Date.now().toString());
+          const data = await response.json();
           
-          // add to your history log as before…
-          const historyLog = JSON.parse(localStorage.getItem('polityxMapHistory')||'[]');
-          historyLog.unshift({ action: 'Login', timestamp: Date.now(), details: 'Admin logged in' });
-          localStorage.setItem('polityxMapHistory', JSON.stringify(historyLog));
-          
-          // redirect with replace so back-button won't bounce you right back
-          return window.location.replace('admin.html');
-        } else {
-          // Failed login
+          if (response.ok && data.success) {
+            // Successful login - clear any old client-side data
+            localStorage.removeItem('polityxMapSession');
+            localStorage.removeItem('isLoggedIn');
+            localStorage.removeItem('adminAuthenticated');
+            localStorage.removeItem('lastActivity');
+            
+            // Add to history log
+            try {
+              const historyLog = JSON.parse(localStorage.getItem('polityxMapHistory') || '[]');
+              historyLog.unshift({ 
+                action: 'Login', 
+                timestamp: Date.now(), 
+                details: 'Admin logged in successfully' 
+              });
+              localStorage.setItem('polityxMapHistory', JSON.stringify(historyLog));
+            } catch (e) {
+              console.error('Error updating history log:', e);
+            }
+            
+            // Redirect to admin portal with cache-busting
+            window.location.replace('/admin?auth=' + Date.now());
+          } else {
+            // Handle authentication failure
+            loginButton.disabled = false;
+            loginButton.textContent = 'Sign In';
+            
+            if (response.status === 429) {
+              // Account locked
+              isLocked = true;
+              lockoutEnd = data.lockedUntil || (Date.now() + (5 * 60 * 1000));
+              
+              localStorage.setItem('polityxMapLockout', JSON.stringify({
+                until: lockoutEnd
+              }));
+              
+              startLockoutTimer();
+            } else {
+              // Regular auth failure
+              attempts = data.attempts || (attempts + 1);
+              updateAttemptDots();
+              
+              if (attempts >= maxAttempts) {
+                isLocked = true;
+                lockoutEnd = Date.now() + (5 * 60 * 1000);
+                
+                localStorage.setItem('polityxMapLockout', JSON.stringify({
+                  until: lockoutEnd
+                }));
+                
+                startLockoutTimer();
+              }
+              
+              // Show error message
+              errorMessage.textContent = data.message || 'Invalid credentials. Please try again.';
+              errorMessage.style.display = 'block';
+            }
+          }
+        } catch (error) {
+          console.error('Login error:', error);
           loginButton.disabled = false;
           loginButton.textContent = 'Sign In';
           
-          attempts++;
-          updateAttemptDots();
-          
-          // Check if max attempts reached
-          if (attempts >= maxAttempts) {
-            isLocked = true;
-            lockoutEnd = Date.now() + (5 * 60 * 1000); // 5 minutes lockout
-            
-            // Store lockout in localStorage
-            localStorage.setItem('polityxMapLockout', JSON.stringify({
-              until: lockoutEnd
-            }));
-            
-            startLockoutTimer();
-          }
-          
-          // Show error message
-          errorMessage.textContent = 'Invalid password. Please try again.';
+          // Show network error message
+          errorMessage.textContent = 'Network error. Please check your connection and try again.';
           errorMessage.style.display = 'block';
         }
       });
