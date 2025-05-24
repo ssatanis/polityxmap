@@ -355,7 +355,6 @@ function initProposalListeners() {
     // Update UI components that display proposals
     updateMapMarkers();
     updateProposalsList();
-    updateLatestProposals();
   });
 }
 
@@ -436,74 +435,6 @@ async function updateProposalsList() {
       // Make the card look clickable
       card.style.cursor = 'pointer';
     });
-  }
-}
-
-/**
- * Update the latest proposals on the home page
- */
-async function updateLatestProposals() {
-  // Only update if we're on the home page
-  if (window.location.pathname === '/' || window.location.pathname.endsWith('index.html')) {
-    const proposalsContainer = document.querySelector('.latest-proposals');
-    if (!proposalsContainer) return;
-    
-    const latestProposals = await getLatestProposals(4); // Get latest 4 proposals
-    
-    // Clear existing content
-    proposalsContainer.innerHTML = '';
-    
-    // Add proposals to the grid
-    latestProposals.forEach((proposal, index) => {
-      // Get title from name or healthcareIssue for backward compatibility
-      const title = proposal.name || proposal.healthcareIssue || 'Healthcare Proposal';
-      
-      // Generate URL slug - ONLY use city name
-      const citySlug = proposal.city ? proposal.city.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]/g, '') : 'detail';
-      
-      // Special case for Ithaca - use direct file
-      let cityURL = `/proposals/${citySlug}`;
-      if (citySlug === 'ithaca') {
-        cityURL = '/proposals-ithaca.html';
-      }
-      
-      // Get tags
-      const tags = proposal.tags || [];
-      const tag = tags.length > 0 ? tags[0] : 'Healthcare';
-      
-      // Card color classes
-      const colorClasses = ['color1', 'color2', 'color3', 'color4', 'color5', 'color6'];
-      const colorClass = colorClasses[index % colorClasses.length];
-      
-      // Create card content with improved structure
-      const proposalCard = document.createElement('div');
-      proposalCard.className = `card post-item ${colorClass}`;
-      proposalCard.innerHTML = `
-        <div class="proposal-tag">${tag}</div>
-        <h3 class="proposal-title">${title}</h3>
-        <p class="proposal-desc">${proposal.description || 'No description provided.'}</p>
-        <p class="proposal-location"><i class="fas fa-map-marker-alt" style="margin-right: 5px;"></i>${proposal.city || ''}, ${proposal.state || ''}, ${proposal.country || ''}</p>
-        <a href="${cityURL}" class="proposal-btn">View Policy Proposal</a>
-      `;
-      
-      proposalsContainer.appendChild(proposalCard);
-      
-      // Add click event to the entire card (except the button)
-      proposalCard.addEventListener('click', function(e) {
-        // If the click is not on the button, navigate to the proposal page
-        if (!e.target.classList.contains('proposal-btn')) {
-          window.location.href = cityURL;
-        }
-      });
-      
-      // Make the card look clickable
-      proposalCard.style.cursor = 'pointer';
-    });
-    
-    // If no proposals, show a message
-    if (latestProposals.length === 0) {
-      proposalsContainer.innerHTML = '<div class="no-proposals" style="text-align: center; padding: 40px; color: rgba(255,255,255,0.7); font-size: 18px;">No proposals available yet. Be the first to submit one!</div>';
-    }
   }
 }
 
