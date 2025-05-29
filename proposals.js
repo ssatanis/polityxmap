@@ -78,8 +78,15 @@ async function getProposals() {
     // Check if we're in a browser (for server-side processing)
     const isBrowser = typeof window !== 'undefined';
     
-    // If we still don't have proposals, try localStorage fallback
+    // If we still don't have proposals, try fallback sources
     if (isBrowser) {
+      // Try MAP_DATA as a fallback if available
+      if (window.GENERATED_MAP_DATA && window.GENERATED_MAP_DATA.length > 0) {
+        console.log('Using MAP_DATA as fallback proposals source:', window.GENERATED_MAP_DATA.length);
+        return window.GENERATED_MAP_DATA;
+      }
+      
+      // Finally try localStorage fallback
       console.warn('Data file not detected, falling back to localStorage for proposals data');
       const storedProposals = localStorage.getItem('polityxMapProposals');
       return storedProposals ? JSON.parse(storedProposals) : [];
@@ -89,6 +96,12 @@ async function getProposals() {
     return [];
   } catch (error) {
     console.error('Error loading proposals:', error);
+    
+    // Fall back to MAP_DATA if available
+    if (typeof window !== 'undefined' && window.GENERATED_MAP_DATA && window.GENERATED_MAP_DATA.length > 0) {
+      console.log('Error fallback: Using MAP_DATA:', window.GENERATED_MAP_DATA.length);
+      return window.GENERATED_MAP_DATA;
+    }
     
     // Fall back to localStorage if available
     if (typeof localStorage !== 'undefined') {
