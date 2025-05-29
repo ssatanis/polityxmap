@@ -1,0 +1,1253 @@
+<!DOCTYPE html>
+<html class="w-mod-js w-mod-ix wf-dmsans-n5-active wf-dmsans-n7-active wf-dmsans-n4-active wf-active" data-wf-domain="darktemplate.webflow.io" data-wf-locale="en" data-wf-page="61113c4e9f23df42e2554109" data-wf-site="61113c4e9f23df1e7f554117" data-wf-status="1" lang="en">
+<head>
+  <style>.wf-force-outline-none[tabindex="-1"]:focus{outline:none;}</style>
+  <meta charset="utf-8"/>
+  <title>Healthcare News | PolityxMap</title>
+  <meta content="Stay updated with the latest healthcare news and policy developments. Real-time healthcare journalism powered by NewsAPI for informed decision-making." name="description"/>
+  <meta content="Healthcare News | PolityxMap" property="og:title"/>
+  <meta content="Stay updated with the latest healthcare news and policy developments. Real-time healthcare journalism powered by NewsAPI for informed decision-making." property="og:description"/>
+  <meta content="https://cdn.prod.website-files.com/61113c4e9f23df1e7f554117/6116f87a2ba0ad7e5947b25e_featured-image-dark-template.png" property="og:image"/>
+  <meta content="Healthcare News | PolityxMap" property="twitter:title"/>
+  <meta content="Stay updated with the latest healthcare news and policy developments. Real-time healthcare journalism powered by NewsAPI for informed decision-making." property="twitter:description"/>
+  <meta content="https://cdn.prod.website-files.com/61113c4e9f23df1e7f554117/6116f87a2ba0ad7e5947b25e_featured-image-dark-template.png" property="twitter:image"/>
+  <meta content="website" property="og:type"/>
+  <meta content="summary_large_image" name="twitter:card"/>
+  <meta content="width=device-width, initial-scale=1" name="viewport"/>
+  <meta content="Webflow" name="generator"/>
+  <link href="https://cdn.prod.website-files.com/61113c4e9f23df1e7f554117/css/darktemplate.webflow.eb6e6d95d.css" rel="stylesheet" type="text/css"/>
+  <link href="https://fonts.googleapis.com" rel="preconnect"/>
+  <link crossorigin="anonymous" href="https://fonts.gstatic.com" rel="preconnect"/>
+  <script src="https://ajax.googleapis.com/ajax/libs/webfont/1.6.26/webfont.js" type="text/javascript"></script>
+  <link href="https://fonts.googleapis.com/css?family=DM+Sans:regular,500,700" media="all" rel="stylesheet"/>
+  <script type="text/javascript">WebFont.load({  google: {    families: ["DM Sans:regular,500,700"]  }});</script>
+  <script type="text/javascript">!function(o,c){var n=c.documentElement,t=" w-mod-";n.className+=t+"js",("ontouchstart"in o||o.DocumentTouch&&c instanceof DocumentTouch)&&(n.className+=t+"touch")}(window,document);</script>
+  
+  <!-- Favicon implementation -->
+  <link rel="icon" type="image/svg+xml" href="img/PolityxFavicon.svg">
+  <link rel="icon" type="image/png" href="img/PolityxFavicon.png">
+  <link rel="apple-touch-icon" href="img/PolityxFavicon.png">
+  <link rel="shortcut icon" type="image/x-icon" href="img/PolityxFavicon.png">
+  
+  <!-- Includes script for header and footer -->
+  <script src="includes.js"></script>
+  
+  <!-- NewsAPI Healthcare News Scripts -->
+  <script src="js/healthcare-news.js"></script>
+  
+  <!-- Advanced Animation and UI Libraries -->
+  <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+  <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+  
+  <!-- Chart.js for Stock Charts -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  
+  <style>
+    .w-webflow-badge{
+      display:none !important;
+    }
+    
+    /* Professional Dark Theme - Enhanced */
+    * {
+      box-sizing: border-box;
+    }
+    
+    body {
+      background: #0a0a0f;
+      background-image: 
+        radial-gradient(circle at 25% 25%, rgba(15, 52, 96, 0.3) 0%, transparent 50%),
+        radial-gradient(circle at 75% 75%, rgba(0, 90, 167, 0.2) 0%, transparent 50%);
+      background-attachment: fixed;
+      min-height: 100vh;
+      font-family: 'DM Sans', sans-serif;
+      overflow-x: hidden;
+      color: #ffffff;
+    }
+
+    .page-wrapper {
+      background: transparent;
+      position: relative;
+      /* Reduced top padding for tighter spacing with header */
+      padding-top: 40px;
+    }
+
+    /* Professional Container */
+    .news-container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 0 40px;
+    }
+
+    /* Healthcare Stocks Dashboard */
+    .stocks-dashboard {
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid rgba(51, 65, 85, 0.4);
+      border-radius: 20px;
+      padding: 32px;
+      margin-bottom: 48px;
+      backdrop-filter: blur(20px);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    }
+
+    .stocks-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .stocks-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #f8fafc;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .stocks-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+      margin-bottom: 24px;
+    }
+
+    .stock-card {
+      background: rgba(30, 41, 59, 0.6);
+      border: 1px solid rgba(71, 85, 105, 0.4);
+      border-radius: 16px;
+      padding: 20px;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+      cursor: pointer;
+      transform: translateZ(0);
+    }
+
+    .stock-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(147, 51, 234, 0.1));
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      z-index: 0;
+    }
+
+    .stock-card:hover {
+      transform: translateY(-4px) scale(1.02);
+      border-color: #60a5fa;
+      box-shadow: 
+        0 12px 32px rgba(59, 130, 246, 0.25),
+        0 4px 16px rgba(0, 0, 0, 0.3);
+    }
+
+    .stock-card:hover::before {
+      opacity: 1;
+    }
+
+    .stock-card:active {
+      transform: translateY(-2px) scale(1.01);
+    }
+
+    .stock-card > * {
+      position: relative;
+      z-index: 1;
+    }
+
+    .stock-symbol {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: #f8fafc;
+      margin-bottom: 8px;
+    }
+
+    .stock-name {
+      font-size: 0.9rem;
+      color: #94a3b8;
+      margin-bottom: 12px;
+    }
+
+    .stock-price {
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: #60a5fa;
+      margin-bottom: 8px;
+    }
+
+    .stock-change {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.9rem;
+      font-weight: 500;
+    }
+
+    .stock-change.positive {
+      color: #10b981;
+    }
+
+    .stock-change.negative {
+      color: #ef4444;
+    }
+
+    /* Enhanced Controls Section */
+    .news-controls {
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid rgba(51, 65, 85, 0.4);
+      border-radius: 20px;
+      padding: 32px;
+      margin-bottom: 48px;
+      backdrop-filter: blur(20px);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 24px;
+    }
+
+    .news-search {
+      position: relative;
+      flex: 1;
+      min-width: 300px;
+      max-width: 500px;
+    }
+
+    .news-search input {
+      width: 100%;
+      padding: 16px 24px 16px 56px;
+      background: rgba(30, 41, 59, 0.6);
+      border: 2px solid rgba(71, 85, 105, 0.4);
+      border-radius: 16px;
+      color: #f8fafc;
+      font-size: 16px;
+      transition: all 0.3s ease;
+      backdrop-filter: blur(10px);
+      box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .news-search input:focus {
+      outline: none;
+      border-color: #60a5fa;
+      background: rgba(30, 41, 59, 0.8);
+      box-shadow: 
+        inset 0 2px 4px rgba(0, 0, 0, 0.1),
+        0 0 0 3px rgba(96, 165, 250, 0.2);
+    }
+
+    .news-search input::placeholder {
+      color: #94a3b8;
+    }
+
+    .news-search::before {
+      content: '🔍';
+      position: absolute;
+      left: 20px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 18px;
+      z-index: 1;
+    }
+
+    /* Professional Filter Buttons */
+    .news-filter {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .filter-button {
+      padding: 12px 24px;
+      background: rgba(30, 41, 59, 0.6);
+      border: 2px solid rgba(71, 85, 105, 0.4);
+      border-radius: 12px;
+      color: #e2e8f0;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-size: 14px;
+      font-weight: 500;
+      backdrop-filter: blur(10px);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .filter-button::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+      transition: left 0.5s;
+    }
+
+    .filter-button:hover::before {
+      left: 100%;
+    }
+
+    .filter-button:hover {
+      border-color: #60a5fa;
+      background: rgba(30, 41, 59, 0.8);
+      transform: translateY(-1px);
+    }
+
+    .filter-button.active {
+      background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+      border-color: #60a5fa;
+      color: white;
+      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+    }
+
+    /* News Statistics Bar */
+    .news-stats {
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid rgba(51, 65, 85, 0.3);
+      border-radius: 16px;
+      padding: 20px 32px;
+      margin-bottom: 32px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .stat-item {
+      text-align: center;
+    }
+
+    .stat-number {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #60a5fa;
+    }
+
+    .stat-label {
+      font-size: 0.9rem;
+      color: #94a3b8;
+      margin-top: 4px;
+    }
+
+    /* Professional Featured Article */
+    .featured-article {
+      margin-bottom: 48px;
+    }
+
+    .featured-card {
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid rgba(51, 65, 85, 0.4);
+      border-radius: 24px;
+      overflow: hidden;
+      backdrop-filter: blur(20px);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+      transition: all 0.4s ease;
+      position: relative;
+    }
+
+    .featured-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 24px 48px rgba(0, 0, 0, 0.4);
+      border-color: rgba(96, 165, 250, 0.4);
+    }
+
+    .featured-content {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      min-height: 420px;
+    }
+
+    .featured-image {
+      position: relative;
+      overflow: hidden;
+    }
+
+    .featured-image img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.4s ease;
+    }
+
+    .featured-card:hover .featured-image img {
+      transform: scale(1.02);
+    }
+
+    .featured-text {
+      padding: 48px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .featured-meta {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 16px;
+      font-size: 13px;
+      color: #94a3b8;
+    }
+
+    .featured-category {
+      background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+      color: white;
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .featured-title {
+      font-size: 2rem;
+      font-weight: 700;
+      color: #f8fafc;
+      margin-bottom: 16px;
+      line-height: 1.3;
+    }
+
+    .featured-description {
+      color: #cbd5e1;
+      font-size: 1.1rem;
+      line-height: 1.6;
+      margin-bottom: 24px;
+    }
+
+    .featured-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+      color: white;
+      padding: 12px 24px;
+      border-radius: 12px;
+      text-decoration: none;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      align-self: flex-start;
+      font-size: 14px;
+    }
+
+    .featured-link:hover {
+      transform: translateX(4px);
+      box-shadow: 0 8px 24px rgba(59, 130, 246, 0.4);
+    }
+
+    /* Professional News Grid */
+    .news-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+      gap: 32px;
+      margin-bottom: 64px;
+    }
+
+    .news-card {
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid rgba(51, 65, 85, 0.4);
+      border-radius: 20px;
+      overflow: hidden;
+      backdrop-filter: blur(20px);
+      transition: all 0.4s ease;
+      position: relative;
+      cursor: pointer;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+    }
+
+    .news-card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 16px 32px rgba(0, 0, 0, 0.3);
+      border-color: rgba(96, 165, 250, 0.4);
+    }
+
+    .card-image {
+      height: 220px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .card-image img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.4s ease;
+    }
+
+    .news-card:hover .card-image img {
+      transform: scale(1.05);
+    }
+
+    .card-content {
+      padding: 28px;
+    }
+
+    .card-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+      font-size: 12px;
+      color: #94a3b8;
+    }
+
+    .card-category {
+      background: rgba(59, 130, 246, 0.2);
+      color: #60a5fa;
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .card-title {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: #f8fafc;
+      margin-bottom: 12px;
+      line-height: 1.4;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .card-description {
+      color: #cbd5e1;
+      line-height: 1.6;
+      margin-bottom: 20px;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      font-size: 14px;
+    }
+
+    .card-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: 16px;
+      border-top: 1px solid rgba(51, 65, 85, 0.3);
+    }
+
+    .card-source {
+      font-size: 12px;
+      color: #64748b;
+      font-style: italic;
+    }
+
+    .read-more {
+      color: #60a5fa;
+      text-decoration: none;
+      font-weight: 500;
+      font-size: 13px;
+      transition: all 0.3s ease;
+    }
+
+    .read-more:hover {
+      color: #93c5fd;
+      transform: translateX(2px);
+    }
+
+    /* Professional State Containers */
+    .state-container {
+      text-align: center;
+      padding: 80px 40px;
+      color: #cbd5e1;
+    }
+
+    .loading-spinner {
+      width: 40px;
+      height: 40px;
+      border: 3px solid rgba(96, 165, 250, 0.3);
+      border-top: 3px solid #60a5fa;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin: 0 auto 24px;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .error-container, .empty-container {
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid rgba(51, 65, 85, 0.4);
+      border-radius: 20px;
+      padding: 48px;
+      margin: 40px auto;
+      max-width: 600px;
+      backdrop-filter: blur(20px);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+    }
+
+    .error-container {
+      border-color: rgba(239, 68, 68, 0.3);
+    }
+
+    .error-container h3 {
+      color: #f87171;
+      margin-bottom: 16px;
+      font-size: 1.5rem;
+    }
+
+    .empty-container h3 {
+      color: #f8fafc;
+      margin-bottom: 16px;
+      font-size: 1.5rem;
+    }
+
+    /* Professional Pagination */
+    .pagination-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 16px;
+      margin-top: 48px;
+      padding: 32px 0;
+    }
+
+    .pagination-btn {
+      background: rgba(30, 41, 59, 0.8);
+      border: 2px solid rgba(71, 85, 105, 0.4);
+      color: #e2e8f0;
+      padding: 12px 24px;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-weight: 500;
+      backdrop-filter: blur(10px);
+    }
+
+    .pagination-btn:hover:not(:disabled) {
+      background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+      border-color: #60a5fa;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+    }
+
+    .pagination-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    .pagination-info {
+      color: #cbd5e1;
+      font-weight: 500;
+      font-size: 14px;
+    }
+
+    /* Perfectly Seamless Footer Integration */
+    #site-footer {
+      background: transparent !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      border: none !important;
+      box-shadow: none !important;
+    }
+
+    #site-footer .footer-wrap {
+      background: transparent !important;
+      border: none !important;
+      border-radius: 0 !important;
+      backdrop-filter: none !important;
+      padding: 80px 40px 40px !important;
+      margin: 0 !important;
+      box-shadow: none !important;
+    }
+
+    #site-footer .footer-column {
+      background: transparent !important;
+      border: none !important;
+    }
+
+    #site-footer .footer-column h3,
+    #site-footer .footer-column h4 {
+      color: #f8fafc !important;
+      background: transparent !important;
+    }
+
+    #site-footer .footer-column p,
+    #site-footer .footer-column a,
+    #site-footer .footer-column span,
+    #site-footer .footer-column div {
+      color: #cbd5e1 !important;
+      background: transparent !important;
+    }
+
+    #site-footer .footer-column a:hover {
+      color: #60a5fa !important;
+      background: transparent !important;
+    }
+
+    #site-footer .footer-bottom {
+      background: transparent !important;
+      border: none !important;
+      border-top: 1px solid rgba(51, 65, 85, 0.3) !important;
+      color: #94a3b8 !important;
+      margin-top: 40px !important;
+      padding-top: 20px !important;
+    }
+
+    /* Remove any container backgrounds */
+    #site-footer .container,
+    #site-footer .w-container,
+    #site-footer > div,
+    #site-footer section {
+      background: transparent !important;
+      border: none !important;
+      box-shadow: none !important;
+    }
+
+    /* Ensure social icons and other elements blend */
+    #site-footer .social-icon,
+    #site-footer .footer-link,
+    #site-footer .footer-text {
+      background: transparent !important;
+      border: none !important;
+    }
+
+    /* Enhanced Interactive Stock Cards */
+    .stock-card {
+      background: rgba(30, 41, 59, 0.6);
+      border: 1px solid rgba(71, 85, 105, 0.4);
+      border-radius: 16px;
+      padding: 20px;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+      cursor: pointer;
+      transform: translateZ(0);
+    }
+
+    .stock-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(147, 51, 234, 0.1));
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      z-index: 0;
+    }
+
+    .stock-card:hover {
+      transform: translateY(-4px) scale(1.02);
+      border-color: #60a5fa;
+      box-shadow: 
+        0 12px 32px rgba(59, 130, 246, 0.25),
+        0 4px 16px rgba(0, 0, 0, 0.3);
+    }
+
+    .stock-card:hover::before {
+      opacity: 1;
+    }
+
+    .stock-card:active {
+      transform: translateY(-2px) scale(1.01);
+    }
+
+    .stock-card > * {
+      position: relative;
+      z-index: 1;
+    }
+
+    /* Stock Detail Modal */
+    .stock-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      backdrop-filter: blur(20px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10000;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .stock-modal.active {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .stock-modal-content {
+      background: rgba(15, 23, 42, 0.95);
+      border: 1px solid rgba(51, 65, 85, 0.4);
+      border-radius: 24px;
+      padding: 40px;
+      max-width: 600px;
+      width: 90%;
+      max-height: 80vh;
+      overflow-y: auto;
+      position: relative;
+      backdrop-filter: blur(20px);
+      box-shadow: 0 24px 64px rgba(0, 0, 0, 0.4);
+      transform: scale(0.9) translateY(20px);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .stock-modal.active .stock-modal-content {
+      transform: scale(1) translateY(0);
+    }
+
+    .stock-modal-close {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: rgba(71, 85, 105, 0.6);
+      border: none;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      color: #e2e8f0;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s ease;
+      font-size: 18px;
+    }
+
+    .stock-modal-close:hover {
+      background: rgba(239, 68, 68, 0.8);
+      transform: scale(1.1);
+    }
+
+    .stock-modal-header {
+      margin-bottom: 32px;
+      text-align: center;
+    }
+
+    .stock-modal-symbol {
+      font-size: 2.5rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #60a5fa, #a78bfa);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 8px;
+    }
+
+    .stock-modal-name {
+      font-size: 1.25rem;
+      color: #cbd5e1;
+      margin-bottom: 16px;
+    }
+
+    .stock-modal-price {
+      font-size: 3rem;
+      font-weight: 700;
+      color: #f8fafc;
+      margin-bottom: 8px;
+    }
+
+    .stock-modal-change {
+      font-size: 1.2rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .stock-modal-details {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 24px;
+      margin-top: 32px;
+    }
+
+    .detail-item {
+      background: rgba(30, 41, 59, 0.6);
+      border: 1px solid rgba(71, 85, 105, 0.4);
+      border-radius: 12px;
+      padding: 20px;
+      text-align: center;
+      transition: all 0.3s ease;
+    }
+
+    .detail-item:hover {
+      border-color: #60a5fa;
+      background: rgba(30, 41, 59, 0.8);
+    }
+
+    .detail-label {
+      font-size: 0.9rem;
+      color: #94a3b8;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .detail-value {
+      font-size: 1.4rem;
+      font-weight: 600;
+      color: #f8fafc;
+    }
+
+    .stock-chart {
+      margin-top: 32px;
+      background: rgba(30, 41, 59, 0.6);
+      border: 1px solid rgba(71, 85, 105, 0.4);
+      border-radius: 12px;
+      padding: 20px;
+    }
+
+    .chart-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: #f8fafc;
+      margin-bottom: 16px;
+      text-align: center;
+    }
+
+    /* Enhanced Pulse Animation */
+    .pulse-dot {
+      animation: stockPulse 2s infinite;
+    }
+
+    @keyframes stockPulse {
+      0%, 100% { 
+        transform: scale(1); 
+        opacity: 0.8;
+      }
+      50% { 
+        transform: scale(1.2); 
+        opacity: 1;
+      }
+    }
+
+    /* Click Ripple Effect */
+    .ripple {
+      position: absolute;
+      border-radius: 50%;
+      background: rgba(96, 165, 250, 0.6);
+      transform: scale(0);
+      animation: rippleEffect 0.6s linear;
+      pointer-events: none;
+    }
+
+    @keyframes rippleEffect {
+      to {
+        transform: scale(4);
+        opacity: 0;
+      }
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+      .page-wrapper {
+        padding-top: 50px;
+      }
+      
+      .news-container {
+        padding: 0 20px;
+        margin-top: 40px;
+      }
+      
+      .news-controls, .stocks-dashboard {
+        padding: 24px;
+        flex-direction: column;
+        align-items: stretch;
+      }
+      
+      .news-search {
+        max-width: none;
+      }
+      
+      .news-filter {
+        justify-content: center;
+      }
+      
+      .featured-content {
+        grid-template-columns: 1fr;
+      }
+      
+      .featured-text {
+        padding: 32px;
+      }
+      
+      .featured-title {
+        font-size: 1.75rem;
+      }
+      
+      .news-grid {
+        grid-template-columns: 1fr;
+        gap: 24px;
+      }
+
+      .stocks-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .page-wrapper {
+        padding-top: 60px;
+      }
+      
+      .news-container {
+        margin-top: 20px;
+      }
+      
+      .filter-button {
+        padding: 10px 16px;
+        font-size: 13px;
+      }
+      
+      .card-content {
+        padding: 20px;
+      }
+      
+      .featured-text {
+        padding: 24px;
+      }
+    }
+
+    /* Scroll Animations */
+    .fade-in-up {
+      opacity: 0;
+      transform: translateY(20px);
+      transition: all 0.6s ease;
+    }
+
+    .fade-in-up.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: rgba(30, 41, 59, 0.3);
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+      border-radius: 3px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: linear-gradient(135deg, #2563eb, #7c3aed);
+    }
+
+    /* Interactive Elements */
+    .interactive-icon {
+      transition: transform 0.3s ease;
+    }
+
+    .interactive-icon:hover {
+      transform: scale(1.1);
+    }
+
+    /* Pulse Animation for Real-time Updates */
+    .pulse {
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+      100% { transform: scale(1); }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="page-wrapper">
+    <!-- Header -->
+    <div id="site-header"></div>
+
+    <!-- Hero Section -->
+    <section class="section home-hero" style="padding-bottom: 0; position: relative; overflow: visible;">
+      <div class="container-medium-940px home-hero">
+        <div class="home-hero-featured-message-wrapper" data-w-id="448f5ead-3667-0bad-b1a4-a6038870800b" style="transform: translate3d(0px, 0%, 0px) scale3d(1, 1, 1) rotateX(0deg) rotateY(0deg) rotateZ(0deg) skew(0deg, 0deg); opacity: 1; transform-style: preserve-3d;">
+          <div class="home-hero-featured-message-content">
+            <a class="home-hero-featured-message-link w-inline-block" data-w-id="5747d66c-b4ac-690f-6026-662ab3648be2" href="#">
+              <div class="home-hero-featured-message-tag">Stay Updated</div>
+              <div class="home-hero-featured-message-text">Healthcare News & Market Intelligence</div>
+              <div class="home-hero-featured-message-icon"></div>
+            </a>
+            <div class="home-hero-featured-message-blur"></div>
+          </div>
+        </div>
+        <h1 class="proposals-heading" data-w-id="abc7287a-ad94-a3ec-8716-36750d55fc4e" style="transform: translate3d(0px, 0%, 0px) scale3d(1, 1, 1) rotateX(0deg) rotateY(0deg) rotateZ(0deg) skew(0deg, 0deg); opacity: 1; transform-style: preserve-3d;">Healthcare <span class="proposals-accent">News & Markets</span></h1>
+        <p class="proposals-description" data-w-id="749e645b-3b65-110f-471d-f6af6dfbc601" style="transform: translate3d(0px, 0px, 0px) scale3d(1, 1, 1) rotateX(0deg) rotateY(0deg) rotateZ(0deg) skew(0deg, 0deg); opacity: 1; transform-style: preserve-3d;">Comprehensive healthcare news, policy analysis, medical breakthroughs, and real-time market data from trusted sources worldwide. Stay informed with the latest developments in healthcare and biotechnology.</p>
+      </div>
+    </section>
+
+    <!-- Main Content -->
+    <main class="news-container" style="margin-top: 60px;">
+      <!-- Healthcare Stocks Dashboard -->
+      <section class="stocks-dashboard" data-aos="fade-up" data-aos-delay="100">
+        <div class="stocks-header">
+          <h2 class="stocks-title">
+            <span class="interactive-icon">📈</span>
+            Healthcare Stocks
+          </h2>
+          <div class="pulse-dot" style="width: 12px; height: 12px; background: #10b981; border-radius: 50%;"></div>
+        </div>
+        <div class="stocks-grid" id="stocksGrid">
+          <!-- Stocks will be loaded here -->
+        </div>
+      </section>
+
+      <!-- Controls -->
+      <div class="news-controls" data-aos="fade-up" data-aos-delay="200">
+        <div class="news-search">
+          <input type="text" id="newsSearch" placeholder="Search healthcare news, stocks, policies..." autocomplete="off">
+        </div>
+        <div class="news-filter">
+          <button class="filter-button active" data-filter="all">All Healthcare</button>
+          <button class="filter-button" data-filter="policy">Health Policy</button>
+          <button class="filter-button" data-filter="research">Medical Research</button>
+          <button class="filter-button" data-filter="public">Public Health</button>
+          <button class="filter-button" data-filter="pharma">Pharmaceuticals</button>
+        </div>
+      </div>
+
+      <!-- Featured Article -->
+      <section class="featured-article" id="featuredArticle" data-aos="fade-up" data-aos-delay="400">
+        <!-- Featured article will be dynamically inserted here -->
+      </section>
+
+      <!-- Loading State -->
+      <div id="newsLoading" class="state-container">
+        <div class="loading-spinner"></div>
+        <h3>Loading latest healthcare news and market data...</h3>
+        <p>Fetching the most recent healthcare stories and stock information for you</p>
+      </div>
+
+      <!-- Error State -->
+      <div id="newsError" class="state-container" style="display: none;">
+        <div class="error-container">
+          <h3>Unable to Load News</h3>
+          <p>We're experiencing difficulty accessing the latest healthcare news. Please check your internet connection and try again.</p>
+          <button onclick="healthcareNews.loadNews()" class="pagination-btn" style="margin-top: 20px;">Try Again</button>
+        </div>
+      </div>
+
+      <!-- Empty State -->
+      <div id="newsEmpty" class="state-container" style="display: none;">
+        <div class="empty-container">
+          <h3>No News Found</h3>
+          <p>No healthcare news articles match your current search criteria. Try adjusting your search terms or filters.</p>
+        </div>
+      </div>
+
+      <!-- News Grid -->
+      <section class="news-grid" id="newsGrid" style="display: none;">
+        <!-- News cards will be dynamically inserted here -->
+      </section>
+
+      <!-- Pagination -->
+      <div class="pagination-container" id="paginationContainer" style="display: none;">
+        <button class="pagination-btn" id="prevBtn" onclick="healthcareNews.previousPage()">← Previous</button>
+        <span class="pagination-info" id="paginationInfo">Page 1 of 1</span>
+        <button class="pagination-btn" id="nextBtn" onclick="healthcareNews.nextPage()">Next →</button>
+      </div>
+    </main>
+
+    <!-- Stock Detail Modal -->
+    <div class="stock-modal" id="stockModal">
+      <div class="stock-modal-content">
+        <button class="stock-modal-close" id="stockModalClose">×</button>
+        
+        <div class="stock-modal-header">
+          <div class="stock-modal-symbol" id="modalSymbol">JNJ</div>
+          <div class="stock-modal-name" id="modalName">Johnson & Johnson</div>
+          <div class="stock-modal-price" id="modalPrice">$162.45</div>
+          <div class="stock-modal-change" id="modalChange">
+            <span>📈 +2.15 (+1.34%)</span>
+          </div>
+        </div>
+
+        <div class="stock-modal-details">
+          <div class="detail-item">
+            <div class="detail-label">Volume</div>
+            <div class="detail-value" id="modalVolume">12.5M</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-label">Market Cap</div>
+            <div class="detail-value" id="modalMarketCap">$430.2B</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-label">P/E Ratio</div>
+            <div class="detail-value" id="modalPE">15.8</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-label">52W High</div>
+            <div class="detail-value" id="modal52High">$175.20</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-label">52W Low</div>
+            <div class="detail-value" id="modal52Low">$142.80</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-label">Dividend Yield</div>
+            <div class="detail-value" id="modalDividend">2.8%</div>
+          </div>
+        </div>
+
+        <div class="stock-chart">
+          <div class="chart-title">30-Day Price Chart</div>
+          <canvas id="stockChart" width="400" height="200"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div id="site-footer"></div>
+  </div>
+
+  <!-- Initialize AOS Animation Library -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // Initialize AOS
+      AOS.init({
+        duration: 600,
+        easing: 'ease-out-cubic',
+        once: true,
+        offset: 50
+      });
+    });
+  </script>
+
+  <!-- Initialize Healthcare News Manager -->
+  <script>
+    // Initialize when DOM is ready and after includes are loaded
+    document.addEventListener('DOMContentLoaded', function() {
+      // Wait a bit for includes to load, then initialize the news manager
+      setTimeout(() => {
+        window.healthcareNews = new HealthcareNewsManager();
+        healthcareNews.init();
+      }, 100);
+    });
+  </script>
+
+  <!-- Webflow Script -->
+  <script src="https://d3e54v103j8qbb.cloudfront.net/js/jquery-3.5.1.min.dc5e7f18c8.js?site=61113c4e9f23df1e7f554117" type="text/javascript" integrity="sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0=" crossorigin="anonymous"></script>
+  <script src="js/webflow.72248eaed.js" type="text/javascript"></script>
+</body>
+</html> 
