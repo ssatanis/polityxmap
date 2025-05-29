@@ -398,6 +398,9 @@
       if (!container) return;
       container.innerHTML = '';
       
+      // Maximum number of proposals to display on homepage
+      const MAX_PROPOSALS = 2;
+      
       // Get proposals from our unified data source
       let proposals = [];
       
@@ -405,30 +408,30 @@
         // Use a single source of truth - proposals.js system
         if (window.ProposalsCMS && typeof window.ProposalsCMS.getLatest === 'function') {
           // Use the ProposalsCMS if available
-          proposals = await window.ProposalsCMS.getLatest(2);
+          proposals = await window.ProposalsCMS.getLatest(MAX_PROPOSALS);
         } else {
           // Try to get proposals from the unified system first
           if (typeof getProposals === 'function') {
             const allProposals = await getProposals();
-            proposals = allProposals.slice(0, 2);
+            proposals = allProposals.slice(0, MAX_PROPOSALS);
           } else {
             // Fallback to fetch directly from data file
             try {
               const response = await fetch('/data/proposals.json');
               if (response.ok) {
                 const allProposals = await response.json();
-                proposals = allProposals.slice(0, 2);
+                proposals = allProposals.slice(0, MAX_PROPOSALS);
               } else {
                 // Final fallback to MAP_DATA if available
                 if (window.GENERATED_MAP_DATA && window.GENERATED_MAP_DATA.length > 0) {
-                  proposals = window.GENERATED_MAP_DATA.slice(0, 2);
+                  proposals = window.GENERATED_MAP_DATA.slice(0, MAX_PROPOSALS);
                 }
               }
             } catch (error) {
               console.error('Error loading proposals data:', error);
               // Final fallback to MAP_DATA if available
               if (window.GENERATED_MAP_DATA && window.GENERATED_MAP_DATA.length > 0) {
-                proposals = window.GENERATED_MAP_DATA.slice(0, 2);
+                proposals = window.GENERATED_MAP_DATA.slice(0, MAX_PROPOSALS);
               }
             }
           }
@@ -446,8 +449,8 @@
           }
         });
         
-        // Render the unique proposals (limit to 2 max)
-        renderProposals(uniqueProposals.slice(0, 2), container);
+        // Render the unique proposals with hard limit
+        renderProposals(uniqueProposals.slice(0, MAX_PROPOSALS), container);
       } catch (error) {
         console.error('Error updating latest proposals:', error);
         renderEmptyState(container);
@@ -455,12 +458,16 @@
     }
     
     function renderProposals(proposals, container) {
+      // Hard limit to ensure we never show more than 2 proposals on homepage
+      const MAX_DISPLAY = 2;
+      const limitedProposals = proposals.slice(0, MAX_DISPLAY);
+      
       const palette = [
         'color1', 'color2', 'color3', 'color4', 'color5', 'color6'
       ];
       
-      if (proposals && proposals.length > 0) {
-        proposals.forEach((proposal, idx) => {
+      if (limitedProposals && limitedProposals.length > 0) {
+        limitedProposals.forEach((proposal, idx) => {
           const tagColor = palette[idx % palette.length];
           const tags = proposal.tags || [];
           const tag = tags.length > 0 ? tags[0] : 'Healthcare';
