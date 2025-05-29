@@ -53,7 +53,7 @@
       <div class="footer-navigation-section">
         <h4 class="footer-section-title">&nbsp;</h4>
         <ul class="footer-nav-list" role="list">
-          <li class="footer-nav-item"><a class="footer-nav-link" href="/#faq">FAQs</a></li>
+          <li class="footer-nav-item"><a class="footer-nav-link faq-link" href="/#faq">FAQs</a></li>
           <li class="footer-nav-item"><a class="footer-nav-link" href="/contribute">Contribute</a></li>
           <li class="footer-nav-item"><a class="footer-nav-link" href="/about">About</a></li>
           <li class="footer-nav-item"><a class="footer-nav-link" href="/admin">Admin Portal</a></li>
@@ -146,6 +146,17 @@
   font-size: 14px;
   color: rgba(255, 255, 255, 0.6);
   font-weight: 500;
+  padding: 4px 8px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.03);
+  transition: all 0.3s ease;
+}
+
+.footer-established:hover {
+  border-color: rgba(56, 182, 255, 0.3);
+  background: rgba(56, 182, 255, 0.05);
+  color: rgba(255, 255, 255, 0.8);
 }
 
 .footer-description {
@@ -391,5 +402,101 @@
 </style>
 
 <script>
-// Contact form JavaScript removed as we now use static contact information
+// Enhanced FAQ link handling for perfect scrolling
+document.addEventListener('DOMContentLoaded', function() {
+  const faqLink = document.querySelector('.footer-nav-link.faq-link');
+  
+  if (faqLink) {
+    faqLink.addEventListener('click', function(e) {
+      e.preventDefault();
+      
+      // Check if we're on the homepage
+      if (window.location.pathname === '/' || window.location.pathname === '/index.html') {
+        // We're on homepage, scroll to FAQ section
+        // Target the actual FAQ section elements that exist
+        const faqSection = document.querySelector('.faq-section') || 
+                          document.querySelector('#site-faq') || 
+                          document.querySelector('.section.faq-section') ||
+                          document.querySelector('[class*="faq"]');
+        
+        if (faqSection) {
+          const headerHeight = document.querySelector('.header') ? document.querySelector('.header').offsetHeight : 80;
+          const targetPosition = faqSection.getBoundingClientRect().top + window.pageYOffset - headerHeight - 20;
+          
+          window.scrollTo({
+            top: targetPosition,
+            behavior: 'smooth'
+          });
+          
+          // Update URL without triggering navigation
+          history.pushState(null, null, '/#faq');
+          
+          console.log('FAQ section found and scrolled to:', faqSection);
+        } else {
+          console.log('FAQ section not found immediately, waiting for includes.js to load...');
+          // If FAQ section not found, wait for includes.js to load the content
+          let attempts = 0;
+          const maxAttempts = 10;
+          
+          const checkForFAQ = () => {
+            attempts++;
+            const delayedFaqSection = document.querySelector('.faq-section') || 
+                                    document.querySelector('#site-faq .faq-section') ||
+                                    document.querySelector('.section.faq-section') ||
+                                    document.querySelector('[class*="faq"]');
+            
+            if (delayedFaqSection) {
+              const headerHeight = document.querySelector('.header') ? document.querySelector('.header').offsetHeight : 80;
+              const targetPosition = delayedFaqSection.getBoundingClientRect().top + window.pageYOffset - headerHeight - 20;
+              
+              window.scrollTo({
+                top: targetPosition,
+                behavior: 'smooth'
+              });
+              
+              history.pushState(null, null, '/#faq');
+              console.log('FAQ section found after delay and scrolled to:', delayedFaqSection);
+            } else if (attempts < maxAttempts) {
+              setTimeout(checkForFAQ, 200);
+            } else {
+              console.log('FAQ section still not found after maximum attempts');
+              // Force reload with anchor as last resort
+              window.location.href = '/#faq';
+            }
+          };
+          
+          setTimeout(checkForFAQ, 200);
+        }
+      } else {
+        // We're on a different page, navigate to homepage with FAQ anchor
+        window.location.href = '/#faq';
+      }
+    });
+  }
+});
+
+// Also handle direct FAQ anchor navigation on page load
+window.addEventListener('load', function() {
+  if (window.location.hash === '#faq') {
+    // Wait a bit more for includes.js to load FAQ content
+    setTimeout(() => {
+      const faqSection = document.querySelector('.faq-section') || 
+                        document.querySelector('#site-faq .faq-section') ||
+                        document.querySelector('.section.faq-section') ||
+                        document.querySelector('[class*="faq"]');
+      
+      if (faqSection) {
+        const headerHeight = document.querySelector('.header') ? document.querySelector('.header').offsetHeight : 80;
+        const targetPosition = faqSection.getBoundingClientRect().top + window.pageYOffset - headerHeight - 20;
+        
+        window.scrollTo({
+          top: targetPosition,
+          behavior: 'smooth'
+        });
+        
+        console.log('FAQ section scrolled to on page load:', faqSection);
+      }
+    }, 1000); // Wait longer for includes.js to finish loading
+  }
+});
 </script> 
