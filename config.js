@@ -10,7 +10,7 @@ const config = {
   // Admin authentication credentials
   admin: {
     username: process.env.ADMIN_USERNAME || 'admin',
-    password: process.env.ADMIN_PASSWORD || 'Polityx76092!SecureAdmin2025',
+    password: process.env.ADMIN_PASSWORD || '76092',
   },
   
   // Session configuration
