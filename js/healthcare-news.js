@@ -170,6 +170,9 @@ class HealthcareNewsManager {
         this.loadStocks()
       ]);
       
+      // Set initial "last updated" timestamp
+      this.updateLastUpdatedTime();
+      
       console.log('Healthcare News & Market Intelligence Manager initialized successfully');
     } catch (error) {
       console.error('Failed to initialize healthcare news manager:', error);
@@ -191,7 +194,8 @@ class HealthcareNewsManager {
       paginationInfo: document.getElementById('paginationInfo'),
       prevBtn: document.getElementById('prevBtn'),
       nextBtn: document.getElementById('nextBtn'),
-      searchInput: document.getElementById('newsSearch'),
+      refreshButton: document.getElementById('refreshNews'),
+      lastUpdated: document.getElementById('lastUpdated'),
       stocksGrid: document.getElementById('stocksGrid'),
       totalArticles: document.getElementById('totalArticles'),
       todayArticles: document.getElementById('todayArticles'),
@@ -210,23 +214,9 @@ class HealthcareNewsManager {
   }
 
   /**
-   * Setup event listeners for search and filters
+   * Setup event listeners for filters and refresh
    */
   setupEventListeners() {
-    if (!this.elements.searchInput) {
-      console.warn('Search input not found');
-      return;
-    }
-
-    // Search functionality with debounce
-    let searchTimeout;
-    this.elements.searchInput.addEventListener('input', (e) => {
-      clearTimeout(searchTimeout);
-      searchTimeout = setTimeout(() => {
-        this.searchNews(e.target.value);
-      }, 300);
-    });
-
     // Filter buttons
     const filterButtons = document.querySelectorAll('.filter-button');
     filterButtons.forEach(button => {
@@ -1254,6 +1244,10 @@ class HealthcareNewsManager {
     if (this.elements.featuredContainer) {
       this.elements.featuredContainer.style.display = 'block';
     }
+    // Ensure loading state is hidden
+    if (this.elements.loading) {
+      this.elements.loading.style.display = 'none';
+    }
   }
 
   /**
@@ -1351,6 +1345,131 @@ class HealthcareNewsManager {
       this.loadNews(),
       this.loadStocks()
     ]);
+  }
+
+  /**
+   * Refresh news with visual feedback and timestamp update
+   */
+  async refreshNews() {
+    try {
+      // Prevent multiple simultaneous refreshes
+      if (this.isLoading) {
+        console.log('Refresh already in progress...');
+        return;
+      }
+
+      // Update refresh button to show loading state
+      const refreshButton = this.elements.refreshButton;
+      const refreshIcon = refreshButton?.querySelector('.refresh-icon');
+      const refreshText = refreshButton?.querySelector('.refresh-text');
+      
+      if (refreshButton) {
+        refreshButton.disabled = true;
+        refreshButton.style.opacity = '0.7';
+      }
+      
+      if (refreshIcon) {
+        refreshIcon.style.animation = 'spin 1s linear infinite';
+      }
+      
+      if (refreshText) {
+        refreshText.textContent = 'Refreshing...';
+      }
+
+      // Clear cache and reload data
+      this.clearCache();
+      this.isLoading = true;
+      
+      // Show loading state
+      this.showLoading();
+      
+      // Load fresh data
+      await Promise.all([
+        this.loadNews(),
+        this.loadStocks()
+      ]);
+      
+      // Update "last updated" timestamp
+      this.updateLastUpdatedTime();
+      
+      // Success feedback
+      this.showRefreshSuccess();
+      
+    } catch (error) {
+      console.error('Failed to refresh news:', error);
+      this.showRefreshError();
+    } finally {
+      // Reset refresh button state
+      const refreshButton = this.elements.refreshButton;
+      const refreshIcon = refreshButton?.querySelector('.refresh-icon');
+      const refreshText = refreshButton?.querySelector('.refresh-text');
+      
+      if (refreshButton) {
+        refreshButton.disabled = false;
+        refreshButton.style.opacity = '1';
+      }
+      
+      if (refreshIcon) {
+        refreshIcon.style.animation = '';
+      }
+      
+      if (refreshText) {
+        refreshText.textContent = 'Refresh Latest News';
+      }
+      
+      this.isLoading = false;
+    }
+  }
+
+  /**
+   * Update the last updated timestamp
+   */
+  updateLastUpdatedTime() {
+    if (this.elements.lastUpdated) {
+      const now = new Date();
+      const timeString = now.toLocaleTimeString('en-US', { 
+        hour: 'numeric', 
+        minute: '2-digit',
+        hour12: true 
+      });
+      this.elements.lastUpdated.textContent = `Last updated: ${timeString}`;
+    }
+  }
+
+  /**
+   * Show success feedback after refresh
+   */
+  showRefreshSuccess() {
+    const refreshButton = this.elements.refreshButton;
+    if (refreshButton) {
+      // Temporarily change button appearance to show success
+      const originalBorderColor = refreshButton.style.borderColor;
+      refreshButton.style.borderColor = '#10b981';
+      refreshButton.style.background = 'rgba(16, 185, 129, 0.1)';
+      
+      setTimeout(() => {
+        refreshButton.style.borderColor = originalBorderColor;
+        refreshButton.style.background = '';
+      }, 2000);
+    }
+  }
+
+  /**
+   * Show error feedback after failed refresh
+   */
+  showRefreshError() {
+    const refreshButton = this.elements.refreshButton;
+    if (refreshButton) {
+      // Temporarily change button appearance to show error
+      const originalBorderColor = refreshButton.style.borderColor;
+      refreshButton.style.borderColor = '#ef4444';
+      refreshButton.style.background = 'rgba(239, 68, 68, 0.1)';
+      
+      setTimeout(() => {
+        refreshButton.style.borderColor = originalBorderColor;
+        refreshButton.style.background = '';
+      }, 3000);
+    }
   }
 
   /**

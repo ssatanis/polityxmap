@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html class="w-mod-js w-mod-ix wf-dmsans-n5-active wf-dmsans-n7-active wf-dmsans-n4-active wf-active" data-wf-domain="darktemplate.webflow.io" data-wf-locale="en" data-wf-page="61113c4e9f23df42e2554109" data-wf-site="61113c4e9f23df1e7f554117" data-wf-status="1" lang="en">
 <head>
-  <style>.wf-force-outline-none[tabindex="-1"]:focus{outline:none;}</style>
   <meta charset="utf-8"/>
   <title>Healthcare News | PolityxMap</title>
   <meta content="Stay updated with the latest healthcare news and policy developments. Real-time healthcare journalism powered by NewsAPI for informed decision-making." name="description"/>
@@ -43,6 +42,8 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   
   <style>
+    .wf-force-outline-none[tabindex="-1"]:focus{outline:none;}
+    
     .w-webflow-badge{
       display:none !important;
     }
@@ -53,10 +54,7 @@
     }
     
     body {
-      background: #0a0a0f;
-      background-image: 
-        radial-gradient(circle at 25% 25%, rgba(15, 52, 96, 0.3) 0%, transparent 50%),
-        radial-gradient(circle at 75% 75%, rgba(0, 90, 167, 0.2) 0%, transparent 50%);
+      background: linear-gradient(135deg, #0B0A12 0%, #13111a 25%, #1a1823 50%, #232046 75%, #2d2654 100%);
       background-attachment: fixed;
       min-height: 100vh;
       font-family: 'DM Sans', sans-serif;
@@ -67,8 +65,14 @@
     .page-wrapper {
       background: transparent;
       position: relative;
-      /* Reduced top padding for tighter spacing with header */
-      padding-top: 40px;
+    }
+    
+    /* Hero Section Spacing - Match other pages */
+    .section.home-hero {
+      padding-top: 175px !important;
+      padding-bottom: 0;
+      position: relative;
+      overflow: visible;
     }
 
     /* Professional Container */
@@ -212,50 +216,43 @@
       gap: 24px;
     }
 
-    .news-search {
-      position: relative;
-      flex: 1;
-      min-width: 300px;
-      max-width: 500px;
+    .refresh-section {
+      display: flex;
+      align-items: center;
+      gap: 16px;
     }
 
-    .news-search input {
-      width: 100%;
-      padding: 16px 24px 16px 56px;
+    .refresh-button {
       background: rgba(30, 41, 59, 0.6);
       border: 2px solid rgba(71, 85, 105, 0.4);
-      border-radius: 16px;
-      color: #f8fafc;
-      font-size: 16px;
+      border-radius: 12px;
+      color: #e2e8f0;
+      cursor: pointer;
       transition: all 0.3s ease;
+      padding: 12px 24px;
+      font-weight: 500;
       backdrop-filter: blur(10px);
-      box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
     }
 
-    .news-search input:focus {
-      outline: none;
+    .refresh-button:hover {
       border-color: #60a5fa;
       background: rgba(30, 41, 59, 0.8);
-      box-shadow: 
-        inset 0 2px 4px rgba(0, 0, 0, 0.1),
-        0 0 0 3px rgba(96, 165, 250, 0.2);
+      transform: translateY(-1px);
     }
 
-    .news-search input::placeholder {
+    .refresh-icon {
+      margin-right: 8px;
+    }
+
+    .refresh-text {
+      font-size: 14px;
+    }
+
+    .last-updated {
+      font-size: 14px;
       color: #94a3b8;
     }
 
-    .news-search::before {
-      content: '🔍';
-      position: absolute;
-      left: 20px;
-      top: 50%;
-      transform: translateY(-50%);
-      font-size: 18px;
-      z-index: 1;
-    }
-
-    /* Professional Filter Buttons */
     .news-filter {
       display: flex;
       gap: 12px;
@@ -969,10 +966,6 @@
         align-items: stretch;
       }
       
-      .news-search {
-        max-width: none;
-      }
-      
       .news-filter {
         justify-content: center;
       }
@@ -1080,7 +1073,7 @@
     <div id="site-header"></div>
 
     <!-- Hero Section -->
-    <section class="section home-hero" style="padding-bottom: 0; position: relative; overflow: visible;">
+    <section class="section home-hero">
       <div class="container-medium-940px home-hero">
         <div class="home-hero-featured-message-wrapper" data-w-id="448f5ead-3667-0bad-b1a4-a6038870800b" style="transform: translate3d(0px, 0%, 0px) scale3d(1, 1, 1) rotateX(0deg) rotateY(0deg) rotateZ(0deg) skew(0deg, 0deg); opacity: 1; transform-style: preserve-3d;">
           <div class="home-hero-featured-message-content">
@@ -1115,8 +1108,12 @@
 
       <!-- Controls -->
       <div class="news-controls" data-aos="fade-up" data-aos-delay="200">
-        <div class="news-search">
-          <input type="text" id="newsSearch" placeholder="Search healthcare news, stocks, policies..." autocomplete="off">
+        <div class="refresh-section">
+          <button class="refresh-button" id="refreshNews" onclick="healthcareNews.refreshNews()">
+            <span class="refresh-icon">🔄</span>
+            <span class="refresh-text">Refresh Latest News</span>
+          </button>
+          <span class="last-updated" id="lastUpdated">Last updated: Just now</span>
         </div>
         <div class="news-filter">
           <button class="filter-button active" data-filter="all">All Healthcare</button>
@@ -1133,7 +1130,7 @@
       </section>
 
       <!-- Loading State -->
-      <div id="newsLoading" class="state-container">
+      <div id="newsLoading" class="state-container" style="display: none;">
         <div class="loading-spinner"></div>
         <h3>Loading latest healthcare news and market data...</h3>
         <p>Fetching the most recent healthcare stories and stock information for you</p>
