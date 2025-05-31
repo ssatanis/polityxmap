@@ -116,6 +116,64 @@
   margin-bottom: 60px;
 }
 
+/* Mobile/Tablet Responsive Footer */
+@media (max-width: 991px) {
+  .footer {
+    padding: 60px 0 30px;
+  }
+  
+  .footer-main-content {
+    display: block;
+    margin-bottom: 40px;
+  }
+  
+  /* Hide navigation and legal sections on mobile/tablet */
+  .footer-navigation-section,
+  .footer-legal-section {
+    display: none;
+  }
+  
+  .footer-brand-section {
+    max-width: 100%;
+    text-align: center;
+  }
+  
+  .footer-brand-header {
+    justify-content: center;
+    margin-bottom: 16px;
+  }
+  
+  .footer-established {
+    font-size: 12px;
+    padding: 3px 6px;
+  }
+  
+  .footer-description {
+    font-size: 15px;
+    margin-bottom: 24px;
+    text-align: center;
+  }
+  
+  .footer-social-icons {
+    justify-content: center;
+  }
+  
+  .footer-bottom {
+    text-align: center;
+  }
+  
+  .footer-bottom-content {
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .footer-bottom-right {
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
+}
+
 /* Brand Section */
 .footer-brand-section {
   max-width: 400px;
@@ -306,72 +364,6 @@
   color: rgba(255, 255, 255, 0.5);
   font-size: 14px;
   font-weight: 400;
-}
-
-/* Responsive Design */
-@media (max-width: 1024px) {
-  .footer-main-content {
-    grid-template-columns: 2fr 1fr 1fr;
-    gap: 40px;
-  }
-  
-  .footer-legal-section {
-    grid-column: 2 / 4;
-  }
-}
-
-@media (max-width: 768px) {
-  .footer {
-    padding: 60px 0 30px;
-  }
-  
-  .footer-main-content {
-    grid-template-columns: 1fr;
-    gap: 40px;
-    text-align: left;
-  }
-  
-  .footer-brand-header {
-    justify-content: flex-start;
-  }
-  
-  .footer-brand-logo {
-    height: 32px;
-  }
-  
-  .footer-social-icons {
-    justify-content: flex-start;
-  }
-  
-  .footer-bottom-content {
-    flex-direction: column;
-    text-align: center;
-    gap: 15px;
-  }
-  
-  .footer-bottom-right {
-    align-items: center;
-    justify-content: center;
-  }
-}
-
-@media (max-width: 480px) {
-  .footer {
-    padding: 40px 0 20px;
-  }
-  
-  .footer-brand-logo {
-    height: 28px;
-  }
-  
-  .footer-social-icons {
-    gap: 12px;
-  }
-  
-  .footer-social-link {
-    width: 36px;
-    height: 36px;
-  }
 }
 
 /* Animation */

@@ -26,7 +26,7 @@
         <div class="button-primary-gradient header-button">
           <a class="button-primary small-v2 w-button" href="/#map">Map</a>
         </div>
-        <div class="menu-button w-nav-button" role="button">
+        <div class="menu-button w-nav-button" role="button" onclick="toggleMobileMenu();">
           <div class="header-menu-button-icon-wrapper">
             <div class="icon-wrapper">
               <div class="header-menu-button-icon-top"></div>
@@ -39,3 +39,36 @@
     </div>
   </div>
 </div>
+
+<script>
+// Mobile menu toggle functionality
+function toggleMobileMenu() {
+  const navMenu = document.querySelector('.nav-menu.w-nav-menu');
+  const menuButton = document.querySelector('.menu-button.w-nav-button');
+  
+  if (navMenu && menuButton) {
+    navMenu.classList.toggle('w--open');
+    menuButton.classList.toggle('w--open');
+    
+    // Toggle body scroll lock for mobile
+    document.body.classList.toggle('nav-open');
+  }
+}
+
+// Close menu when clicking nav links on mobile
+document.addEventListener('DOMContentLoaded', function() {
+  const navLinks = document.querySelectorAll('.nav-link');
+  navLinks.forEach(link => {
+    link.addEventListener('click', function() {
+      const navMenu = document.querySelector('.nav-menu.w-nav-menu');
+      const menuButton = document.querySelector('.menu-button.w-nav-button');
+      
+      if (navMenu && menuButton && navMenu.classList.contains('w--open')) {
+        navMenu.classList.remove('w--open');
+        menuButton.classList.remove('w--open');
+        document.body.classList.remove('nav-open');
+      }
+    });
+  });
+});
+</script>

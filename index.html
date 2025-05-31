@@ -71,6 +71,11 @@
     background: transparent;
   }
 
+  /* Ensure all sections have transparent backgrounds to show the body gradient */
+  .section {
+    background: transparent !important;
+  }
+
   /* Enhanced Feature Cards Styling */
   .home-features-grid {
     display: grid;
@@ -210,6 +215,75 @@
     opacity: 0.15;
   }
 
+  /* Mobile Menu Styles */
+  @media (max-width: 991px) {
+    .nav-menu.w-nav-menu {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 1000;
+      background: linear-gradient(135deg, #0B0A12 0%, #232046 100%);
+      padding: 80px 20px 40px;
+      transform: translateX(-100%);
+      transition: transform 0.3s ease;
+      overflow-y: auto;
+    }
+
+    .nav-menu.w-nav-menu.w--open {
+      transform: translateX(0);
+    }
+
+    .header-navigation {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      padding: 0;
+      margin: 0;
+      list-style: none;
+    }
+
+    .nav-link {
+      font-size: 24px;
+      font-weight: 600;
+      color: #ffffff;
+      text-decoration: none;
+      padding: 15px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      transition: all 0.3s ease;
+    }
+
+    .nav-link:hover {
+      color: #38B6FF;
+      padding-left: 20px;
+    }
+
+    /* Hamburger menu animation */
+    .menu-button.w-nav-button .header-menu-button-icon-top,
+    .menu-button.w-nav-button .header-menu-button-icon-medium,
+    .menu-button.w-nav-button .header-menu-button-icon-bottom {
+      transition: all 0.3s ease;
+    }
+
+    .menu-button.w-nav-button.w--open .header-menu-button-icon-top {
+      transform: rotate(45deg) translate(6px, 6px);
+    }
+
+    .menu-button.w-nav-button.w--open .header-menu-button-icon-medium {
+      opacity: 0;
+    }
+
+    .menu-button.w-nav-button.w--open .header-menu-button-icon-bottom {
+      transform: rotate(-45deg) translate(6px, -6px);
+    }
+  }
+
+  /* Body scroll lock when nav is open */
+  body.nav-open {
+    overflow: hidden;
+  }
+
   /* Reduced section spacing */
   .section.home-features {
     padding-bottom: 40px;
@@ -225,7 +299,7 @@
 <body class="bg-neutral-800">
 <div class="page-wrapper" style="opacity: 1;">
   <!-- Header placeholder - will be filled by includes.js -->
-  <div id="site-header"></div><section class="section home-hero"><div class="container-medium-940px home-hero"><div class="home-hero-featured-message-wrapper" data-w-id="448f5ead-3667-0bad-b1a4-a6038870800b" style="transform: translate3d(0px, 0%, 0px) scale3d(1, 1, 1) rotateX(0deg) rotateY(0deg) rotateZ(0deg) skew(0deg, 0deg); opacity: 1; transform-style: preserve-3d;"><div class="home-hero-featured-message-content"><a class="home-hero-featured-message-link w-inline-block" data-w-id="5747d66c-b4ac-690f-6026-662ab3648be2" href="#"><div class="home-hero-featured-message-tag">Backed by</div><div class="home-hero-featured-message-text">Cornell University</div><div class="home-hero-featured-message-icon"></div></a><div class="home-hero-featured-message-blur"></div></div></div><h1 class="display-1 home-hero" data-w-id="abc7287a-ad94-a3ec-8716-36750d55fc4e" style="transform: translate3d(0px, 0%, 0px) scale3d(1, 1, 1) rotateX(0deg) rotateY(0deg) rotateZ(0deg) skew(0deg, 0deg); opacity: 1; transform-style: preserve-3d;">Mapping global healthcare <span class="text-color-accent">challenges</span></h1><p class="paragraph-large home-hero" data-w-id="749e645b-3b65-110f-471d-f6af6dfbc601" style="transform: translate3d(0px, 0px, 0px) scale3d(1, 1, 1) rotateX(0deg) rotateY(0deg) rotateZ(0deg) skew(0deg, 0deg); opacity: 1; transform-style: preserve-3d;">Explore data-driven solutions and real-world policy impact.</p><div class="_2-buttons-wrapper" data-w-id="b1ff49e2-6272-bd33-f83d-82e4206a6d65" style="transform: translate3d(0px, 0px, 0px) scale3d(1, 1, 1) rotateX(0deg) rotateY(0deg) rotateZ(0deg) skew(0deg, 0deg); opacity: 1; transform-style: preserve-3d;"><div class="button-primary-gradient _2-buttons"><a class="button-primary w-button" href="#map">Explore Map</a></div><a class="button-secondary _2-buttons w-button" href="/proposals.html">Policy Proposals</a></div></div><div class="container-default home-hero w-container">
+  <div id="site-header"></div><section class="section home-hero"><div class="container-medium-940px home-hero"><div class="home-hero-featured-message-wrapper" data-w-id="448f5ead-3667-0bad-b1a4-a6038870800b" style="transform: translate3d(0px, 0%, 0px) scale3d(1, 1, 1) rotateX(0deg) rotateY(0deg) rotateZ(0deg) skew(0deg, 0deg); opacity: 1; transform-style: preserve-3d;"><div class="home-hero-featured-message-content"><a class="home-hero-featured-message-link w-inline-block" data-w-id="5747d66c-b4ac-690f-6026-662ab3648be2" href="#"><div class="home-hero-featured-message-tag">Backed by</div><div class="home-hero-featured-message-text">Cornell University</div><div class="home-hero-featured-message-icon"></div></a><div class="home-hero-featured-message-blur"></div></div></div><h1 class="display-1 home-hero" data-w-id="abc7287a-ad94-a3ec-8716-36750d55fc4e" style="transform: translate3d(0px, 0%, 0px) scale3d(1, 1, 1) rotateX(0deg) rotateY(0deg) rotateZ(0deg) skew(0deg, 0deg); opacity: 1; transform-style: preserve-3d;">Mapping global healthcare <span class="text-color-accent">challenges</span></h1><p class="paragraph-large home-hero" data-w-id="749e645b-3b65-110f-471d-f6af6dfbc601" style="transform: translate3d(0px, 0px, 0px) scale3d(1, 1, 1) rotateX(0deg) rotateY(0deg) rotateZ(0deg) skew(0deg, 0deg); opacity: 1; transform-style: preserve-3d;">Explore data-driven solutions and real-world policy impact.</p><div class="_2-buttons-wrapper" data-w-id="b1ff49e2-6272-bd33-f83d-82e4206a6d65" style="transform: translate3d(0px, 0px, 0px) scale3d(1, 1, 1) rotateX(0deg) rotateY(0deg) rotateZ(0deg) skew(0deg, 0deg); opacity: 1; transform-style: preserve-3d;"><div class="button-primary-gradient _2-buttons"><a class="button-primary w-button" href="#map">Explore Map</a></div><div class="button-primary-gradient _2-buttons"><a class="button-primary w-button" href="/proposals.html">Policy Proposals</a></div></div></div><div class="container-default home-hero w-container">
       <!-- Interactive Map Container -->
       <div class="home-hero-images-wrapper" id="map" data-w-id="1535d204-b8f5-78ad-1998-57322399a3bd" style="transform: translate3d(0px, 0px, 0px) scale3d(1, 1, 1) rotateX(0deg) rotateY(0deg) rotateZ(0deg) skew(0deg, 0deg); opacity: 1; transform-style: preserve-3d;">
         <!-- The map will be inserted here by JavaScript -->
